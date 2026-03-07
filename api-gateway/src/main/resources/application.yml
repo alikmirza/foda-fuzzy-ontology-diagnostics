@@ -1,0 +1,100 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        # Service A Routes
+        - id: service-a
+          uri: ${SERVICE_A_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/services/service-a/**
+          filters:
+            - RewritePath=/api/services/service-a/(?<segment>.*), /$\{segment}
+
+        # Service B Routes
+        - id: service-b
+          uri: ${SERVICE_B_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/services/service-b/**
+          filters:
+            - RewritePath=/api/services/service-b/(?<segment>.*), /$\{segment}
+
+        # Service C Routes
+        - id: service-c
+          uri: ${SERVICE_C_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/services/service-c/**
+          filters:
+            - RewritePath=/api/services/service-c/(?<segment>.*), /$\{segment}
+
+        # ML Service Routes
+        - id: ml-service
+          uri: ${ML_SERVICE_URL:http://localhost:8000}
+          predicates:
+            - Path=/api/ml/**
+          filters:
+            - RewritePath=/api/ml/(?<segment>.*), /$\{segment}
+
+        # Fuzzy Engine Routes
+        - id: fuzzy-engine
+          uri: ${FUZZY_ENGINE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/fuzzy/**
+          filters:
+            - RewritePath=/api/fuzzy/(?<segment>.*), /fuzzy/$\{segment}
+
+        # Ontology Mapper Routes
+        - id: ontology-mapper
+          uri: ${ONTOLOGY_MAPPER_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/ontology/**
+          filters:
+            - RewritePath=/api/ontology/(?<segment>.*), /ontology/$\{segment}
+
+        # Explanation Service Routes
+        - id: explanation-service
+          uri: ${EXPLANATION_SERVICE_URL:http://localhost:8086}
+          predicates:
+            - Path=/api/explanation/**
+          filters:
+            - RewritePath=/api/explanation/(?<segment>.*), /explanation/$\{segment}
+
+      # Global CORS Configuration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:3001"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    com.foda.gateway: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
