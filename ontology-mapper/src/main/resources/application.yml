@@ -1,0 +1,40 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: ontology-mapper
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ontology-mapper-group
+      auto-offset-reset: earliest
+      enable-auto-commit: true
+
+kafka:
+  topic:
+    diagnostic-events: diagnostic-events
+
+fuseki:
+  endpoint: ${FUSEKI_ENDPOINT:http://localhost:3030/foda}
+
+ontology:
+  file:
+    path: ${ONTOLOGY_PATH:/ontology/DiagnosticKB.owl}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.foda.ontology: INFO
+    org.apache.jena: WARN
+    org.springframework.kafka: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
