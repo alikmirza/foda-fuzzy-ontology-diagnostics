@@ -1,0 +1,61 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: service-c
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      acks: 1
+      retries: 3
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+service:
+  id: ${SERVICE_NAME:service-c}
+  version: 1.0.0
+
+metrics:
+  collection:
+    enabled: true
+    interval: 10000  # 10 seconds
+  anomaly:
+    simulation: false  # Set to true to simulate anomalies
+
+kafka:
+  topic:
+    metrics: metrics-stream
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.foda.service: DEBUG
+    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+
+---
+# Docker profile
+spring:
+  config:
+    activate:
+      on-profile: docker
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
+
+logging:
+  level:
+    com.foda.service: INFO
