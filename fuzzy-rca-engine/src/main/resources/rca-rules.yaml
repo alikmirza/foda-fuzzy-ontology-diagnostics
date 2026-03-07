@@ -1,0 +1,190 @@
+# =============================================================================
+# FCP-RCA Fuzzy Rule Base — rca-rules.yaml
+# =============================================================================
+#
+# This file defines the expert rule base for the Mamdani fuzzy inference engine
+# (Section 3.2 of the FCP-RCA paper). Rules follow the schema:
+#
+#   id             : Unique rule identifier (e.g. R01). Required.
+#   label          : Human-readable rule description. Required.
+#   antecedents    : List of fuzzy label strings (e.g. "cpu_HIGH"). Required.
+#                    Labels must match the output of FaultFuzzifierImpl.
+#   consequent     : Fault category string (consequent output). Required.
+#   certaintyFactor: Certainty factor CF ∈ [0.0, 1.0]. Required.
+#                    Firing strength α = CF × min{membership values of antecedents}.
+#
+# Available antecedent labels (from FaultFuzzifierImpl):
+#   cpu:        cpu_LOW  | cpu_MEDIUM  | cpu_HIGH
+#   latency:    latency_NORMAL | latency_ELEVATED | latency_CRITICAL
+#   memory:     memory_LOW | memory_MEDIUM | memory_HIGH
+#   errorRate:  errorRate_NONE | errorRate_LOW | errorRate_ELEVATED | errorRate_HIGH
+#   throughput: throughput_NORMAL | throughput_LOW
+#
+# To add a custom rule: append a new block below, following the same schema.
+# To disable a rule:    rename the id to "DISABLED_Rxx" (loader skips unknown consequents)
+#                       or remove the block entirely.
+# To calibrate CFs:     re-run the benchmark (RcaEvaluator) after each change and compare
+#                       MRR/NDCG@3 against the baseline reported in Table 4 of the paper.
+#
+# Reference: Section 3.2, Equations 2–3 of the FCP-RCA paper.
+# Maintainer: FODA research group, 2026.
+# =============================================================================
+
+version: "1.0"
+description: "FCP-RCA default expert rule base — 20 rules across 6 fault categories"
+
+rules:
+
+  # ---------------------------------------------------------------------------
+  # CPU_SATURATION (R01–R03)
+  # Signals: High CPU utilisation accompanied by elevated latency or low throughput.
+  # ---------------------------------------------------------------------------
+  - id: R01
+    label: "R01: IF cpu_HIGH AND latency_ELEVATED THEN CPU_SATURATION"
+    antecedents: [cpu_HIGH, latency_ELEVATED]
+    consequent: CPU_SATURATION
+    certaintyFactor: 0.85
+
+  - id: R02
+    label: "R02: IF cpu_HIGH AND throughput_LOW THEN CPU_SATURATION"
+    antecedents: [cpu_HIGH, throughput_LOW]
+    consequent: CPU_SATURATION
+    certaintyFactor: 0.80
+
+  - id: R03
+    label: "R03: IF cpu_HIGH AND latency_CRITICAL THEN CPU_SATURATION"
+    antecedents: [cpu_HIGH, latency_CRITICAL]
+    consequent: CPU_SATURATION
+    certaintyFactor: 0.92
+
+  # ---------------------------------------------------------------------------
+  # MEMORY_PRESSURE (R04–R06)
+  # Signals: High heap utilisation combined with throughput collapse or GC-induced latency.
+  # ---------------------------------------------------------------------------
+  - id: R04
+    label: "R04: IF memory_HIGH AND throughput_LOW THEN MEMORY_PRESSURE"
+    antecedents: [memory_HIGH, throughput_LOW]
+    consequent: MEMORY_PRESSURE
+    certaintyFactor: 0.80
+
+  - id: R05
+    label: "R05: IF memory_HIGH AND latency_ELEVATED THEN MEMORY_PRESSURE"
+    antecedents: [memory_HIGH, latency_ELEVATED]
+    consequent: MEMORY_PRESSURE
+    certaintyFactor: 0.75
+
+  - id: R06
+    label: "R06: IF memory_HIGH AND cpu_MEDIUM THEN MEMORY_PRESSURE"
+    antecedents: [memory_HIGH, cpu_MEDIUM]
+    consequent: MEMORY_PRESSURE
+    certaintyFactor: 0.70
+
+  # ---------------------------------------------------------------------------
+  # SERVICE_ERROR (R07–R09)
+  # Signals: Elevated or high 5xx/4xx error rates, often with latency.
+  # ---------------------------------------------------------------------------
+  - id: R07
+    label: "R07: IF errorRate_HIGH THEN SERVICE_ERROR"
+    antecedents: [errorRate_HIGH]
+    consequent: SERVICE_ERROR
+    certaintyFactor: 0.90
+
+  - id: R08
+    label: "R08: IF errorRate_ELEVATED AND latency_ELEVATED THEN SERVICE_ERROR"
+    antecedents: [errorRate_ELEVATED, latency_ELEVATED]
+    consequent: SERVICE_ERROR
+    certaintyFactor: 0.78
+
+  - id: R09
+    label: "R09: IF errorRate_ELEVATED AND cpu_HIGH THEN SERVICE_ERROR"
+    antecedents: [errorRate_ELEVATED, cpu_HIGH]
+    consequent: SERVICE_ERROR
+    certaintyFactor: 0.72
+
+  # ---------------------------------------------------------------------------
+  # LATENCY_ANOMALY (R10–R11)
+  # Signals: Critical P99 latency or elevated latency paired with throughput drop.
+  # ---------------------------------------------------------------------------
+  - id: R10
+    label: "R10: IF latency_CRITICAL THEN LATENCY_ANOMALY"
+    antecedents: [latency_CRITICAL]
+    consequent: LATENCY_ANOMALY
+    certaintyFactor: 0.88
+
+  - id: R11
+    label: "R11: IF latency_ELEVATED AND throughput_LOW THEN LATENCY_ANOMALY"
+    antecedents: [latency_ELEVATED, throughput_LOW]
+    consequent: LATENCY_ANOMALY
+    certaintyFactor: 0.74
+
+  # ---------------------------------------------------------------------------
+  # CASCADING_FAILURE (R12–R14)
+  # Signals: Multi-dimensional simultaneous degradation — typical cascade pattern.
+  # ---------------------------------------------------------------------------
+  - id: R12
+    label: "R12: IF cpu_HIGH AND errorRate_ELEVATED AND latency_ELEVATED THEN CASCADING_FAILURE"
+    antecedents: [cpu_HIGH, errorRate_ELEVATED, latency_ELEVATED]
+    consequent: CASCADING_FAILURE
+    certaintyFactor: 0.92
+
+  - id: R13
+    label: "R13: IF memory_HIGH AND errorRate_HIGH THEN CASCADING_FAILURE"
+    antecedents: [memory_HIGH, errorRate_HIGH]
+    consequent: CASCADING_FAILURE
+    certaintyFactor: 0.87
+
+  - id: R14
+    label: "R14: IF cpu_HIGH AND memory_HIGH AND latency_CRITICAL THEN CASCADING_FAILURE"
+    antecedents: [cpu_HIGH, memory_HIGH, latency_CRITICAL]
+    consequent: CASCADING_FAILURE
+    certaintyFactor: 0.95
+
+  # ---------------------------------------------------------------------------
+  # RESOURCE_CONTENTION (R15–R16)
+  # Signals: CPU and memory simultaneously elevated — typical shared-resource contention.
+  # ---------------------------------------------------------------------------
+  - id: R15
+    label: "R15: IF cpu_HIGH AND memory_HIGH THEN RESOURCE_CONTENTION"
+    antecedents: [cpu_HIGH, memory_HIGH]
+    consequent: RESOURCE_CONTENTION
+    certaintyFactor: 0.82
+
+  - id: R16
+    label: "R16: IF cpu_MEDIUM AND memory_HIGH AND throughput_LOW THEN RESOURCE_CONTENTION"
+    antecedents: [cpu_MEDIUM, memory_HIGH, throughput_LOW]
+    consequent: RESOURCE_CONTENTION
+    certaintyFactor: 0.68
+
+  # ---------------------------------------------------------------------------
+  # MEMORY_LEAK_TENDENCY (R17–R18)  [NEW — not in original 16-rule baseline]
+  # Signals: Progressive memory growth pattern without CPU saturation.
+  # These rules cover slow-moving memory leaks not yet at the HIGH threshold.
+  # ---------------------------------------------------------------------------
+  - id: R17
+    label: "R17: IF memory_HIGH AND cpu_LOW AND latency_ELEVATED THEN MEMORY_LEAK_TENDENCY"
+    antecedents: [memory_HIGH, cpu_LOW, latency_ELEVATED]
+    consequent: MEMORY_LEAK_TENDENCY
+    certaintyFactor: 0.72
+
+  - id: R18
+    label: "R18: IF memory_HIGH AND cpu_LOW AND throughput_LOW THEN MEMORY_LEAK_TENDENCY"
+    antecedents: [memory_HIGH, cpu_LOW, throughput_LOW]
+    consequent: MEMORY_LEAK_TENDENCY
+    certaintyFactor: 0.68
+
+  # ---------------------------------------------------------------------------
+  # DOWNSTREAM_DEPENDENCY_SLOWDOWN (R19–R20)  [NEW]
+  # Signals: Low local CPU but critical latency — implies dependency-induced latency,
+  # not local processing overload. Used in conjunction with propagation evidence.
+  # ---------------------------------------------------------------------------
+  - id: R19
+    label: "R19: IF latency_CRITICAL AND cpu_LOW AND errorRate_NONE THEN DOWNSTREAM_DEPENDENCY_SLOWDOWN"
+    antecedents: [latency_CRITICAL, cpu_LOW, errorRate_NONE]
+    consequent: DOWNSTREAM_DEPENDENCY_SLOWDOWN
+    certaintyFactor: 0.78
+
+  - id: R20
+    label: "R20: IF latency_ELEVATED AND cpu_LOW AND throughput_LOW THEN DOWNSTREAM_DEPENDENCY_SLOWDOWN"
+    antecedents: [latency_ELEVATED, cpu_LOW, throughput_LOW]
+    consequent: DOWNSTREAM_DEPENDENCY_SLOWDOWN
+    certaintyFactor: 0.65
