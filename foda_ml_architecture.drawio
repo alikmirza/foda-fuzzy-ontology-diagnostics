@@ -1,0 +1,419 @@
+<mxfile host="app.diagrams.net" modified="2024-01-15T14:00:00.000Z" agent="Claude" version="22.1.0" etag="FODA_ML_Architecture" type="device">
+  <diagram name="FODA with Python ML" id="foda-ml-main">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="FODA with ML Integration (Option C): Hybrid Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="1000" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Subtitle -->
+        <mxCell id="subtitle" value="Fuzzy-Ontology-Based Diagnostics with Python ML Anomaly Detection" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="250" y="60" width="1100" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Layer 1: Monitored Services -->
+        <mxCell id="layer1-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;opacity=30;" vertex="1" parent="1">
+          <mxGeometry x="80" y="120" width="1440" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="layer1-label" value="Layer 1: Monitored Services (Distributed System)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="100" y="130" width="450" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Service A -->
+        <mxCell id="service-a" value="Service A" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="150" y="180" width="180" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="service-a-metrics" value="Metrics:&#xa;• CPU: 93%&#xa;• Latency: 320ms&#xa;• Memory: 78%&#xa;• Throughput: 450 req/s&#xa;• Error rate: 2.5%" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9" vertex="1" parent="1">
+          <mxGeometry x="160" y="210" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="service-a-endpoints" value="/metrics  /status" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="160" y="280" width="160" height="15" as="geometry" />
+        </mxCell>
+        
+        <!-- Service B -->
+        <mxCell id="service-b" value="Service B" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="380" y="180" width="180" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="service-b-metrics" value="Metrics:&#xa;• CPU: 45%&#xa;• Latency: 80ms&#xa;• Memory: 52%&#xa;• Throughput: 890 req/s&#xa;• Error rate: 0.3%" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9" vertex="1" parent="1">
+          <mxGeometry x="390" y="210" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="service-b-endpoints" value="/metrics  /status" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="390" y="280" width="160" height="15" as="geometry" />
+        </mxCell>
+        
+        <!-- Service C -->
+        <mxCell id="service-c" value="Service C" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="610" y="180" width="180" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="service-c-metrics" value="Metrics:&#xa;• CPU: 67%&#xa;• Latency: 150ms&#xa;• Memory: 65%&#xa;• Throughput: 620 req/s&#xa;• Error rate: 1.2%" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9" vertex="1" parent="1">
+          <mxGeometry x="620" y="210" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="service-c-endpoints" value="/metrics  /status" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="620" y="280" width="160" height="15" as="geometry" />
+        </mxCell>
+        
+        <!-- More Services -->
+        <mxCell id="more-services" value="..." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=36;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="830" y="220" width="60" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Metrics Collection -->
+        <mxCell id="metrics-collection" value="Metrics Collection" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="940" y="180" width="250" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="metrics-list" value="Vector format for ML:&#xa;[cpu, memory, latency, &#xa; throughput, error_rate,&#xa; response_time, disk_io,&#xa; network_traffic, &#xa; connection_count, ...]" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontFamily=Courier New" vertex="1" parent="1">
+          <mxGeometry x="950" y="215" width="230" height="75" as="geometry" />
+        </mxCell>
+        
+        <!-- Training Data Note -->
+        <mxCell id="training-note" value="📊 Historical Data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="180" width="240" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="training-content" value="For ML Training:&#xa;• Normal behavior data&#xa;• Known anomaly examples&#xa;• Labeled fault scenarios&#xa;• Time-series metrics&#xa;&#xa;Stored in PostgreSQL&#xa;or CSV files" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9" vertex="1" parent="1">
+          <mxGeometry x="1250" y="215" width="220" height="75" as="geometry" />
+        </mxCell>
+        
+        <!-- Kafka -->
+        <mxCell id="kafka" value="Message Bus (Apache Kafka)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="80" y="360" width="1440" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="kafka-topics" value="Topics:  metrics-stream  |  ml-predictions  |  diagnostic-events  |  explanation-results" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="80" y="390" width="1440" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrows Services to Kafka -->
+        <mxCell id="arrow-a-kafka" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.15;entryY=0;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#82b366;" edge="1" parent="1" source="service-a" target="kafka">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="240" y="330" as="sourcePoint" />
+            <mxPoint x="290" y="280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-b-kafka" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#82b366;" edge="1" parent="1" source="service-b" target="kafka">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="470" y="330" as="sourcePoint" />
+            <mxPoint x="520" y="280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow-c-kafka" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.45;entryY=0;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#82b366;" edge="1" parent="1" source="service-c" target="kafka">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="700" y="330" as="sourcePoint" />
+            <mxPoint x="750" y="280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Layer 2: Python ML Service -->
+        <mxCell id="layer2-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;opacity=30;" vertex="1" parent="1">
+          <mxGeometry x="80" y="460" width="700" height="340" as="geometry" />
+        </mxCell>
+        <mxCell id="layer2-label" value="Layer 2: Python ML Service (Anomaly Detection)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="100" y="470" width="500" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Python ML Service -->
+        <mxCell id="python-ml" value="Python ML Service (FastAPI)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;fontStyle=1;align=center;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="110" y="520" width="320" height="260" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="ml-kafka-consumer" value="1. Kafka Consumer&#xa;(metrics-stream)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="125" y="555" width="140" height="35" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="ml-preprocessing" value="2. Preprocessing&#xa;(normalization, scaling)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="275" y="555" width="140" height="35" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="ml-models" value="3. ML Models" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="125" y="605" width="290" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="ml-isolation-forest" value="Isolation Forest" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9" vertex="1" parent="1">
+          <mxGeometry x="130" y="640" width="85" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="ml-one-class-svm" value="One-Class SVM" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9" vertex="1" parent="1">
+          <mxGeometry x="225" y="640" width="85" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="ml-autoencoder" value="Autoencoder" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9" vertex="1" parent="1">
+          <mxGeometry x="320" y="640" width="85" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="ml-ensemble" value="4. Ensemble Voting&#xa;(combine predictions)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="125" y="680" width="290" height="35" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="ml-output" value="5. Output Generation" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="125" y="730" width="140" height="35" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="ml-kafka-producer" value="6. Kafka Producer&#xa;(ml-predictions)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="275" y="730" width="140" height="35" as="geometry" />
+        </mxCell>
+        
+        <!-- Python ML Details -->
+        <mxCell id="python-details" value="Python Stack" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontStyle=1;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="460" y="520" width="290" height="260" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="python-libs-title" value="Libraries:" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="470" y="550" width="270" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="python-libs" value="• scikit-learn (ML algorithms)&#xa;• numpy, pandas (data processing)&#xa;• FastAPI (REST API framework)&#xa;• kafka-python (Kafka client)&#xa;• tensorflow/keras (deep learning)&#xa;• SHAP (explainability - optional)&#xa;• joblib (model persistence)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontFamily=Courier New" vertex="1" parent="1">
+          <mxGeometry x="470" y="575" width="270" height="85" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="python-endpoints-title" value="REST Endpoints:" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="470" y="670" width="270" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="python-endpoints" value="POST /detect-anomaly&#xa;  Input: {metrics: {...}}&#xa;  Output: {anomalyScore: 0.85,&#xa;           isAnomaly: true}&#xa;&#xa;POST /train-model&#xa;GET  /model-info&#xa;GET  /health" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;fontFamily=Courier New" vertex="1" parent="1">
+          <mxGeometry x="470" y="695" width="270" height="75" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrow Kafka to Python -->
+        <mxCell id="arrow-kafka-python" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#b85450;" edge="1" parent="1" source="kafka" target="python-ml">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="368" y="470" as="sourcePoint" />
+            <mxPoint x="418" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label-kafka-python" value="Consume&#xa;Metrics" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=1" vertex="1" connectable="0" parent="arrow-kafka-python">
+          <mxGeometry x="-0.2" y="1" relative="1" as="geometry">
+            <mxPoint x="20" y="5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- ML Output Example -->
+        <mxCell id="ml-output-box" value="ML Prediction Output (JSON)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontStyle=1;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="820" y="460" width="700" height="340" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="ml-output-json" value="{&#xa;  &quot;predictionId&quot;: &quot;uuid&quot;,&#xa;  &quot;timestamp&quot;: &quot;2024-01-15T12:34:56Z&quot;,&#xa;  &quot;serviceId&quot;: &quot;service-A&quot;,&#xa;  &quot;metrics&quot;: {&#xa;    &quot;cpu&quot;: 0.93,&#xa;    &quot;memory&quot;: 0.78,&#xa;    &quot;latency&quot;: 320,&#xa;    &quot;throughput&quot;: 450,&#xa;    &quot;error_rate&quot;: 0.025&#xa;  },&#xa;  &quot;anomalyScore&quot;: -0.85,&#xa;  &quot;isAnomaly&quot;: true,&#xa;  &quot;confidence&quot;: 0.92,&#xa;  &quot;modelUsed&quot;: &quot;IsolationForest&quot;,&#xa;  &quot;ensembleVotes&quot;: {&#xa;    &quot;IsolationForest&quot;: true,&#xa;    &quot;OneClassSVM&quot;: true,&#xa;    &quot;Autoencoder&quot;: false&#xa;  },&#xa;  &quot;featureImportance&quot;: {&#xa;    &quot;cpu&quot;: 0.45,&#xa;    &quot;latency&quot;: 0.35,&#xa;    &quot;error_rate&quot;: 0.15,&#xa;    &quot;memory&quot;: 0.05&#xa;  }&#xa;}" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9;fontFamily=Courier New" vertex="1" parent="1">
+          <mxGeometry x="835" y="495" width="670" height="295" as="geometry" />
+        </mxCell>
+        
+        <!-- Layer 3: Fuzzy Diagnostic Engine -->
+        <mxCell id="layer3-bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;opacity=30;" vertex="1" parent="1">
+          <mxGeometry x="80" y="840" width="700" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="layer3-label" value="Layer 3: Fuzzy Diagnostic Engine (FDE) - Java" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="100" y="850" width="550" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- FDE -->
+        <mxCell id="fde" value="Fuzzy Diagnostic Engine" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;fontStyle=1;align=center;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="110" y="900" width="320" height="240" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="fde-ml-consumer" value="1. Consume ML Predictions&#xa;(Kafka: ml-predictions)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="125" y="935" width="290" height="35" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="fde-context" value="2. Add Context&#xa;(combine with raw metrics)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="125" y="980" width="290" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="fde-fuzzy-rules" value="3. Fuzzy Rules Engine&#xa;(jFuzzyLogic / Drools)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="125" y="1020" width="290" height="35" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="fde-rule-example" value="IF anomalyScore=high AND cpu=high&#xa;THEN diagnosis=ResourceContention" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=8;fontFamily=Courier New;align=left" vertex="1" parent="1">
+          <mxGeometry x="130" y="1065" width="280" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="fde-payload" value="4. Generate Diagnostic Payload&#xa;(with fuzzy confidence)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="125" y="1105" width="290" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Hybrid Logic -->
+        <mxCell id="hybrid-logic" value="Hybrid Reasoning Logic" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="460" y="900" width="290" height="240" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="hybrid-step1" value="Step 1: ML Detection" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="470" y="930" width="270" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="hybrid-step1-text" value="anomalyScore = -0.85 (high)&#xa;isAnomaly = true&#xa;featureImportance: cpu(0.45), latency(0.35)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;fontFamily=Courier New" vertex="1" parent="1">
+          <mxGeometry x="475" y="955" width="260" height="35" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="hybrid-step2" value="Step 2: Fuzzy Classification" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="470" y="1000" width="270" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="hybrid-step2-text" value="IF anomaly detected THEN&#xa;  analyze top features (cpu, latency)&#xa;  apply fuzzy rules:&#xa;    cpu=high (0.93) → membership=0.9&#xa;    latency=high (320) → membership=0.8&#xa;  RESULT: ResourceContention" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;fontFamily=Courier New" vertex="1" parent="1">
+          <mxGeometry x="475" y="1025" width="260" height="65" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="hybrid-benefit" value="✅ Benefit: ML finds anomalies,&#xa;   Fuzzy logic classifies the TYPE" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=3" vertex="1" parent="1">
+          <mxGeometry x="470" y="1100" width="270" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrow Python to FDE -->
+        <mxCell id="arrow-python-fde" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#d6b656;dashed=1;" edge="1" parent="1" source="python-ml" target="fde">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="270" y="850" as="sourcePoint" />
+            <mxPoint x="320" y="800" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="270" y="820" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label-python-fde" value="ML Predictions&#xa;(via Kafka)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=1" vertex="1" connectable="0" parent="arrow-python-fde">
+          <mxGeometry x="-0.2" y="1" relative="1" as="geometry">
+            <mxPoint x="30" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Diagnostic Output -->
+        <mxCell id="diagnostic-output" value="Diagnostic Explanation Payload" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontStyle=1;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="820" y="840" width="700" height="320" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="diagnostic-json" value="{&#xa;  &quot;explanationId&quot;: &quot;uuid&quot;,&#xa;  &quot;timestamp&quot;: &quot;2024-01-15T12:34:57Z&quot;,&#xa;  &quot;serviceId&quot;: &quot;service-A&quot;,&#xa;  &quot;diagnosticResult&quot;: &quot;ResourceContention&quot;,&#xa;  &quot;fuzzyConfidence&quot;: 0.87,&#xa;  &quot;mlAnomalyScore&quot;: -0.85,&#xa;  &quot;mlConfidence&quot;: 0.92,&#xa;  &quot;fuzzyInputs&quot;: [&#xa;    {&quot;metric&quot;: &quot;cpu_util&quot;, &quot;value&quot;: 0.93, &quot;membership&quot;: &quot;high&quot;},&#xa;    {&quot;metric&quot;: &quot;latency&quot;, &quot;value&quot;: 320, &quot;membership&quot;: &quot;high&quot;}&#xa;  ],&#xa;  &quot;mlFeatureImportance&quot;: {&#xa;    &quot;cpu&quot;: 0.45,&#xa;    &quot;latency&quot;: 0.35,&#xa;    &quot;error_rate&quot;: 0.15&#xa;  },&#xa;  &quot;ontologyConcepts&quot;: [&#xa;    {&quot;iri&quot;: &quot;http://example.org/DiagnosticKB#ResourceContention&quot;,&#xa;     &quot;label&quot;: &quot;Resource Contention&quot;, &quot;confidence&quot;: 0.9}&#xa;  ],&#xa;  &quot;causalChain&quot;: [&#xa;    {&quot;cause&quot;: &quot;MLAnomalyDetected&quot;, &quot;conf&quot;: 0.92},&#xa;    {&quot;cause&quot;: &quot;HighCPU&quot;, &quot;effect&quot;: &quot;SlowResponse&quot;, &quot;conf&quot;: 0.85}&#xa;  ],&#xa;  &quot;provenance&quot;: {&#xa;    &quot;mlEngine&quot;: &quot;IsolationForest-v1.0&quot;,&#xa;    &quot;fuzzyEngine&quot;: &quot;FDE-v1.0&quot;&#xa;  }&#xa;}" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=8;fontFamily=Courier New" vertex="1" parent="1">
+          <mxGeometry x="835" y="875" width="670" height="275" as="geometry" />
+        </mxCell>
+        
+        <!-- Rest of Architecture (Ontology, E-Service, Dashboard) -->
+        <mxCell id="rest-label" value="Layers 4-5: Same as Base FODA (Ontology Mapper → E-Store → E-Service → Dashboard)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1200" width="1440" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Deployment -->
+        <mxCell id="deployment-title" value="Docker Compose Deployment" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="80" y="1280" width="1440" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="deployment-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1320" width="1440" height="200" as="geometry" />
+        </mxCell>
+        
+        <!-- Container: Services -->
+        <mxCell id="container-services" value="service-a&#xa;service-b&#xa;service-c" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="110" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="port-services" value="8081-8083" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8" vertex="1" parent="1">
+          <mxGeometry x="110" y="1415" width="120" height="15" as="geometry" />
+        </mxCell>
+        
+        <!-- Container: Kafka -->
+        <mxCell id="container-kafka" value="kafka&#xa;zookeeper" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="260" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="port-kafka" value="9092, 2181" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8" vertex="1" parent="1">
+          <mxGeometry x="260" y="1415" width="120" height="15" as="geometry" />
+        </mxCell>
+        
+        <!-- Container: Python ML -->
+        <mxCell id="container-python" value="python-ml&#xa;(FastAPI)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="410" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="port-python" value="8000" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8" vertex="1" parent="1">
+          <mxGeometry x="410" y="1415" width="120" height="15" as="geometry" />
+        </mxCell>
+        
+        <!-- Container: FDE -->
+        <mxCell id="container-fde" value="fde&#xa;(Fuzzy Engine)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="560" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="port-fde" value="8084" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8" vertex="1" parent="1">
+          <mxGeometry x="560" y="1415" width="120" height="15" as="geometry" />
+        </mxCell>
+        
+        <!-- Container: Mapper -->
+        <mxCell id="container-mapper" value="ontology-mapper" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="710" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="port-mapper" value="(internal)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8" vertex="1" parent="1">
+          <mxGeometry x="710" y="1415" width="120" height="15" as="geometry" />
+        </mxCell>
+        
+        <!-- Container: Fuseki -->
+        <mxCell id="container-fuseki" value="jena-fuseki&#xa;(RDF Store)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="860" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="port-fuseki" value="3030" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8" vertex="1" parent="1">
+          <mxGeometry x="860" y="1415" width="120" height="15" as="geometry" />
+        </mxCell>
+        
+        <!-- Container: E-Service -->
+        <mxCell id="container-eservice" value="eservice&#xa;(API)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1010" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="port-eservice" value="8085" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8" vertex="1" parent="1">
+          <mxGeometry x="1010" y="1415" width="120" height="15" as="geometry" />
+        </mxCell>
+        
+        <!-- Container: Dashboard -->
+        <mxCell id="container-dashboard" value="dashboard&#xa;(React)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1160" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="port-dashboard" value="3000" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8" vertex="1" parent="1">
+          <mxGeometry x="1160" y="1415" width="120" height="15" as="geometry" />
+        </mxCell>
+        
+        <!-- Container: PostgreSQL -->
+        <mxCell id="container-postgres" value="postgresql&#xa;(Metrics DB)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="1310" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="port-postgres" value="5432" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8" vertex="1" parent="1">
+          <mxGeometry x="1310" y="1415" width="120" height="15" as="geometry" />
+        </mxCell>
+        
+        <!-- Volumes Note -->
+        <mxCell id="volumes-note" value="Volumes:  ./ontology:/ontology  |  ./models:/ml-models  |  postgres-data  |  fuseki-data" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="110" y="1450" width="1320" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Networks -->
+        <mxCell id="network-note" value="Network: foda-network (bridge mode) - All containers communicate internally" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2" vertex="1" parent="1">
+          <mxGeometry x="110" y="1480" width="1320" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Technology Stack -->
+        <mxCell id="tech-stack-title" value="Technology Stack Summary" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="80" y="1540" width="1440" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tech-stack-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="80" y="1575" width="1440" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tech-java" value="Java Services:&#xa;OpenJDK 17+, Spring Boot 3.x,&#xa;jFuzzyLogic/Drools Fuzzy,&#xa;Apache Jena + OWL API" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9" vertex="1" parent="1">
+          <mxGeometry x="100" y="1590" width="180" height="55" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tech-python" value="Python ML:&#xa;Python 3.9+, FastAPI,&#xa;scikit-learn, numpy,&#xa;pandas, kafka-python" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9" vertex="1" parent="1">
+          <mxGeometry x="310" y="1590" width="180" height="55" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tech-infra" value="Infrastructure:&#xa;Apache Kafka, Zookeeper,&#xa;Jena Fuseki (RDF), PostgreSQL,&#xa;Docker Compose" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9" vertex="1" parent="1">
+          <mxGeometry x="520" y="1590" width="180" height="55" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tech-ui" value="Frontend:&#xa;React 18+, D3.js,&#xa;Axios (REST client),&#xa;Recharts (visualization)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9" vertex="1" parent="1">
+          <mxGeometry x="730" y="1590" width="180" height="55" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tech-ml-models" value="ML Models:&#xa;Isolation Forest,&#xa;One-Class SVM,&#xa;Autoencoder (optional)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9" vertex="1" parent="1">
+          <mxGeometry x="940" y="1590" width="180" height="55" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tech-observability" value="Observability:&#xa;OpenTelemetry,&#xa;Prometheus,&#xa;Grafana (optional)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9" vertex="1" parent="1">
+          <mxGeometry x="1150" y="1590" width="180" height="55" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="tech-testing" value="Testing:&#xa;JUnit 5, pytest,&#xa;Testcontainers,&#xa;Mockito" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=9" vertex="1" parent="1">
+          <mxGeometry x="1360" y="1590" width="150" height="55" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
