@@ -1,0 +1,225 @@
+FUNCTION_BLOCK DiagnosticEngine
+
+// Input variables from ML prediction and metrics
+VAR_INPUT
+    anomalyScore : REAL;      // -1.0 to 1.0 (normalized)
+    cpuUtilization : REAL;    // 0.0 to 1.0
+    memoryUtilization : REAL; // 0.0 to 1.0
+    errorRate : REAL;         // 0.0 to 1.0
+    latency : REAL;           // 0 to 5000 ms (normalized to 0-1)
+    throughput : REAL;        // 0 to 10000 req/s (normalized to 0-1)
+    diskIo : REAL;            // 0 to 100 (normalized to 0-1)
+    networkLoad : REAL;       // 0 to 10000 Mbps (normalized to 0-1)
+END_VAR
+
+// Output variables
+VAR_OUTPUT
+    faultSeverity : REAL;     // 0.0 to 1.0
+    resourceContentionScore : REAL;
+    memoryLeakScore : REAL;
+    cpuSaturationScore : REAL;
+    networkCongestionScore : REAL;
+    errorRateScore : REAL;
+    latencySpikeScore : REAL;
+    throughputDegradationScore : REAL;
+    diskBottleneckScore : REAL;
+END_VAR
+
+// Fuzzy sets for anomalyScore
+FUZZIFY anomalyScore
+    TERM normal := (0.5, 0) (1.0, 1);
+    TERM suspicious := (0.2, 0) (0.4, 1) (0.6, 1) (0.8, 0);
+    TERM anomalous := (-1.0, 1) (0.0, 1) (0.5, 0);
+END_FUZZIFY
+
+// Fuzzy sets for cpuUtilization
+FUZZIFY cpuUtilization
+    TERM low := (0.0, 1) (0.3, 1) (0.5, 0);
+    TERM medium := (0.4, 0) (0.6, 1) (0.8, 0);
+    TERM high := (0.7, 0) (0.85, 1) (1.0, 1);
+END_FUZZIFY
+
+// Fuzzy sets for memoryUtilization
+FUZZIFY memoryUtilization
+    TERM low := (0.0, 1) (0.4, 1) (0.6, 0);
+    TERM medium := (0.5, 0) (0.7, 1) (0.85, 0);
+    TERM high := (0.8, 0) (0.9, 1) (1.0, 1);
+END_FUZZIFY
+
+// Fuzzy sets for errorRate
+FUZZIFY errorRate
+    TERM negligible := (0.0, 1) (0.01, 1) (0.02, 0);
+    TERM moderate := (0.01, 0) (0.03, 1) (0.05, 0);
+    TERM high := (0.04, 0) (0.1, 1) (1.0, 1);
+END_FUZZIFY
+
+// Fuzzy sets for latency (normalized)
+FUZZIFY latency
+    TERM low := (0.0, 1) (0.1, 1) (0.2, 0);
+    TERM medium := (0.15, 0) (0.3, 1) (0.5, 0);
+    TERM high := (0.4, 0) (0.7, 1) (1.0, 1);
+END_FUZZIFY
+
+// Fuzzy sets for throughput (normalized, inverted - low is bad)
+FUZZIFY throughput
+    TERM low := (0.0, 1) (0.2, 1) (0.4, 0);
+    TERM medium := (0.3, 0) (0.5, 1) (0.7, 0);
+    TERM high := (0.6, 0) (0.8, 1) (1.0, 1);
+END_FUZZIFY
+
+// Fuzzy sets for diskIo (normalized)
+FUZZIFY diskIo
+    TERM low := (0.0, 1) (0.3, 1) (0.5, 0);
+    TERM medium := (0.4, 0) (0.6, 1) (0.8, 0);
+    TERM high := (0.7, 0) (0.85, 1) (1.0, 1);
+END_FUZZIFY
+
+// Fuzzy sets for networkLoad (normalized)
+FUZZIFY networkLoad
+    TERM low := (0.0, 1) (0.3, 1) (0.5, 0);
+    TERM medium := (0.4, 0) (0.6, 1) (0.8, 0);
+    TERM high := (0.7, 0) (0.85, 1) (1.0, 1);
+END_FUZZIFY
+
+// Defuzzify outputs
+DEFUZZIFY faultSeverity
+    TERM low := (0.0, 1) (0.3, 0);
+    TERM medium := (0.2, 0) (0.5, 1) (0.7, 0);
+    TERM high := (0.6, 0) (0.8, 1) (1.0, 1);
+    METHOD : COG;  // Center of Gravity
+    DEFAULT := 0.0;
+END_DEFUZZIFY
+
+DEFUZZIFY resourceContentionScore
+    TERM low := (0.0, 1) (0.3, 0);
+    TERM medium := (0.2, 0) (0.5, 1) (0.7, 0);
+    TERM high := (0.6, 0) (1.0, 1);
+    METHOD : COG;
+    DEFAULT := 0.0;
+END_DEFUZZIFY
+
+DEFUZZIFY memoryLeakScore
+    TERM low := (0.0, 1) (0.3, 0);
+    TERM medium := (0.2, 0) (0.5, 1) (0.7, 0);
+    TERM high := (0.6, 0) (1.0, 1);
+    METHOD : COG;
+    DEFAULT := 0.0;
+END_DEFUZZIFY
+
+DEFUZZIFY cpuSaturationScore
+    TERM low := (0.0, 1) (0.3, 0);
+    TERM medium := (0.2, 0) (0.5, 1) (0.7, 0);
+    TERM high := (0.6, 0) (1.0, 1);
+    METHOD : COG;
+    DEFAULT := 0.0;
+END_DEFUZZIFY
+
+DEFUZZIFY networkCongestionScore
+    TERM low := (0.0, 1) (0.3, 0);
+    TERM medium := (0.2, 0) (0.5, 1) (0.7, 0);
+    TERM high := (0.6, 0) (1.0, 1);
+    METHOD : COG;
+    DEFAULT := 0.0;
+END_DEFUZZIFY
+
+DEFUZZIFY errorRateScore
+    TERM low := (0.0, 1) (0.3, 0);
+    TERM medium := (0.2, 0) (0.5, 1) (0.7, 0);
+    TERM high := (0.6, 0) (1.0, 1);
+    METHOD : COG;
+    DEFAULT := 0.0;
+END_DEFUZZIFY
+
+DEFUZZIFY latencySpikeScore
+    TERM low := (0.0, 1) (0.3, 0);
+    TERM medium := (0.2, 0) (0.5, 1) (0.7, 0);
+    TERM high := (0.6, 0) (1.0, 1);
+    METHOD : COG;
+    DEFAULT := 0.0;
+END_DEFUZZIFY
+
+DEFUZZIFY throughputDegradationScore
+    TERM low := (0.0, 1) (0.3, 0);
+    TERM medium := (0.2, 0) (0.5, 1) (0.7, 0);
+    TERM high := (0.6, 0) (1.0, 1);
+    METHOD : COG;
+    DEFAULT := 0.0;
+END_DEFUZZIFY
+
+DEFUZZIFY diskBottleneckScore
+    TERM low := (0.0, 1) (0.3, 0);
+    TERM medium := (0.2, 0) (0.5, 1) (0.7, 0);
+    TERM high := (0.6, 0) (1.0, 1);
+    METHOD : COG;
+    DEFAULT := 0.0;
+END_DEFUZZIFY
+
+// Diagnostic Rules
+RULEBLOCK diagnosticRules
+    AND : MIN;
+    ACT : MIN;
+    ACCU : MAX;
+
+    // CPU Saturation Rules
+    RULE 1 : IF anomalyScore IS anomalous AND cpuUtilization IS high
+             THEN cpuSaturationScore IS high, faultSeverity IS high;
+
+    RULE 2 : IF cpuUtilization IS high AND latency IS high
+             THEN cpuSaturationScore IS medium, faultSeverity IS medium;
+
+    // Memory Leak Rules
+    RULE 3 : IF anomalyScore IS anomalous AND memoryUtilization IS high
+             THEN memoryLeakScore IS high, faultSeverity IS high;
+
+    RULE 4 : IF memoryUtilization IS high AND throughput IS low
+             THEN memoryLeakScore IS medium, faultSeverity IS medium;
+
+    // Resource Contention Rules
+    RULE 5 : IF anomalyScore IS anomalous AND cpuUtilization IS high AND memoryUtilization IS high
+             THEN resourceContentionScore IS high, faultSeverity IS high;
+
+    RULE 6 : IF cpuUtilization IS medium AND memoryUtilization IS high AND latency IS high
+             THEN resourceContentionScore IS medium, faultSeverity IS medium;
+
+    // Network Congestion Rules
+    RULE 7 : IF anomalyScore IS anomalous AND networkLoad IS high
+             THEN networkCongestionScore IS high, faultSeverity IS medium;
+
+    RULE 8 : IF networkLoad IS high AND latency IS high
+             THEN networkCongestionScore IS medium, faultSeverity IS medium;
+
+    // High Error Rate Rules
+    RULE 9 : IF anomalyScore IS anomalous AND errorRate IS high
+             THEN errorRateScore IS high, faultSeverity IS high;
+
+    RULE 10 : IF errorRate IS moderate AND latency IS high
+              THEN errorRateScore IS medium, faultSeverity IS medium;
+
+    // Latency Spike Rules
+    RULE 11 : IF anomalyScore IS anomalous AND latency IS high
+              THEN latencySpikeScore IS high, faultSeverity IS medium;
+
+    RULE 12 : IF latency IS high AND throughput IS low
+              THEN latencySpikeScore IS medium, faultSeverity IS medium;
+
+    // Throughput Degradation Rules
+    RULE 13 : IF anomalyScore IS anomalous AND throughput IS low
+              THEN throughputDegradationScore IS high, faultSeverity IS medium;
+
+    RULE 14 : IF throughput IS low AND cpuUtilization IS high
+              THEN throughputDegradationScore IS medium, faultSeverity IS medium;
+
+    // Disk I/O Bottleneck Rules
+    RULE 15 : IF anomalyScore IS anomalous AND diskIo IS high
+              THEN diskBottleneckScore IS high, faultSeverity IS medium;
+
+    RULE 16 : IF diskIo IS high AND latency IS high
+              THEN diskBottleneckScore IS medium, faultSeverity IS medium;
+
+    // Normal operation
+    RULE 17 : IF anomalyScore IS normal
+              THEN faultSeverity IS low;
+
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
