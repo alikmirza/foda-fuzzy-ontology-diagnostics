@@ -7,6 +7,7 @@ import com.foda.rca.model.ServiceDependencyGraph;
 import com.foda.rca.model.ServiceMetrics;
 import com.foda.rca.propagation.LocalOnlyPropagator;
 import com.foda.rca.propagation.MaxPropagationBaseline;
+import com.foda.rca.propagation.MonitorRankPropagator;
 import com.foda.rca.propagation.UniformWeightPropagator;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -115,6 +116,9 @@ public class ExtendedBenchmarkRunner {
         algorithms.put("+MaxProp",
                 wrap("+MaxProp",
                         FuzzyRcaEngineImpl.builder().propagator(new MaxPropagationBaseline()).build()));
+        algorithms.put("MonitorRank",
+                wrap("MonitorRank",
+                        FuzzyRcaEngineImpl.builder().propagator(new MonitorRankPropagator()).build()));
 
         List<GroundTruthScenario> suite = SyntheticScenarioBuilder.extendedBenchmarkSuite();
         assertEquals(12, suite.size(), "Extended suite must contain exactly 12 scenarios");
