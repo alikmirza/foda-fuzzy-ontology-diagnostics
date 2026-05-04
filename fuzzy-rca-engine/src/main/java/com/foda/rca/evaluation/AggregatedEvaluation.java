@@ -1,6 +1,7 @@
 package com.foda.rca.evaluation;
 
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Value;
 
 import java.util.List;
@@ -55,6 +56,21 @@ public class AggregatedEvaluation {
     /** Raw per-scenario results for statistical significance testing. */
     List<ScenarioEvaluation> perScenarioResults;
 
+    // ── Explanation-quality aggregates (optional; finite values only when
+    //    RcaEvaluator was constructed with a non-null ExplanationQualityMetric).
+    //    Default NaN signals "not computed" and renders as the empty string in CSV.
+    // ────────────────────────────────────────────────────────────────────
+    @Default double meanFaithfulness         = Double.NaN;
+    @Default double meanCoverage             = Double.NaN;
+    @Default double meanConciseness          = Double.NaN;
+    @Default double meanSemanticGroundedness = Double.NaN;
+    @Default double meanOverallExplanationScore = Double.NaN;
+
+    /** True when explanation-quality aggregates were populated. */
+    public boolean hasExplanationScores() {
+        return !Double.isNaN(meanOverallExplanationScore);
+    }
+
     // -----------------------------------------------------------------------
     // Formatting helpers
     // -----------------------------------------------------------------------
@@ -98,6 +114,10 @@ public class AggregatedEvaluation {
 
     /**
      * Returns a CSV header line matching the columns produced by {@link #toCsvRow()}.
+     *
+     * <p>The five {@code mean_*} explanation columns are always present in the schema —
+     * when explanation scoring was disabled (no metric passed to the evaluator) they
+     * render as empty fields, preserving column-count parity with the header.</p>
      */
     public static String csvHeader() {
         return "algorithm,k,n_scenarios,"
@@ -105,22 +125,40 @@ public class AggregatedEvaluation {
              + "mean_recall,std_recall,"
              + "mean_mrr,std_mrr,"
              + "mean_ndcg,std_ndcg,"
-             + "top1_accuracy";
+             + "top1_accuracy,"
+             + "mean_faithfulness,mean_coverage,mean_conciseness,"
+             + "mean_semantic_groundedness,mean_overall_explanation_score";
     }
 
     /**
      * Returns a CSV data row for this evaluation result.
      *
      * <p>Column order matches {@link #csvHeader()}. Numeric fields are formatted with
-     * 6 decimal places to preserve full precision for downstream statistical analysis.</p>
+     * 6 decimal places to preserve full precision for downstream statistical analysis.
+     * Explanation-quality fields render as the empty string when not computed (NaN).</p>
      */
     public String toCsvRow() {
-        return String.format("%s,%d,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f",
+        return String.format("%s,%d,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%s,%s,%s,%s,%s",
             algorithmName, k, numScenarios,
             meanPrecisionAtK, stdPrecisionAtK,
             meanRecallAtK,    stdRecallAtK,
             meanMrr,          stdMrr,
             meanNdcgAtK,      stdNdcgAtK,
-            top1Accuracy);
+            top1Accuracy,
+            fmt(meanFaithfulness),
+            fmt(meanCoverage),
+            fmt(meanConciseness),
+            fmt(meanSemanticGroundedness),
+            fmt(meanOverallExplanationScore));
+    }
+
+    /**
+     * CSV-friendly numeric formatter: missing-by-design values render as the
+     * literal {@code NaN} (which pandas / R / Excel all parse as floating-point NaN),
+     * never as the empty string — preserving column-count parity even with the
+     * default {@link String#split(String)} behaviour that strips trailing empties.
+     */
+    private static String fmt(double v) {
+        return Double.isNaN(v) ? "NaN" : String.format("%.6f", v);
     }
 }

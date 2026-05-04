@@ -52,6 +52,20 @@
             <artifactId>commons-lang3</artifactId>
         </dependency>
 
+        <!--
+          Apache Jena (embedded only) — powers the OntologyGroundedExplanationBuilder.
+          Pulled in as a pure library: no jena-tdb2, no Fuseki, no external services.
+          Version is managed by the parent POM (jena.version = 4.10.0).
+        -->
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-arq</artifactId>
+        </dependency>
+
         <!-- Spring Context (optional DI; module is also usable standalone) -->
         <dependency>
             <groupId>org.springframework</groupId>

@@ -1,6 +1,7 @@
 package com.foda.rca.evaluation;
 
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Value;
 
 import java.util.List;
@@ -88,4 +89,21 @@ public class ScenarioEvaluation {
 
     /** Fault category of the injected fault for stratified analysis. */
     String faultType;
+
+    // ── Explanation-quality metrics (optional; populated when RcaEvaluator
+    //    is constructed with a non-null ExplanationQualityMetric). All four
+    //    sub-scores and the overall are in [0,1]; default NaN signals "not
+    //    computed" so downstream aggregation can skip rather than treat
+    //    a missing score as a real zero.
+    // ────────────────────────────────────────────────────────────────────
+    @Default double faithfulness         = Double.NaN;
+    @Default double coverage             = Double.NaN;
+    @Default double conciseness          = Double.NaN;
+    @Default double semanticGroundedness = Double.NaN;
+    @Default double overallExplanationScore = Double.NaN;
+
+    /** True when this scenario carries an explanation score (i.e. {@link #overallExplanationScore} is finite). */
+    public boolean hasExplanationScore() {
+        return !Double.isNaN(overallExplanationScore);
+    }
 }

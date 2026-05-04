@@ -3,6 +3,7 @@ package com.foda.rca.core;
 import com.foda.rca.api.FuzzyRcaEngine;
 import com.foda.rca.explanation.ExplanationBuilder;
 import com.foda.rca.explanation.NaturalLanguageExplanationBuilder;
+import com.foda.rca.explanation.OntologyGroundedExplanationBuilder;
 import com.foda.rca.fuzzification.FaultFuzzifier;
 import com.foda.rca.fuzzification.FaultFuzzifierImpl;
 import com.foda.rca.inference.FuzzyRuleEngine;
@@ -269,6 +270,19 @@ public class FuzzyRcaEngineImpl implements FuzzyRcaEngine {
         public Builder propagator(ConfidencePropagator p)      { this.propagator = p;         return this; }
         public Builder ranker(CauseRanker r)                   { this.ranker = r;             return this; }
         public Builder explanationBuilder(ExplanationBuilder b){ this.explanationBuilder = b; return this; }
+
+        /**
+         * Convenience: swap the default {@link NaturalLanguageExplanationBuilder} for the
+         * ontology-grounded variant that pulls fault labels, contributing factors and
+         * remediation text from {@code DiagnosticKB.owl}.
+         *
+         * <p>Opt-in only — the default benchmark configuration is unchanged so existing
+         * results in Section 5 of the paper remain reproducible bit-for-bit.</p>
+         */
+        public Builder withOntologyGroundedExplanations() {
+            this.explanationBuilder = new OntologyGroundedExplanationBuilder();
+            return this;
+        }
 
         /**
          * Sets the damping factor δ and activates the adaptive propagator (Eq. 4 / Eq. 5).

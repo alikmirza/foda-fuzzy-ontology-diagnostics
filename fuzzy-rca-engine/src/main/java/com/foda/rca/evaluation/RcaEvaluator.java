@@ -53,6 +53,35 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RcaEvaluator {
 
+    /**
+     * Optional per-explanation quality scorer. When non-null, {@link #evaluate} also
+     * computes {@link ExplanationQualityMetric#evaluate} for the top-1 candidate's
+     * explanation text and writes the result into the returned {@link ScenarioEvaluation}.
+     * When {@code null}, the evaluator behaves exactly as before — no explanation work,
+     * no extra fields populated. Existing benchmark code uses the no-arg constructor and
+     * is therefore unaffected.
+     */
+    private final ExplanationQualityMetric explanationMetric;
+
+    /** Default constructor: no explanation scoring (backward-compatible behaviour). */
+    public RcaEvaluator() {
+        this.explanationMetric = null;
+    }
+
+    /**
+     * Constructor with an optional explanation-quality metric.
+     *
+     * @param explanationMetric metric instance (e.g. {@code new ExplanationQualityMetric()}),
+     *                          or {@code null} to disable explanation scoring. The instance
+     *                          itself is currently stateless, but is accepted as a typed
+     *                          dependency so future stateful variants (e.g. with custom
+     *                          stop-word lists or weights) can be wired in without changing
+     *                          this signature.
+     */
+    public RcaEvaluator(ExplanationQualityMetric explanationMetric) {
+        this.explanationMetric = explanationMetric;
+    }
+
     // -----------------------------------------------------------------------
     // Public API
     // -----------------------------------------------------------------------
@@ -85,7 +114,7 @@ public class RcaEvaluator {
         double ndcg      = ndcgAtK(predicted, truth, k);
         boolean top1     = !predicted.isEmpty() && truth.contains(predicted.get(0));
 
-        return ScenarioEvaluation.builder()
+        ScenarioEvaluation.ScenarioEvaluationBuilder builder = ScenarioEvaluation.builder()
                 .scenarioId(scenario.getScenarioId())
                 .scenarioName(scenario.getScenarioName())
                 .algorithmName(name)
@@ -97,8 +126,26 @@ public class RcaEvaluator {
                 .predictedCauses(predicted)
                 .trueRootCauses(truth)
                 .topOneCorrect(top1)
-                .faultType(scenario.getFaultType())
-                .build();
+                .faultType(scenario.getFaultType());
+
+        // Optional explanation scoring: only when a metric is configured AND the
+        // engine produced at least one ranked cause carrying an explanation string.
+        if (explanationMetric != null && !result.getRankedCauses().isEmpty()) {
+            RankedCause topCause = result.getRankedCauses().get(0);
+            String explanation = topCause.getExplanation();
+            List<String> renderedPath = topCause.getCausalPath() != null
+                    ? topCause.getCausalPath()
+                    : List.of();
+            ExplanationScore score = ExplanationQualityMetric.evaluate(
+                    explanation, scenario, renderedPath);
+            builder.faithfulness(score.getFaithfulness())
+                   .coverage(score.getCoverage())
+                   .conciseness(score.getConciseness())
+                   .semanticGroundedness(score.getSemanticGroundedness())
+                   .overallExplanationScore(score.getOverall());
+        }
+
+        return builder.build();
     }
 
     /**
@@ -229,7 +276,10 @@ public class RcaEvaluator {
      * Writes per-scenario evaluation results to {@code {outputDir}/rca-per-scenario.csv}.
      *
      * <p>Columns: {@code algorithm, scenario_id, scenario_name, fault_type, k,
-     * precision, recall, mrr, ndcg, top1_correct, predicted_causes, true_root_causes}.</p>
+     * precision, recall, mrr, ndcg, top1_correct, predicted_causes, true_root_causes,
+     * faithfulness, coverage, conciseness, semantic_groundedness, overall_explanation_score}.
+     * The five trailing explanation columns render as the literal {@code NaN} when no
+     * explanation metric was configured.</p>
      *
      * @param results   map returned by {@link #compare}
      * @param outputDir directory to write into
@@ -243,10 +293,12 @@ public class RcaEvaluator {
             try (PrintWriter pw = new PrintWriter(Files.newBufferedWriter(out))) {
                 pw.println("algorithm,scenario_id,scenario_name,fault_type,k,"
                          + "precision,recall,mrr,ndcg,top1_correct,"
-                         + "predicted_causes,true_root_causes");
+                         + "predicted_causes,true_root_causes,"
+                         + "faithfulness,coverage,conciseness,"
+                         + "semantic_groundedness,overall_explanation_score");
                 for (AggregatedEvaluation agg : results.values()) {
                     for (ScenarioEvaluation se : agg.getPerScenarioResults()) {
-                        pw.printf("%s,%s,%s,%s,%d,%.6f,%.6f,%.6f,%.6f,%b,\"%s\",\"%s\"%n",
+                        pw.printf("%s,%s,%s,%s,%d,%.6f,%.6f,%.6f,%.6f,%b,\"%s\",\"%s\",%s,%s,%s,%s,%s%n",
                             agg.getAlgorithmName(),
                             se.getScenarioId(),
                             se.getScenarioName(),
@@ -258,7 +310,12 @@ public class RcaEvaluator {
                             se.getNdcgAtK(),
                             se.isTopOneCorrect(),
                             String.join(";", se.getPredictedCauses()),
-                            String.join(";", se.getTrueRootCauses()));
+                            String.join(";", se.getTrueRootCauses()),
+                            fmt(se.getFaithfulness()),
+                            fmt(se.getCoverage()),
+                            fmt(se.getConciseness()),
+                            fmt(se.getSemanticGroundedness()),
+                            fmt(se.getOverallExplanationScore()));
                     }
                 }
             }
@@ -267,6 +324,11 @@ public class RcaEvaluator {
         } catch (IOException e) {
             throw new java.io.UncheckedIOException("Failed to write per-scenario CSV to " + outputDir, e);
         }
+    }
+
+    /** CSV-friendly numeric formatter; NaN renders as {@code "NaN"} so column count is preserved. */
+    private static String fmt(double v) {
+        return Double.isNaN(v) ? "NaN" : String.format("%.6f", v);
     }
 
     // -----------------------------------------------------------------------
@@ -363,7 +425,7 @@ public class RcaEvaluator {
                 Collectors.averagingDouble(ScenarioEvaluation::getNdcgAtK)))
             .forEach(ndcgByType::put);
 
-        return AggregatedEvaluation.builder()
+        AggregatedEvaluation.AggregatedEvaluationBuilder agg = AggregatedEvaluation.builder()
                 .algorithmName(name)
                 .k(k)
                 .numScenarios(n)
@@ -373,8 +435,35 @@ public class RcaEvaluator {
                 .meanNdcgAtK(mean(ndcgA)).stdNdcgAtK(std(ndcgA))
                 .top1Accuracy((double) top1Correct / n)
                 .ndcgByFaultType(ndcgByType)
-                .perScenarioResults(Collections.unmodifiableList(perScenario))
-                .build();
+                .perScenarioResults(Collections.unmodifiableList(perScenario));
+
+        // Optional explanation-quality aggregates: only produced when at least one
+        // per-scenario evaluation carries a (finite) explanation score. Means are
+        // computed across exactly those scenarios with a score; scenarios without
+        // a score (engine returned no candidates → no explanation to evaluate)
+        // are excluded rather than treated as zero.
+        long scoredScenarios = perScenario.stream()
+                .filter(ScenarioEvaluation::hasExplanationScore)
+                .count();
+        if (scoredScenarios > 0) {
+            double[] f  = perScenario.stream().filter(ScenarioEvaluation::hasExplanationScore)
+                    .mapToDouble(ScenarioEvaluation::getFaithfulness).toArray();
+            double[] cv = perScenario.stream().filter(ScenarioEvaluation::hasExplanationScore)
+                    .mapToDouble(ScenarioEvaluation::getCoverage).toArray();
+            double[] cn = perScenario.stream().filter(ScenarioEvaluation::hasExplanationScore)
+                    .mapToDouble(ScenarioEvaluation::getConciseness).toArray();
+            double[] sg = perScenario.stream().filter(ScenarioEvaluation::hasExplanationScore)
+                    .mapToDouble(ScenarioEvaluation::getSemanticGroundedness).toArray();
+            double[] ov = perScenario.stream().filter(ScenarioEvaluation::hasExplanationScore)
+                    .mapToDouble(ScenarioEvaluation::getOverallExplanationScore).toArray();
+            agg.meanFaithfulness(mean(f))
+               .meanCoverage(mean(cv))
+               .meanConciseness(mean(cn))
+               .meanSemanticGroundedness(mean(sg))
+               .meanOverallExplanationScore(mean(ov));
+        }
+
+        return agg.build();
     }
 
     // -----------------------------------------------------------------------
