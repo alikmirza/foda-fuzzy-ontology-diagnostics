@@ -1,0 +1,17 @@
+{
+  "id": "S01",
+  "name": "LATENCY_FANOUT",
+  "fault_type": "LATENCY_ANOMALY",
+  "ground_truth_root_cause": "service-A",
+  "ontology_mapping": {
+    "service-A": "http://foda.example.org/onto#LatencyFault",
+    "service-B": "http://foda.example.org/onto#NormalOperation",
+    "service-C": "http://foda.example.org/onto#NormalOperation"
+  },
+  "topology": {
+    "service-A": ["service-B", "service-C"],
+    "service-B": [],
+    "service-C": []
+  },
+  "inject_time": 1700000020
+}

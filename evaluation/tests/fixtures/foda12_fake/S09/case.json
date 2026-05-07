@@ -1,0 +1,18 @@
+{
+  "id": "S09",
+  "name": "TWO_CYCLE_REPLICATED_PEERS",
+  "fault_type": "CPU_SATURATION",
+  "ground_truth_root_cause": "service-B",
+  "ontology_mapping": {
+    "service-A": "http://foda.example.org/onto#NormalOperation",
+    "service-B": "http://foda.example.org/onto#CPUSaturation",
+    "service-C": "http://foda.example.org/onto#NormalOperation",
+    "service-D": "http://foda.example.org/onto#NormalOperation"
+  },
+  "topology": {
+    "service-A": ["service-B"],
+    "service-B": ["service-A", "service-C"],
+    "service-C": ["service-D"],
+    "service-D": []
+  }
+}

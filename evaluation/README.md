@@ -30,6 +30,7 @@ This package is being filled in incrementally. Implemented:
 - ranking metrics (AC@k, MRR)
 - `RCAEvalLoader`
 - `BoutiqueLoader`
+- `Foda12Loader`
 
 Everything else is a typed placeholder that raises `NotImplementedError`.
 
@@ -105,6 +106,45 @@ for case in loader.iter_cases():
 
 ### FODA-12
 
-Loader is a placeholder; FODA-12 currently lives as in-memory Java synthetic
-generation. The loader will land alongside an export pipeline that emits one
-folder per scenario with ontology-class annotations.
+The 12-scenario synthetic benchmark used in our paper. The authoritative
+definition still lives in Java
+(`fuzzy-rca-engine/src/main/java/com/foda/rca/evaluation/SyntheticScenarioBuilder.java`);
+`Foda12Loader` consumes an export of those scenarios in this format:
+
+```
+foda12/
+  S01/
+    case.json     # required
+    metrics.csv   # required
+  S09/
+    ...
+```
+
+Where `case.json` looks like:
+
+```json
+{
+  "id": "S01",
+  "name": "LATENCY_FANOUT",
+  "fault_type": "LATENCY_ANOMALY",
+  "ground_truth_root_cause": "service-A",
+  "ontology_mapping": {
+    "service-A": "http://foda.example.org/onto#LatencyFault",
+    "service-B": "http://foda.example.org/onto#NormalOperation"
+  },
+  "topology": { "service-A": ["service-B"], "service-B": [] },
+  "inject_time": 1700000020
+}
+```
+
+What makes FODA-12 distinct from the other benchmarks is that
+`ontology_mapping` is **required**, not optional. Every scenario annotates
+each service in its topology with an ontology class URI so that
+ontology-aware methods (FODA-FCP) and explanation-quality metrics
+(semantic groundedness, semantic coherence) have something concrete to
+reason against. The mapping flows through unchanged into
+`BenchmarkCase.ontology_mapping`.
+
+The Java→disk export pipeline is tracked separately; until it lands, see
+`evaluation/tests/fixtures/foda12_fake/` for two synthetic cases that match
+the on-disk schema.
