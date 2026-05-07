@@ -100,6 +100,7 @@ ml-layer/models/*
 *.tsv
 experiments/results/*
 !experiments/results/.gitkeep
+!evaluation/tests/fixtures/**/*.csv
 
 # Secrets
 .env
