@@ -1,0 +1,4 @@
+time,frontend_latency_ms,frontend_qps
+1700200000,40,120
+1700200010,55,118
+1700200020,210,90

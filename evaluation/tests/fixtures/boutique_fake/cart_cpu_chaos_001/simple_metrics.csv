@@ -1,0 +1,5 @@
+time,cartservice_cpu,cartservice_latency_ms,frontend_cpu,frontend_latency_ms
+1700000000,0.10,30,0.05,40
+1700000010,0.45,55,0.06,42
+1700000020,0.92,180,0.07,90
+1700000030,0.95,210,0.08,110

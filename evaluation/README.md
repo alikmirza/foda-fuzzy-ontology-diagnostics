@@ -29,6 +29,7 @@ This package is being filled in incrementally. Implemented:
 - canonical explanation types
 - ranking metrics (AC@k, MRR)
 - `RCAEvalLoader`
+- `BoutiqueLoader`
 
 Everything else is a typed placeholder that raises `NotImplementedError`.
 
@@ -73,7 +74,37 @@ for case in loader.iter_cases():
 `evaluation/tests/fixtures/rcaeval_fake/` ships two tiny synthetic cases (one
 per metrics-file format) so the loader's tests do not depend on the real data.
 
-### Online Boutique / FODA-12
+### Online Boutique
 
-Loaders are placeholders; download instructions will land with the
-implementation.
+Source: <https://github.com/GoogleCloudPlatform/microservices-demo>
+
+Online Boutique itself does not ship a benchmark — we capture our own
+fault-injection runs (chaos-mesh + Prometheus) and persist them as one folder
+per case. `BoutiqueLoader` accepts the same per-case folder layout as
+`RCAEvalLoader` so the two are interchangeable. Two formats are supported per
+case:
+
+1. **Combined CSV** (`simple_metrics.csv` / `data.csv` / `metrics.csv`) —
+   identical to the RCAEval layout.
+2. **Per-service CSVs** (`{service}_metrics.csv`) — merged on the `time`
+   column. Use this when scraping Prometheus per pod.
+
+If a case includes a `manifest.json`, its `root_cause` and `fault_type`
+fields override the directory-name parser, and an optional `topology`
+field is passed through to `BenchmarkCase.system_topology`. This is the
+preferred path once chaos-mesh capture lands, since it removes any naming
+constraint on case folders.
+
+```python
+from evaluation.benchmarks.boutique_loader import BoutiqueLoader
+
+loader = BoutiqueLoader("~/datasets/boutique-chaos/run-2026-05/")
+for case in loader.iter_cases():
+    print(case.id, case.ground_truth_root_cause, case.system_topology)
+```
+
+### FODA-12
+
+Loader is a placeholder; FODA-12 currently lives as in-memory Java synthetic
+generation. The loader will land alongside an export pipeline that emits one
+folder per scenario with ontology-class annotations.

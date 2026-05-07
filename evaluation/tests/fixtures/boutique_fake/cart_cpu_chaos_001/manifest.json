@@ -1,0 +1,10 @@
+{
+  "root_cause": "cartservice",
+  "fault_type": "cpu_throttle",
+  "topology": {
+    "frontend": ["cartservice", "productcatalogservice"],
+    "cartservice": ["redis-cart"],
+    "productcatalogservice": [],
+    "redis-cart": []
+  }
+}
