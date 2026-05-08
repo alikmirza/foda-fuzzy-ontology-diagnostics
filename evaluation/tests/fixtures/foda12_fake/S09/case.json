@@ -3,11 +3,12 @@
   "name": "TWO_CYCLE_REPLICATED_PEERS",
   "fault_type": "CPU_SATURATION",
   "ground_truth_root_cause": "service-B",
+  "inject_time": 20,
   "ontology_mapping": {
-    "service-A": "http://foda.example.org/onto#NormalOperation",
-    "service-B": "http://foda.example.org/onto#CPUSaturation",
-    "service-C": "http://foda.example.org/onto#NormalOperation",
-    "service-D": "http://foda.example.org/onto#NormalOperation"
+    "service-A": "http://foda.com/ontology/diagnostic#MicroService",
+    "service-B": "http://foda.com/ontology/diagnostic#CpuSaturation",
+    "service-C": "http://foda.com/ontology/diagnostic#MicroService",
+    "service-D": "http://foda.com/ontology/diagnostic#MicroService"
   },
   "topology": {
     "service-A": ["service-B"],

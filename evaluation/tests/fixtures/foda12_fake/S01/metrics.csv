@@ -1,5 +1,0 @@
-time,service-A_latency_ms,service-B_latency_ms,service-C_latency_ms
-1700000000,40,30,30
-1700000010,55,32,31
-1700000020,210,33,32
-1700000030,250,33,32

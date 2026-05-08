@@ -3,15 +3,15 @@
   "name": "LATENCY_FANOUT",
   "fault_type": "LATENCY_ANOMALY",
   "ground_truth_root_cause": "service-A",
+  "inject_time": 1700000020,
   "ontology_mapping": {
-    "service-A": "http://foda.example.org/onto#LatencyFault",
-    "service-B": "http://foda.example.org/onto#NormalOperation",
-    "service-C": "http://foda.example.org/onto#NormalOperation"
+    "service-A": "http://foda.com/ontology/diagnostic#LatencySpike",
+    "service-B": "http://foda.com/ontology/diagnostic#MicroService",
+    "service-C": "http://foda.com/ontology/diagnostic#MicroService"
   },
   "topology": {
     "service-A": ["service-B", "service-C"],
     "service-B": [],
     "service-C": []
-  },
-  "inject_time": 1700000020
+  }
 }
