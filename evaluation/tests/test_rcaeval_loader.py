@@ -60,16 +60,27 @@ def test_get_case_csv_with_inject_time():
     assert len(df) == 5
 
 
-def test_get_case_csv_without_inject_time():
+def test_get_case_csv_ss_fixture_has_inject_time():
     loader = RCAEvalLoader(FIXTURE_ROOT)
     case = loader.get_case("SS_carts_MEM_2")
     assert case.ground_truth_root_cause == "carts"
     assert case.ground_truth_fault_type == "MEM"
     assert case.telemetry["system"] == "sock-shop"
-    # No inject_time.txt in this fixture — key should be absent.
-    assert "inject_time" not in case.telemetry
+    assert case.telemetry["inject_time"] == 1700100020.0
     df = case.telemetry["metrics"]
     assert len(df) == 4
+
+
+def test_inject_time_absent_when_file_missing(tmp_path: Path):
+    case_dir = tmp_path / "OB_cartservice_CPU_1"
+    _write_csv(
+        case_dir / "data.csv",
+        [{"time": 1, "cartservice_cpu": 0.1, "frontend_cpu": 0.05}],
+    )
+    # No inject_time.txt written.
+    loader = RCAEvalLoader(tmp_path)
+    case = loader.get_case("OB_cartservice_CPU_1")
+    assert "inject_time" not in case.telemetry
 
 
 def test_get_case_unknown_id_raises():

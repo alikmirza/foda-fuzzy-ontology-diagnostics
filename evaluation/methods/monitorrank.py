@@ -1,92 +1,35 @@
-"""MonitorRank baseline (Kim, Sumbaly, Shah; SIGMETRICS 2013).
+"""MonitorRank (Kim, Sumbaly, Shah; KDD 2013), refactored to consume
+:class:`evaluation.extraction.schema_normalizer.NormalizedCase`
+under the inject_time-removal contract.
 
-Clean reimplementation of the random-walk-on-the-call-graph algorithm
-described in Section 5.3 of *Root Cause Detection in a Service-Oriented
-Architecture*. The implementation follows the paper directly (no
-wrapping of an upstream library): build the augmented adjacency
-A' (Eq. 6), row-normalize to a transition matrix P (Eq. 7), iterate
-the Personalized PageRank update π ← α π P + (1 - α) u (Eq. 8) until
-convergence, and rank services by π.
+The pipeline is unchanged from the previous iteration except for one
+load-bearing detail: the pre/post split for anomaly scoring no longer
+reads ``inject_time``. Instead it asks the opt-in change-point
+detector in :mod:`evaluation.methods._onset` to find the most likely
+pivot from telemetry alone. Everything else (z-score personalization,
+correlation-inferred call graph, PPR with damping 0.85 and 100 power
+iterations, top-3 explanation atoms with dominant feature) is
+identical.
 
-Validation status
------------------
+Why this matters: the diagnostic that motivated the redesign showed
+that shifting ``inject_time`` by ±300 s collapsed AC@1 to chance,
+proving the algorithm was fenceposting on a side-channel value. With
+onset detected from telemetry, the shift-evaluation protocol
+(``evaluation/extraction/DESIGN_inject_time_removal.md`` §5) should
+report ``S(M) ≈ 0`` — that's the invariant the next step's harness
+will measure.
 
-This implementation is **pending validation against real RCAEval
-data**. RCAEval itself does not include MonitorRank in its published
-baselines, so there is no exact AC@1 number to reproduce; the
-nearest reference points are MicroCause and MicroRank (also
-random-walk-style). Run
-``python -m evaluation.experiments.evaluate_monitorrank --data ...``
-once the RCAEval archive is extracted, and update this note with the
-observed AC@1 by fault type.
-
-Pseudo-code::
-
-    # 1. Per-service pattern similarity vs. the frontend
-    S[i] = max |pearson_corr(metric_a_of_service_i, metric_b_of_frontend)|
-
-    # 2. Augmented adjacency A' on the service-call graph
-    A'[i][j] = S[j]                                if (i → j) ∈ E
-    A'[i][j] = ρ * S[i]                            if (j → i) ∈ E and (i → j) ∉ E
-    A'[i][i] = max(0, S[i] - max_{(i → k) ∈ E} S[k])  for i ≠ frontend
-
-    # 3. Row-normalize → transition matrix P
-    P[i][j] = A'[i][j] / Σ_j A'[i][j]
-
-    # 4. Personalization vector u (the teleport distribution)
-    u[i] = S[i] for i ≠ frontend, u[frontend] = 0; renormalize.
-
-    # 5. PPR iteration to fixed point
-    π ← α π P + (1 - α) u
-
-    # 6. Rank services by π (excluding the frontend itself)
-
-Deviations from the paper
--------------------------
-
-* **Pseudo-anomaly clustering** (Section 5.2) is not implemented. That
-  is the offline external-factor component; this class implements only
-  the real-time random-walk core, which the paper's own ablation
-  (Figure 6, PS+RW vs. PS+PAC) shows carries the bulk of the lift.
-
-* **Pattern similarity**: paper averages a sliding-window correlation
-  (Section 6.1, 60-minute window). We use a single Pearson correlation
-  over the whole anomaly window. This drops one hyperparameter and
-  makes the method deterministic; on a well-defined anomaly window the
-  two are nearly identical.
-
-* **Multi-metric services**: the paper assumes one metric per sensor
-  (sensor = ⟨service, API⟩ tuple). Our cases carry several metrics per
-  service (cpu, mem, latency, ...). We score a service v_i against the
-  frontend by the **max |corr|** over all (service-metric,
-  frontend-metric) column pairs, which reduces gracefully to the paper
-  formula when each side has one metric.
-
-* **Frontend auto-detection**: the paper takes the frontend as a user
-  input (it's where the anomaly was reported). When `frontend_service`
-  is not passed and `BenchmarkCase` carries no marker, we name-match
-  against a small list of common frontend identifiers, then fall back
-  to the service with the largest anomaly magnitude.
-
-* **Topology direction**: Section 6.1 reverses the call graph for
-  latency / error metrics so that the walker's "downstream" matches
-  fault-propagation. We trust whatever direction the caller passes via
-  `BenchmarkCase.system_topology`. When no topology is given we use a
-  fully-connected directed graph as a fallback, which makes ρ moot
-  and reduces the algorithm to weighted PPR over the similarity vector.
-
-* **Top-level frontend self-loop**: Eq. 6 explicitly excludes a
-  self-edge on the frontend (`j = i > 1`). We do the same.
+Deviations from the 2013 paper are recorded in ``DEVIATIONS.md``.
 """
 
 from __future__ import annotations
 
 import time
 from collections.abc import Mapping
+from dataclasses import dataclass, field
 
 import networkx as nx
 import numpy as np
-import pandas as pd
 
 from ..extraction.canonical_explanation import (
     BenchmarkCase,
@@ -94,8 +37,24 @@ from ..extraction.canonical_explanation import (
     DiagnosticOutput,
     ExplanationAtom,
 )
+from ..extraction.schema_normalizer import (
+    DEFAULT_WINDOW_SECONDS,
+    NormalizedCase,
+    normalize_case,
+)
+from ._onset import detect_onset
 from .base import RCAMethod
 
+
+_FEATURE_PRIORITY: tuple[str, ...] = (
+    "latency",
+    "traffic",
+    "error",
+    "cpu",
+    "mem",
+    "disk",
+    "net",
+)
 
 _FRONTEND_NAME_HINTS: tuple[str, ...] = (
     "frontend",
@@ -108,31 +67,35 @@ _FRONTEND_NAME_HINTS: tuple[str, ...] = (
     "ts-ui-dashboard",
 )
 
-_TIME_COLUMN_HINTS: frozenset[str] = frozenset({"time", "timestamp", "ts", "t"})
+
+@dataclass
+class _ServiceAnomaly:
+    score: float = 0.0
+    dominant_feature: str | None = None
+    per_feature: dict[str, float] = field(default_factory=dict)
 
 
 class MonitorRankMethod(RCAMethod):
-    """MonitorRank random-walk root-cause method.
+    """MonitorRank random-walk root-cause method on :class:`NormalizedCase`.
 
     Parameters
     ----------
     alpha:
-        Random-walk continuation probability in (0, 1). The paper sets
-        this higher when the call graph is trusted as a true dependency
-        graph; we default to 0.85, which is the canonical PageRank
-        value and matches what most modern RCA papers use for
-        MonitorRank baselines.
-    rho:
-        Backward-edge weight ρ ∈ [0, 1). Lower ρ lets the walker
-        explore more freely against the call direction. Default 0.5.
+        PPR damping factor in ``(0, 1)``. Paper-default 0.85.
+    n_iters:
+        Power iterations for the PPR update. 100 per the paper, fixed
+        for determinism.
     top_k:
-        Size of the top-K head used for the explanation chain and for
-        the derived confidence (top-1 / sum of top-K). Default 5.
+        Size of the head used for ``confidence = π_top1 / Σ π_topK``.
     frontend_service:
-        Optional name of the frontend / anomaly-seed service. If
-        ``None``, auto-detected (see module docstring).
-    max_iter, tol:
-        Iteration controls for the PPR fixed point.
+        Entry-point service to exclude from the rank (also gets zero
+        personalization mass). ``None`` triggers name-hint
+        auto-detection; if no hint matches no service is excluded.
+    corr_threshold:
+        ``|Pearson|`` cutoff for adding an edge in the inferred call
+        graph.
+    window_seconds:
+        Total window length passed to ``normalize_case``.
     """
 
     name = "monitorrank"
@@ -140,315 +103,254 @@ class MonitorRankMethod(RCAMethod):
     def __init__(
         self,
         alpha: float = 0.85,
-        rho: float = 0.5,
+        n_iters: int = 100,
         top_k: int = 5,
         frontend_service: str | None = None,
-        max_iter: int = 100,
-        tol: float = 1e-8,
+        corr_threshold: float = 0.3,
+        window_seconds: float = DEFAULT_WINDOW_SECONDS,
     ) -> None:
-        if not (0.0 < alpha < 1.0):
+        if not 0.0 < alpha < 1.0:
             raise ValueError(f"alpha must be in (0, 1), got {alpha}")
-        if not (0.0 <= rho < 1.0):
-            raise ValueError(f"rho must be in [0, 1), got {rho}")
+        if n_iters < 1:
+            raise ValueError(f"n_iters must be >= 1, got {n_iters}")
         if top_k < 1:
             raise ValueError(f"top_k must be >= 1, got {top_k}")
+        if not 0.0 <= corr_threshold <= 1.0:
+            raise ValueError(
+                f"corr_threshold must be in [0, 1], got {corr_threshold}"
+            )
+        if window_seconds <= 0:
+            raise ValueError(
+                f"window_seconds must be > 0, got {window_seconds}"
+            )
         self.alpha = alpha
-        self.rho = rho
+        self.n_iters = n_iters
         self.top_k = top_k
         self.frontend_service = frontend_service
-        self.max_iter = max_iter
-        self.tol = tol
+        self.corr_threshold = corr_threshold
+        self.window_seconds = window_seconds
 
     # ---- public API ----
 
     def diagnose(self, case: BenchmarkCase) -> DiagnosticOutput:
+        norm = normalize_case(case, window_seconds=self.window_seconds)
+        return self.diagnose_normalized(norm)
+
+    def diagnose_normalized(self, norm: NormalizedCase) -> DiagnosticOutput:
+        """Same as :meth:`diagnose` but takes a pre-built
+        :class:`NormalizedCase`. The shift-evaluation harness calls
+        this directly so it can pass a normalized case whose
+        ``ground_truth`` has been deliberately shifted, while keeping
+        ``case_window`` (the only thing this method actually reads)
+        untouched.
+
+        Methods that legitimately should not peek at ``ground_truth``
+        are validated by
+        :func:`evaluation.methods._protocol.validate_no_ground_truth_peeking`
+        — this method's body is a witness that it is possible to do
+        useful work without that field.
+        """
         t0 = time.perf_counter()
 
-        per_service = _extract_per_service_metrics(_metrics_field(case))
-        if not per_service:
+        if not norm.services:
             raise ValueError(
-                f"MonitorRank: case {case.id!r} has no recognizable "
-                f"per-service metrics in telemetry['metrics']"
+                f"MonitorRank: case {norm.id!r} has no recognizable services "
+                f"in its normalized metrics"
             )
-        services = sorted(per_service.keys())
-        frontend = self._pick_frontend(services, per_service)
-        sim = _pattern_similarity(services, per_service, frontend)
-        graph = _build_graph(services, case.system_topology)
-        scores = _monitorrank_random_walk(
-            services=services,
-            frontend=frontend,
-            sim=sim,
+
+        frontend = self._pick_frontend(norm)
+        # Strategy A: detect onset from telemetry alone. This replaces
+        # the previous ``norm.inject_time`` access — see DEVIATIONS.md.
+        onset_t = detect_onset(norm.case_window, norm.services)
+
+        anomaly = _compute_anomaly(norm, onset_t)
+        graph = _infer_call_graph(norm, frontend, self.corr_threshold)
+        scores = _personalized_pagerank(
             graph=graph,
+            services=norm.services,
+            personalization=_personalization_vector(anomaly, frontend),
             alpha=self.alpha,
-            rho=self.rho,
-            max_iter=self.max_iter,
-            tol=self.tol,
+            n_iters=self.n_iters,
         )
 
-        # Paper convention: the frontend is the anomaly seed, not a
-        # candidate root cause (u_frontend = 0). Drop it from the rank.
         ranked = sorted(
-            ((s, float(scores[s])) for s in services if s != frontend),
+            ((s, scores[s]) for s in norm.services if s != frontend),
             key=lambda kv: kv[1],
             reverse=True,
         )
         confidence = _derived_confidence(ranked, self.top_k)
-        explanation = _build_explanation(ranked, self.top_k)
+        explanation = _build_explanation(ranked, anomaly, top_n=3)
 
-        wall_ms = (time.perf_counter() - t0) * 1000.0
         return DiagnosticOutput(
             ranked_list=ranked,
             explanation_chain=explanation,
             confidence=confidence,
             raw_output=dict(scores),
             method_name=self.name,
-            wall_time_ms=wall_ms,
+            wall_time_ms=(time.perf_counter() - t0) * 1000.0,
         )
 
     # ---- internals ----
 
-    def _pick_frontend(
-        self,
-        services: list[str],
-        per_service: dict[str, pd.DataFrame],
-    ) -> str:
+    def _pick_frontend(self, norm: NormalizedCase) -> str | None:
         if self.frontend_service is not None:
-            if self.frontend_service not in services:
+            if self.frontend_service not in norm.services:
                 raise ValueError(
                     f"MonitorRank: frontend_service "
                     f"{self.frontend_service!r} is not in the case's "
-                    f"services {services!r}"
+                    f"services {norm.services!r}"
                 )
             return self.frontend_service
-        lowered = {s.lower(): s for s in services}
+        lowered = {s.lower(): s for s in norm.services}
         for hint in _FRONTEND_NAME_HINTS:
             if hint in lowered:
                 return lowered[hint]
-        # No name match — fall back to the noisiest service so at least
-        # the algorithm has a well-defined seed.
-        return max(
-            services,
-            key=lambda s: _service_anomaly_magnitude(per_service[s]),
-        )
+        return None
 
 
-# ---- telemetry plumbing ----
+# ---- anomaly scoring ----
 
 
-def _metrics_field(case: BenchmarkCase) -> object:
-    """Pull ``telemetry['metrics']`` out of a BenchmarkCase, or fail loudly."""
-    telem = case.telemetry
-    if isinstance(telem, Mapping) and "metrics" in telem:
-        return telem["metrics"]
-    raise ValueError(
-        f"MonitorRank: case {case.id!r} telemetry is missing a "
-        f"'metrics' field (got {type(telem).__name__})"
-    )
+def _compute_anomaly(
+    norm: NormalizedCase, onset_time: float
+) -> dict[str, _ServiceAnomaly]:
+    """Z-score of post-onset vs. pre-onset, max across canonical features.
 
-
-def _extract_per_service_metrics(metrics: object) -> dict[str, pd.DataFrame]:
-    """Normalize ``telemetry['metrics']`` to ``{service: DataFrame}``.
-
-    Two on-disk shapes appear in our benchmarks:
-
-    * ``dict[str, DataFrame]`` (FODA-12) — keys are service names.
-    * ``DataFrame`` with columns ``<service>_<metric>`` (RCAEval /
-      Online Boutique). We split on the *last* underscore so that
-      services with hyphens (``front-end``, ``ts-ui-dashboard``) work,
-      but service names containing literal underscores will be
-      mis-split. RCAEval cases use hyphenated service names, so this
-      heuristic suffices in practice.
+    ``onset_time`` comes from :func:`evaluation.methods._onset.detect_onset`
+    — it is **not** ``norm.ground_truth.inject_time``. That side
+    channel is invisible to this function.
     """
-    if isinstance(metrics, Mapping):
-        return {
-            str(k): v
-            for k, v in metrics.items()
-            if isinstance(v, pd.DataFrame)
-        }
-    if isinstance(metrics, pd.DataFrame):
-        return _split_flat_dataframe(metrics)
-    raise TypeError(
-        f"telemetry['metrics'] must be a dict[str, DataFrame] or a "
-        f"DataFrame, got {type(metrics).__name__}"
-    )
-
-
-def _split_flat_dataframe(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
-    by_service: dict[str, dict[str, pd.Series]] = {}
-    for col in df.columns:
-        if str(col).lower() in _TIME_COLUMN_HINTS:
-            continue
-        if "_" not in str(col):
-            continue
-        service, metric = str(col).rsplit("_", 1)
-        by_service.setdefault(service, {})[metric] = df[col]
-    return {svc: pd.DataFrame(cols) for svc, cols in by_service.items()}
-
-
-def _service_anomaly_magnitude(df: pd.DataFrame) -> float:
-    """Tie-breaker score for picking a frontend when no name matches.
-
-    Returns the max coefficient-of-variation across the service's
-    metric columns — "the noisiest service" wins. Pure heuristic; only
-    used when name-matching fails.
-    """
-    out = 0.0
-    for col in df.columns:
-        x = df[col].astype(float).to_numpy()
-        x = x[~np.isnan(x)]
-        if x.size < 2:
-            continue
-        mu = float(np.mean(np.abs(x)))
-        sd = float(np.std(x))
-        out = max(out, sd / mu if mu > 0 else sd)
+    df = norm.case_window
+    pre_mask = df["time"] < onset_time
+    post_mask = df["time"] >= onset_time
+    out: dict[str, _ServiceAnomaly] = {}
+    for svc in norm.services:
+        a = _ServiceAnomaly()
+        for feat in _FEATURE_PRIORITY:
+            col = f"{svc}_{feat}"
+            if col not in df.columns:
+                continue
+            x_pre = df.loc[pre_mask, col].to_numpy(dtype=float)
+            x_post = df.loc[post_mask, col].to_numpy(dtype=float)
+            if x_pre.size < 2 or x_post.size < 1:
+                continue
+            sd = float(x_pre.std())
+            if sd == 0.0:
+                continue
+            z = abs(float(x_post.mean()) - float(x_pre.mean())) / sd
+            if not np.isfinite(z):
+                continue
+            a.per_feature[feat] = z
+            if z > a.score:
+                a.score = z
+                a.dominant_feature = feat
+        out[svc] = a
     return out
 
 
-# ---- pattern similarity ----
-
-
-def _pattern_similarity(
-    services: list[str],
-    per_service: dict[str, pd.DataFrame],
-    frontend: str,
+def _personalization_vector(
+    anomaly: Mapping[str, _ServiceAnomaly], frontend: str | None
 ) -> dict[str, float]:
-    """S_i = max |Pearson(m_i^a, m_fe^b)| across metric column pairs.
-
-    Returned values lie in [0, 1]. The frontend gets S_frontend = 1.0;
-    it is needed in adjacency rows but is excluded from the
-    personalization vector (see the random-walk routine).
-    """
-    fe_df = per_service[frontend]
-    sim: dict[str, float] = {}
-    for s in services:
-        if s == frontend:
-            sim[s] = 1.0
-            continue
-        sim[s] = _max_abs_corr(per_service[s], fe_df)
-    return sim
+    raw = {s: a.score for s, a in anomaly.items()}
+    if frontend in raw:
+        raw[frontend] = 0.0
+    total = sum(raw.values())
+    if total <= 0:
+        candidates = [s for s in raw if s != frontend]
+        if not candidates:
+            return {s: 1.0 / len(raw) for s in raw}
+        share = 1.0 / len(candidates)
+        return {s: (0.0 if s == frontend else share) for s in raw}
+    return {s: raw[s] / total for s in raw}
 
 
-def _max_abs_corr(svc_df: pd.DataFrame, fe_df: pd.DataFrame) -> float:
-    best = 0.0
-    fe_cols = [
-        (fc, fe_df[fc].astype(float).to_numpy()) for fc in fe_df.columns
-    ]
-    for sc in svc_df.columns:
-        a = svc_df[sc].astype(float).to_numpy()
-        for _, b in fe_cols:
-            n = min(a.size, b.size)
-            if n < 2:
-                continue
-            x, y = a[-n:], b[-n:]
-            mask = ~(np.isnan(x) | np.isnan(y))
-            if mask.sum() < 2:
-                continue
-            xm, ym = x[mask], y[mask]
-            if xm.std() == 0 or ym.std() == 0:
-                continue
-            r = float(np.corrcoef(xm, ym)[0, 1])
-            if not np.isnan(r):
-                best = max(best, abs(r))
-    return best
+# ---- graph inference ----
 
 
-# ---- topology graph ----
-
-
-def _build_graph(services: list[str], topology: object) -> nx.DiGraph:
+def _infer_call_graph(
+    norm: NormalizedCase, frontend: str | None, threshold: float
+) -> nx.DiGraph:
+    df = norm.case_window
+    services = norm.services
     g = nx.DiGraph()
     g.add_nodes_from(services)
-    if topology is None:
-        # Fully-connected fallback: u → v for every u ≠ v. This makes
-        # backward edges vacuous (forward edges already cover every
-        # pair) and turns the algorithm into similarity-weighted PPR.
-        for u in services:
-            for v in services:
-                if u != v:
-                    g.add_edge(u, v)
-        return g
-    if isinstance(topology, nx.DiGraph):
-        for u, v in topology.edges():
-            if u in g and v in g:
-                g.add_edge(u, v)
-        return g
-    if isinstance(topology, Mapping):
-        for u, neighbors in topology.items():
-            if u not in g:
+
+    signal: dict[str, np.ndarray] = {}
+    for svc in services:
+        s = _pick_signal(df, svc)
+        if s is not None:
+            signal[svc] = s
+
+    for i, u in enumerate(services):
+        for j in range(i + 1, len(services)):
+            v = services[j]
+            su, sv = signal.get(u), signal.get(v)
+            if su is None or sv is None:
                 continue
-            for v in neighbors or []:
-                if v in g:
-                    g.add_edge(u, v)
-        return g
-    raise TypeError(
-        f"system_topology must be a dict[str, list[str]], a DiGraph, "
-        f"or None — got {type(topology).__name__}"
-    )
+            if float(np.nanstd(su)) == 0.0 or float(np.nanstd(sv)) == 0.0:
+                continue
+            r = float(np.corrcoef(su, sv)[0, 1])
+            if not np.isfinite(r):
+                continue
+            if abs(r) >= threshold:
+                w = abs(r)
+                g.add_edge(u, v, weight=w)
+                g.add_edge(v, u, weight=w)
+
+    if frontend in services:
+        und = g.to_undirected()
+        for s in services:
+            if s == frontend:
+                continue
+            if not nx.has_path(und, frontend, s):
+                g.add_edge(frontend, s, weight=threshold)
+                g.add_edge(s, frontend, weight=threshold)
+    return g
 
 
-# ---- random walk ----
+def _pick_signal(df, svc: str):
+    for feat in ("traffic", "latency", "cpu", "mem", "error"):
+        col = f"{svc}_{feat}"
+        if col in df.columns:
+            return df[col].to_numpy(dtype=float)
+    return None
 
 
-def _monitorrank_random_walk(
-    services: list[str],
-    frontend: str,
-    sim: dict[str, float],
+# ---- personalized PageRank ----
+
+
+def _personalized_pagerank(
     graph: nx.DiGraph,
+    services: list[str],
+    personalization: Mapping[str, float],
     alpha: float,
-    rho: float,
-    max_iter: int,
-    tol: float,
+    n_iters: int,
 ) -> dict[str, float]:
     n = len(services)
     idx = {s: i for i, s in enumerate(services)}
-    fe_idx = idx[frontend]
 
-    # Eq. 6: build A' on G with forward, backward, and self edges.
     A = np.zeros((n, n), dtype=float)
-    for i, u in enumerate(services):
-        max_child_sim = 0.0
-        for v in graph.successors(u):
-            j = idx[v]
-            A[i, j] = sim[v]                 # forward edge
-            if sim[v] > max_child_sim:
-                max_child_sim = sim[v]
-        for v in graph.predecessors(u):
-            if not graph.has_edge(u, v):
-                A[i, idx[v]] = rho * sim[u]  # backward edge
-        if i != fe_idx:
-            A[i, i] = max(0.0, sim[u] - max_child_sim)  # self edge
+    for u, v, data in graph.edges(data=True):
+        A[idx[u], idx[v]] = float(data.get("weight", 1.0))
 
-    # Eq. 7: row-normalize to a transition matrix.
-    P = np.zeros_like(A)
     row_sums = A.sum(axis=1)
+    P = np.zeros_like(A)
     for i in range(n):
         if row_sums[i] > 0:
             P[i] = A[i] / row_sums[i]
         else:
-            # Stuck row (all zeros): jump uniformly to other nodes so
-            # the chain stays ergodic and PageRank mass conserves.
-            mask = np.ones(n, dtype=float)
-            mask[i] = 0.0
-            P[i] = mask / max(1, n - 1)
+            P[i] = np.full(n, 1.0 / n if n > 0 else 0.0)
 
-    # Personalization vector u: u_i = S_i for i ≠ fe, u_fe = 0; renormalize.
-    u = np.array([sim[s] for s in services], dtype=float)
-    u[fe_idx] = 0.0
-    if u.sum() <= 0:
-        # Degenerate: no anomaly signal. Spread teleports uniformly
-        # over non-frontend nodes so we still get a meaningful rank.
-        u = np.ones(n, dtype=float)
-        u[fe_idx] = 0.0
-    u = u / u.sum()
+    p = np.array([personalization.get(s, 0.0) for s in services], dtype=float)
+    s_total = p.sum()
+    if s_total <= 0:
+        p = np.full(n, 1.0 / n) if n > 0 else p
+    else:
+        p = p / s_total
 
-    # Eq. 8: π ← α π P + (1 - α) u.
-    pi = u.copy()
-    for _ in range(max_iter):
-        nxt = alpha * (pi @ P) + (1.0 - alpha) * u
-        if np.linalg.norm(nxt - pi, ord=1) < tol:
-            pi = nxt
-            break
-        pi = nxt
+    pi = p.copy()
+    for _ in range(n_iters):
+        pi = alpha * (pi @ P) + (1.0 - alpha) * p
 
     return {services[i]: float(pi[i]) for i in range(n)}
 
@@ -459,36 +361,38 @@ def _monitorrank_random_walk(
 def _derived_confidence(
     ranked: list[tuple[str, float]], top_k: int
 ) -> float:
-    """Top-1 / sum-of-top-K, clamped to [0, 1].
-
-    Returns 1/k for a perfectly flat top-k (no signal) and 1.0 when
-    the top entry dominates. 0.0 only if every score is non-positive
-    (e.g. no anomaly was detected anywhere).
-    """
     if not ranked:
         return 0.0
     head = ranked[:top_k]
     total = sum(s for _, s in head)
     if total <= 0:
         return 0.0
-    return head[0][1] / total
+    return max(0.0, min(1.0, head[0][1] / total))
 
 
 def _build_explanation(
-    ranked: list[tuple[str, float]], top_k: int
+    ranked: list[tuple[str, float]],
+    anomaly: Mapping[str, _ServiceAnomaly],
+    top_n: int = 3,
 ) -> CanonicalExplanation:
     explanation = CanonicalExplanation()
-    head = ranked[:top_k]
+    head = ranked[:top_n]
     if not head:
         return explanation
-    max_score = max(s for _, s in head) or 1.0
+    pi_max = max(s for _, s in head) or 1.0
     for service, score in head:
-        membership = max(0.0, min(1.0, score / max_score))
+        a = anomaly.get(service)
+        feat = a.dominant_feature if a is not None else None
+        z = a.score if a is not None else 0.0
+        if feat is not None:
+            text = f"{service}: anomalous {feat} (z={z:.2f}, π={score:.4f})"
+        else:
+            text = f"{service}: π={score:.4f}"
         explanation.add_atom(
             ExplanationAtom(
-                text=f"{service} has anomaly score {score:.4f}",
+                text=text,
                 ontology_class=None,
-                fuzzy_membership=membership,
+                fuzzy_membership=max(0.0, min(1.0, score / pi_max)),
             )
         )
     return explanation
