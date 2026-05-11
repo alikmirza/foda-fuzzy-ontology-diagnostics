@@ -210,3 +210,187 @@ MicroRank look for indirect causal propagation and pay an
 under-fitting cost on faults that don't propagate clearly. This is a
 known qualitative difference between direct-anomaly and
 causal-propagation RCA methods, not an implementation bug.
+
+---
+
+## CausalRCA (Xin, Chen, Zhao; JSS vol 203 art 111724, 2023)
+
+Implementation: `evaluation/methods/causalrca.py`. Consumes
+`NormalizedCase` from `evaluation/extraction/schema_normalizer.py`
+rather than RCAEval's `preprocess(...)` output.
+
+The published CausalRCA learns a structural equation model over every
+metric column via a VAE-based NOTEARS continuous optimization, then
+ranks candidates by PageRank on the learned adjacency. Our
+re-implementation matches the *spirit* — learn a causal graph from
+telemetry, infer the root cause from that graph — but parts ways on
+several concrete choices documented below.
+
+### Deviation 0: Onset detected from telemetry, not read from inject_time
+
+Same shape as MonitorRank's Deviation 0. The published version
+fenceposts pre/post windows at `inject_time` (it then aggregates
+"normal" and "anomalous" rows separately and feeds the concat into
+the VAE). Under the inject_time-removal contract (Deviation N1
+above) `inject_time` is hidden, so `CausalRCAMethod.diagnose_normalized`
+calls `evaluation.methods._onset.detect_onset` on `case_window` to
+find the pre/post pivot from telemetry alone. The pivot is used in
+the same place the published method uses `inject_time`: to compute
+per-service post-vs-pre z-scores that feed both the anomaly ranking
+and the choice of "shape signal" each service contributes to the PC
+matrix.
+
+Empirical witness: per-case `AC@1` is bit-identical between the true
+run and the ±300 s shifted runs (shift moves only the side-channel
+`inject_time`, not `case_window`). `S(M) = 0.000` overall and per-fault
+on RE1-OB; see `results/week2_causalrca_validation.csv` and
+`evaluation/tests/test_causalrca.py::TestShiftInvariance`.
+
+### Deviation 1: PC algorithm over services, not NOTEARS-VAE over columns
+
+The published method runs a VAE-based NOTEARS continuous structure
+learner (an MLP encoder/decoder pair, ~500 epochs × up to 100 outer
+iterations) over *every* metric column. We instead:
+
+* Pick one **per-service "shape signal"** — the canonical feature
+  whose post-vs-pre z-score is largest for that service. This
+  collapses the ~60 service-feature columns into ~10–20 service
+  signals.
+* Run **causal-learn's PC algorithm** (`fisherz` CI test, `alpha=0.05`)
+  on the resulting matrix.
+
+**Why** — the brief explicitly authorizes either PC or NOTEARS and
+asks us to document the choice. PC has three advantages here:
+
+1. *Deterministic.* No random initialization, no SGD seed sensitivity.
+2. *Auditable.* The CI-test structure means every absent edge has a
+   testable reason; the VAE's adjacency is a black box.
+3. *Right scale.* The ancestor-analysis step that follows wants a
+   DAG **over services** (not over service-feature pairs), so the
+   per-service signal collapse is in any case required. Once you've
+   collapsed, the variable count (~10–20) is small enough that PC's
+   asymptotic cost is irrelevant — every case finishes in well under
+   one second.
+
+**What we give up** — the VAE's MLP can capture nonlinear couplings;
+PC + Fisher-Z assumes linear Gaussian. On RE1-OB this hasn't shown
+up as an AC@1 drop (we're at 0.624 overall versus the published
+~0.15), but it would be a real limitation on a benchmark with
+heavily nonlinear inter-service dynamics.
+
+### Deviation 2: Ancestor-of-anchor scoring, not PageRank on the adjacency
+
+The published method runs PageRank on `|A|` (`sknetwork.ranking.PageRank`)
+and reports the rank order directly. We instead:
+
+* Designate the **anchor** = `argmax_service anomaly_score`.
+* For every service `s`, compute
+  `score(s) = anomaly_score(s) / (1 + d(s, anchor))`
+  where `d` is the shortest directed-path length from `s` to the
+  anchor in the learned DAG. Non-ancestors get `score(s) =
+  anomaly_score(s) × nonancestor_penalty_floor` (default 0.05) so
+  they still rank but are demoted below ancestors.
+
+**Why** — the brief specifies "ancestor analysis" and "(anomaly score
+× distance penalty)" explicitly. The structural intuition is that the
+most-anomalous service is typically the *manifestation*, not the
+cause, and the cause lives upstream. PageRank biases toward
+high-degree nodes regardless of whether those nodes are upstream of
+the manifestation; ancestor-of-anchor scoring explicitly restricts
+the candidate set to the upstream cone of the visible symptom.
+
+### Deviation 3: Undirected-edge orientation by anomaly gradient
+
+PC returns a **CPDAG**: some edges are directed, others are left
+undirected because the equivalence class is unidentifiable from
+observational data alone. We turn the CPDAG into a DAG by orienting
+every undirected edge from the less-anomalous endpoint to the
+more-anomalous one — i.e., "anomaly flows downstream".
+
+**Why** — ancestor-of-anchor scoring needs a DAG, and the gradient
+orientation is the deterministic tiebreaker most consistent with the
+"manifestation is downstream" prior. Random or alphabetic
+orientation would be defensible but less informative; an explicit
+score-based orientation reads naturally in the explanation graph.
+
+### Deviation 4: Explanation chain carries real causal links
+
+CausalRCA is the first method in the suite that produces a true
+causal narrative, not just a ranked list. `CanonicalExplanation` for
+this method includes:
+
+* One `ExplanationAtom` per service in the top-K head (default K=5),
+  text-tagged with the service's dominant feature and z-magnitude.
+* `CausalLink` edges drawn from the learned DAG induced on the
+  top-K services. Each link's weight is the absolute Pearson
+  correlation between the two services' shape signals (clipped to
+  `[0, 1]`).
+* The atom corresponding to the anchor is tagged `(anchor)` in its
+  text.
+
+MonitorRank emits an empty link set; this method does not. The
+ontology-grounded metrics added later in Paper 6 will exploit the
+structural information.
+
+### Deviation 5: Confidence = 1 − top2/top1 ratio
+
+The published method reports the PageRank score directly. We
+synthesize a `[0, 1]` confidence as `1 − top2_score / top1_score`,
+clipped. A clear winner gives confidence near 1; a near-tie gives
+confidence near 0. This matches the brief's instruction
+("Derive from the top-1 service's anomaly score relative to the
+second-ranked service. Calibration will be evaluated separately in
+Paper 6's metrics phase").
+
+### Deviation 6: Schema normalization upstream of method input
+
+Same as MonitorRank's analogous point. The method consumes a
+`NormalizedCase` (`{service}_{latency, traffic, error, cpu, mem,
+disk, net}` canonical schema, bounded `case_window`, randomly
+positioned inject point, regular sampling). The published method
+ran on RCAEval's `preprocess(...)` output (drop-constant, drop-time,
+column rename). The normalization step is *upstream* of the method;
+it isn't a deviation from the algorithm itself but it is a
+preprocessing difference that affects numerical comparability.
+
+### Validation against published baselines
+
+Validated via (a) synthetic 3-service and 5-service scenarios where
+the root cause is known a priori (see
+`evaluation/tests/test_causalrca.py`), and (b) per-fault-type AC@k on
+all 125 RE1-OB cases. Results in
+`results/week2_causalrca_validation.csv`.
+
+**Headline numbers** (RE1-OB, inject-time-clean contract):
+
+| fault   | n  | AC@1  | AC@3  | AC@5  | MRR   | S(M)   | AC@1_random |
+|---------|----|-------|-------|-------|-------|--------|-------------|
+| cpu     | 25 | 0.680 | 0.960 | 1.000 | 0.810 | 0.000  | 0.400       |
+| delay   | 25 | 0.960 | 0.960 | 0.960 | 0.963 | 0.000  | 0.400       |
+| disk    | 25 | 0.680 | 0.920 | 0.960 | 0.788 | 0.000  | 0.200       |
+| loss    | 25 | 0.120 | 0.560 | 0.680 | 0.356 | 0.000  | 0.080       |
+| mem     | 25 | 0.680 | 0.880 | 0.880 | 0.786 | 0.000  | 0.640       |
+| overall |125 | 0.624 | 0.856 | 0.896 | 0.741 | 0.000  | 0.344       |
+
+The `AC@1_random` column is the random-onset decomposition probe
+(brief §10): re-run with the onset replaced by a uniformly-random
+in-band pivot. Substantial gap between `AC@1` and `AC@1_random`
+(0.624 → 0.344 overall) means change-point detection contributes
+meaningfully on top of the structural step. The structural step
+alone, even with a random pivot, still beats the published RCAEval
+CausalRCA AC@1 of ~0.15.
+
+**Note on overall AC@1 being above the brief's [0.10, 0.50] band.**
+At 0.624 we're well above the brief's expected upper bound and also
+well above RCAEval's published CausalRCA AC@1 of ~0.15. `S(M) = 0`
+rules out an inject_time leak. The most plausible explanation is
+the same effect MonitorRank shows: the `NormalizedCase` layer
+exposes per-service canonical features cleanly (`{svc}_cpu`,
+`{svc}_latency`, …) and the post-vs-pre z-score on those columns is
+a much stronger direct signal than what RCAEval's `preprocess(...)`
+produced. CausalRCA's anomaly ranking (which feeds both the anchor
+choice and the score) inherits that lift; the ancestor-of-anchor
+scoring then preserves it. For comparison, MonitorRank under the
+same normalization scores `AC@1 = 0.632` overall — essentially
+identical, supporting the "shared upstream cause" interpretation
+over either method's structural step being the deciding factor.
