@@ -890,3 +890,134 @@ The DejaVu paper reports AC@1 ≈ 0.50–0.65 on A0/A1/A2. RCAEval does
 not publish DejaVu numbers. Our RE1-OB result is reported in
 ``paper/notes/findings.md`` under "DejaVu entry" alongside the
 training-size ablation and the cross-method finding block.
+
+
+## yRCA (Soldani, Bono, Brogi; Software: Practice and Experience 2022/2025)
+
+The published yRCA is a Java/Prolog tool that turns a stream of typed
+log events into an explanation graph by forward-chaining a Prolog
+ruleset over a topology model. Its contribution is the **rule-based
+causal-inference approach to explanation**, not the specific Prolog
+engine; this adapter captures the methodology in pure Python on the
+inject_time-clean :class:`NormalizedCase` contract.
+
+Reference code: https://github.com/di-unipi-socc/yRCA.
+
+### Deviation 1: Synthetic events synthesised from metrics, not logs
+
+RCAEval RE1-OB ships metric-only telemetry; the published yRCA
+consumes parsed application logs. We synthesise a discrete event
+stream by running the shared
+:func:`evaluation.methods._onset.detect_onset` to find an onset
+pivot and emitting one event per ``(service, canonical feature)``
+pair whose post-vs-pre z-score magnitude exceeds
+``severity_threshold`` (default 3.0):
+
+* ``z >= +severity_threshold`` ⇒ ``anomaly_high(service, feature)``
+* ``z <= -severity_threshold`` ⇒ ``anomaly_low(service, feature)``
+* ``|z| <= 1`` ⇒ ``normal(service, feature)`` (only when
+  ``emit_normal_events=True``; optional baseline)
+
+All events are timestamped at the detected onset, mirroring the
+"each log line has a timestamp" property the published method
+exploits. Because RE1-OB has no logs, **direct number comparison
+with the published yRCA evaluation is not meaningful** — the
+synthetic-event regime fundamentally restricts the rule engine to
+window-level evidence (one event per service-feature pair),
+whereas the original log-based regime sees many events per
+service over time. We report yRCA's numbers as a comparison point
+within this Paper 6's suite, not as a reproduction of the
+published evaluation.
+
+### Deviation 2: Pure-Python forward chaining instead of Prolog
+
+The Prolog engine is replaced by an explicit forward-chaining loop
+over a Python fact database. Each rule (R1–R5) is encoded as a
+function; the engine iterates until no new facts are added or
+``max_iterations`` is reached. Termination is guaranteed because
+every rule strictly adds facts and the fact space is bounded by
+``|services|² × |relations|``. The iteration count is exposed in
+``raw_output`` for diagnostic visibility.
+
+Five-rule core (faithful to the published reasoning logic; the
+Prolog ruleset is richer in edge cases that don't fire under the
+synthetic-event regime):
+
+* **R1** — ``anomaly_high(s, f, t)`` or ``anomaly_low(s, f, t)``
+  ⇒ ``potential_root_cause(s, f)``.
+* **R2** — topology edge ``cause → dep`` AND ``cause`` has a
+  potential_root_cause AND ``dep`` has its own anomaly with
+  ``t_dep ≥ t_cause`` ⇒ ``explained_by(dep, cause)``.
+* **R3** — ``potential_root_cause(s)`` AND no ``explained_by(s, _)``
+  ⇒ ``final_root_cause(s)``.
+* **R4** — retry cascade: upstream ``latency``/``error`` anomaly +
+  downstream ``traffic`` anomaly along a topology edge ⇒
+  ``explained_by(dep, cause)`` derived under rule_id ``R4_retry``.
+* **R5** — timeout propagation: upstream ``latency`` anomaly +
+  downstream ``latency`` anomaly along a topology edge ⇒
+  ``explained_by(dep, cause)`` derived under rule_id ``R5_timeout``.
+
+Dedup is on ``(relation, args, rule_id)``, not ``(relation, args)``,
+so the same ``explained_by`` edge can be independently derived by
+R2, R4, and R5; the multi-rule-derivation count drives the
+confidence metric.
+
+### Deviation 3: Topology inferred from feature correlations
+
+The published yRCA reads an explicit topology from the system
+specification. RCAEval has no call-graph metadata, so we infer
+topology the same way MicroRCA does: directed edge ``u → v`` when
+``|corr(u_signal[:T-lag], v_signal[lag:])|`` exceeds
+``topology_threshold`` (default 0.5) AND that direction's lagged
+correlation outranks the reverse. Self-loops are excluded; one
+service representative signal is the dominant-anomaly feature
+where present, otherwise the canonical-feature-priority order.
+
+### Deviation 4: Derivation-multiplicity confidence
+
+Native yRCA outputs a binary explanation (the chain exists or it
+doesn't); a confidence score is not part of the published method.
+We derive one: the fraction of ``final_root_cause`` services that
+were independently supported by ≥ 2 distinct rule paths. A case
+with one unambiguously over-derived root has high confidence;
+multiple tied single-derivation candidates has low.
+
+### Onset detection: shared utility
+
+yRCA's event timestamps are anchored at the
+:func:`evaluation.methods._onset.detect_onset` pivot. This is the
+same opt-in shared utility that MonitorRank, CausalRCA, and
+MicroRCA reuse. The adapter therefore inherits the detector's
+edge-fragility under canonical preprocessing — see the cross-
+method offset-robustness diagnostic in ``paper/notes/findings.md``.
+
+### Decomposition diagnostics (brief §8, §9, Paper 6 §4)
+
+The harness ``evaluate_yrca.py`` emits two yRCA-specific
+diagnostic axes:
+
+* **``--with-random-onset``** — replace
+  :func:`detect_onset` with a uniformly-random in-band pivot.
+  Detector-vs-rule-engine decomposition: how much of yRCA's AC@1
+  comes from getting the onset right vs. from the rule reasoning
+  over the synthesised events?
+* **``--with-offset-robustness``** — re-normalize each case with
+  the inject offset placed at the per-case hashed default,
+  5 %, 95 %, and 50 % of the window. Reports the five offset-
+  robustness columns (``a_standard``, ``b_edge_left``,
+  ``b_edge_right``, ``b_edges_mean``, ``c_centered``) on the
+  Paper 6 §4 standard reporting axis. yRCA inherits the shared
+  ``_onset.detect_onset`` utility's [25 %, 75 %] search band
+  constraint and is therefore expected to fragilise at edges
+  similarly to MonitorRank / CausalRCA / MicroRCA.
+
+### Validation against published baselines
+
+The published yRCA evaluation uses a log-based microservice
+dataset (Sock Shop with injected faults) and reports
+explanation-correctness as the primary metric. Direct number
+comparison against our RE1-OB run is not meaningful (see
+Deviation 1). Our RE1-OB result is reported in
+``paper/notes/findings.md`` under "yRCA entry" alongside the
+cross-method offset-robustness update.
+
