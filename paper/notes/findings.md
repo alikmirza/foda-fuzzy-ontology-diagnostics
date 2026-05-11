@@ -136,47 +136,92 @@ elsewhere.
 
 ---
 
-## Cross-method finding — RCAEval ranking-AC@1 convergence
+## 2026-05 — BARO baseline characterization on RE1-OB
 
-Three structurally distinct metric-based RCA methods (MonitorRank,
-CausalRCA, MicroRCA) achieve essentially identical overall AC@1 on
-RE1-OB (0.632, 0.624, 0.624 respectively; spread 0.8pp). Per-fault
-profiles also converge within 4pp on cpu/mem/disk/delay and within
-4pp on loss.
+S(M) = 0.000 (structural — BARO does not read ground_truth)
 
-The convergence persists across mathematically distinct foundations:
-random-walk PageRank, PC-algorithm causal discovery, attributed-graph
-asymmetric PageRank. All three methods, when given the same
-NormalizedCase input, produce the same top-1 ranking in the vast
-majority of cases.
+Overall AC@1 = 0.480, well below the MR/CR/Micro convergence band (~0.62).
 
-The collapsed-graph diagnostic on MicroRCA isolates the cause:
-replacing MicroRCA's asymmetric lag-1 correlation graph with a
-symmetric uniform-weighted graph produces identical top-1 in 125/125
-cases. The attributed-graph structure adds zero discriminating power
-on RE1-OB.
+Reference comparison decomposition:
+- RCAEval reference BARO (raw columns + inject_time):    0.720 AC@1
+- Our oracle (inject_time given, canonical schema):       0.600 AC@1
+- Our native (BOCPD-detected onset, canonical schema):    0.480 AC@1
 
-Interpretation: on benchmarks where the fault signature is a clean
-step-change on directly observable canonical features (cpu, mem,
-disk, delay), the per-service anomaly score is sufficient to
-identify the root cause. Graph-walking algorithms, regardless of
-their structure, all converge to ranking services by their anomaly
-score. The graph topology contributes nothing because it does not
-need to.
+The 24pp gap from reference to native decomposes as:
+- 12pp from canonical-schema preprocessing (oracle vs ref)
+- 12pp from BOCPD onset detection vs ground-truth inject_time pivot
 
-This finding has two implications for Paper 6:
+Neither component is a bug. Both are deliberate consequences of the
+NormalizedCase contract: canonical preprocessing for cross-method
+comparability, BOCPD-detected onset for deployment realism.
 
-1. AGGREGATE AC@1 IS A WEAK DISCRIMINATOR. The standard ranking
-metric used by 90% of microservice RCA papers cannot distinguish
-methods that are mathematically very different. New evaluation
-dimensions are needed (and Paper 6 proposes four).
+Per-fault detected-onset AC@1: cpu 0.520, mem 0.760, disk 0.360,
+delay 0.640, loss 0.120.
 
-2. ONSET SENSITIVITY IS A REAL DISCRIMINATOR. Random-onset
-decomposition reveals that the three methods do differ in their
-dependence on accurate anomaly onset detection. CausalRCA most
-sensitive (+0.280 onset lift), MonitorRank least (+0.216), MicroRCA
-intermediate (+0.248). This dimension belongs in any honest
-characterization of an RCA method.
+Decomposition diagnostics:
+- AC@1_native (BOCPD pivot):          0.480
+- AC@1_random (random pivot):         0.376  (+0.104 from native)
+- AC@1_zscore_onset (z-score pivot):  0.568  (+0.088 from native)
 
-The remaining methods (BARO, DejaVu, yRCA, FODA-FCP) will either
-extend or break this pattern. Track which ones.
+Counterintuitive finding: BARO's native Bayesian change-point
+detector underperforms the shared z-score onset utility by 8.8pp on
+RE1-OB. This is the FIRST paper-relevant axis where the change-point-
+detector family is a discriminator. Interpretation: BOCPD's
+probabilistic formulation requires consistent variance structure to
+distinguish change from noise; canonical-feature compression breaks
+that consistency more than it breaks z-score thresholding.
+
+Cross-method implication: BARO breaks the MR/CR/Micro AC@1
+convergence band by 14pp on the low side. Methods are NOT all
+equivalent under canonical preprocessing — column-max-z methods
+suffer where graph-walking methods are robust. The methodological
+diversity is in HOW methods consume the telemetry, not just in their
+ranking algorithm.
+
+This finding strengthens Paper 6's argument: aggregate AC@1 obscures
+real methodological diversity. Methods at the same AC@1 can have
+different onset profiles (MR/CR/Micro example) AND methods at
+different AC@1 can be telling us about different aspects of telemetry
+consumption (BARO example).
+
+---
+
+## Cross-method finding (updated through BARO) — partial AC@1 convergence
+
+Four metric-based RCA methods on RE1-OB:
+  MonitorRank:  0.632 (random-walk PageRank)
+  CausalRCA:    0.624 (PC algorithm + ancestor scoring)
+  MicroRCA:     0.624 (attributed-graph asymmetric PageRank)
+  BARO:         0.480 (multivariate BOCPD + column-max-z scoring)
+
+Three of the four (MR/CR/Micro) converge within 0.8pp on aggregate
+AC@1 despite mathematically distinct foundations. The collapsed-graph
+diagnostic on MicroRCA shows the attributed structure adds zero
+discriminating power. The convergence is real for graph-walking
+methods.
+
+BARO breaks the band by 14pp. The reference-comparison decomposition
+shows the gap is structural to BARO's column-max-z scoring topology
+under canonical-schema preprocessing, not a code bug.
+
+Interpretation: graph-walking methods (MR/CR/Micro) rank services by
+per-service aggregate anomaly scores; their convergence reflects
+that they all agree on which service is most anomalous in aggregate.
+Column-max-z methods (BARO) rank by the single most anomalous
+feature column; their behavior depends on which columns are exposed.
+Canonical-schema preprocessing helps the former family and hurts the
+latter.
+
+Onset sensitivity remains a discriminating axis across all four
+methods:
+  MonitorRank:  +0.216 onset-finding lift
+  MicroRCA:     +0.248 onset-finding lift
+  CausalRCA:    +0.280 onset-finding lift
+  BARO:         +0.104 onset-finding lift (smallest)
+
+BARO is the LEAST onset-sensitive of the four — because its scoring
+already integrates over the change-point distribution, exact pivot
+matters less. This is consistent with BOCPD's probabilistic nature.
+
+The remaining methods (DejaVu, yRCA, FODA-FCP) will either extend or
+break these patterns. Track which.
