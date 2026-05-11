@@ -72,3 +72,111 @@ distinguish methods.
 Hypothesis: published CausalRCA AC@1 (~0.15) lower than ours
 because their preprocessing aggregates per-service raw columns
 into derived features. Documented in DEVIATIONS.md.
+
+---
+
+## 2026-05 — MicroRCA baseline characterization on RE1-OB
+
+S(M) = 0.000 (no labeled-inject_time dependence, validated by ±300s shift)
+
+Overall AC@1 = 0.624, decomposed:
+- Random-onset AC@1 = 0.376 (any-window structural signal)
+- Detected-onset AC@1 = 0.624 (+0.248 onset-finding lift)
+- Collapsed-graph AC@1 = 0.624 (attributed-graph effect = 0.000)
+
+Per-fault detected-onset AC@1:
+- CPU 0.68, MEM 0.68, DISK 0.72, DELAY 0.96, LOSS 0.08
+- Profile within 4pp of MonitorRank and CausalRCA on every fault
+  except LOSS (where all three methods fail uniformly — MR/CR 0.12,
+  Micro 0.08, within noise). Three methods, three different
+  structural foundations (random-walk PageRank vs PC-algorithm
+  causal discovery vs attributed-graph PPR), nearly identical
+  per-fault profiles.
+
+Attributed-graph effect (brief §9):
+- Asymmetric lagged-correlation graph: AC@1 = 0.624
+- Symmetric Pearson graph (collapsed):  AC@1 = 0.624
+- Delta = 0.000 on every fault. The asymmetric edge weighting adds
+  zero discriminating power on RE1-OB. Same shape of finding as
+  CausalRCA's PC-algorithm step: the structural elaboration on top
+  of the per-service anomaly signal does not change top-1 ranking
+  in even one of 125 cases.
+
+Cross-method observations vs MonitorRank, CausalRCA:
+- All three methods now score essentially identically on overall
+  AC@1: 0.632, 0.624, 0.624. The pattern flagged after CausalRCA
+  ("aggregate AC@1 is a lossy characterization") is now empirically
+  confirmed across three structurally distinct methods.
+- Random-onset profiles do diverge: MR 0.416, CR 0.344, Micro 0.376.
+  This is the axis where the methods actually differ — how robust
+  is the ranking to a misplaced pivot. MR > Micro > CR in robustness;
+  PC-algorithm CI tests are most pivot-sensitive (conditional
+  independence reads change), random-walk PPR is least.
+- Attributed-graph effect (delta) is *zero* on RE1-OB. Onset-finding
+  lift is *substantial* (+0.21 to +0.28). The structural step is the
+  least load-bearing component of all three methods; the change-
+  point detector is the most.
+
+Implication for Paper 6 (sharper version of the CausalRCA note):
+correlation-based RCA methods on RE1-OB converge on a shared upper
+bound determined by the per-service post-vs-pre z-score signal that
+the normalized canonical schema exposes. The structural step —
+random-walk personalization, PC-algorithm CPDAG, or lagged-corr
+attributed graph — modulates *the variance of the answer under
+pivot perturbation*, not the answer itself when the pivot is
+well-chosen. Three data points now support this; expect the next
+two methods (BARO, DejaVu, FODA-FCP) to either confirm or break it.
+
+If the pattern holds across all five remaining methods, the paper's
+methodological contribution sharpens: the deployment-realism
+characterization (S, random-onset, detected-onset, attributed-graph)
+exposes that aggregate AC@1 comparisons are not just lossy — they
+are *uninformative* on RE1-OB. The methods are differentiated
+elsewhere.
+
+---
+
+## Cross-method finding — RCAEval ranking-AC@1 convergence
+
+Three structurally distinct metric-based RCA methods (MonitorRank,
+CausalRCA, MicroRCA) achieve essentially identical overall AC@1 on
+RE1-OB (0.632, 0.624, 0.624 respectively; spread 0.8pp). Per-fault
+profiles also converge within 4pp on cpu/mem/disk/delay and within
+4pp on loss.
+
+The convergence persists across mathematically distinct foundations:
+random-walk PageRank, PC-algorithm causal discovery, attributed-graph
+asymmetric PageRank. All three methods, when given the same
+NormalizedCase input, produce the same top-1 ranking in the vast
+majority of cases.
+
+The collapsed-graph diagnostic on MicroRCA isolates the cause:
+replacing MicroRCA's asymmetric lag-1 correlation graph with a
+symmetric uniform-weighted graph produces identical top-1 in 125/125
+cases. The attributed-graph structure adds zero discriminating power
+on RE1-OB.
+
+Interpretation: on benchmarks where the fault signature is a clean
+step-change on directly observable canonical features (cpu, mem,
+disk, delay), the per-service anomaly score is sufficient to
+identify the root cause. Graph-walking algorithms, regardless of
+their structure, all converge to ranking services by their anomaly
+score. The graph topology contributes nothing because it does not
+need to.
+
+This finding has two implications for Paper 6:
+
+1. AGGREGATE AC@1 IS A WEAK DISCRIMINATOR. The standard ranking
+metric used by 90% of microservice RCA papers cannot distinguish
+methods that are mathematically very different. New evaluation
+dimensions are needed (and Paper 6 proposes four).
+
+2. ONSET SENSITIVITY IS A REAL DISCRIMINATOR. Random-onset
+decomposition reveals that the three methods do differ in their
+dependence on accurate anomaly onset detection. CausalRCA most
+sensitive (+0.280 onset lift), MonitorRank least (+0.216), MicroRCA
+intermediate (+0.248). This dimension belongs in any honest
+characterization of an RCA method.
+
+The remaining methods (BARO, DejaVu, yRCA, FODA-FCP) will either
+extend or break this pattern. Track which ones.
