@@ -140,43 +140,54 @@ elsewhere.
 
 S(M) = 0.000 (structural — BARO does not read ground_truth)
 
-Overall AC@1 = 0.480, well below the MR/CR/Micro convergence band (~0.62).
+Overall AC@1 = 0.536, ~9pp below the MR/CR/Micro convergence band
+(~0.62).¹
 
 Reference comparison decomposition:
 - RCAEval reference BARO (raw columns + inject_time):    0.720 AC@1
 - Our oracle (inject_time given, canonical schema):       0.600 AC@1
-- Our native (BOCPD-detected onset, canonical schema):    0.480 AC@1
+- Our native (BOCPD-detected onset, canonical schema):    0.536 AC@1
 
-The 24pp gap from reference to native decomposes as:
-- 12pp from canonical-schema preprocessing (oracle vs ref)
-- 12pp from BOCPD onset detection vs ground-truth inject_time pivot
+The 18.4pp gap from reference to native decomposes as:
+- 12.0pp from canonical-schema preprocessing (oracle vs ref)
+-  6.4pp from BOCPD onset detection vs ground-truth inject_time pivot
 
 Neither component is a bug. Both are deliberate consequences of the
 NormalizedCase contract: canonical preprocessing for cross-method
 comparability, BOCPD-detected onset for deployment realism.
 
-Per-fault detected-onset AC@1: cpu 0.520, mem 0.760, disk 0.360,
-delay 0.640, loss 0.120.
+Per-fault detected-onset AC@1: cpu 0.680, mem 0.800, disk 0.400,
+delay 0.680, loss 0.120.
 
 Decomposition diagnostics:
-- AC@1_native (BOCPD pivot):          0.480
-- AC@1_random (random pivot):         0.376  (+0.104 from native)
-- AC@1_zscore_onset (z-score pivot):  0.568  (+0.088 from native)
+- AC@1_native (BOCPD pivot):          0.536
+- AC@1_random (random pivot):         0.376  (+0.160 from native)
+- AC@1_zscore_onset (z-score pivot):  0.568  (+0.032 from native)
 
-Counterintuitive finding: BARO's native Bayesian change-point
-detector underperforms the shared z-score onset utility by 8.8pp on
-RE1-OB. This is the FIRST paper-relevant axis where the change-point-
-detector family is a discriminator. Interpretation: BOCPD's
-probabilistic formulation requires consistent variance structure to
-distinguish change from noise; canonical-feature compression breaks
-that consistency more than it breaks z-score thresholding.
+Counterintuitive finding (now smaller in magnitude): BARO's native
+Bayesian change-point detector underperforms the shared z-score onset
+utility by 3.2pp on RE1-OB. This is the smallest difference we have
+seen between change-point-detector families; the Bayesian and
+z-score detectors are within noise of each other on this dataset.
+The previously-reported 8.8pp gap was a side effect of the same
+pre-commit BARO bug that yielded 0.480 in the stale findings (see
+footnote 1).
 
-Cross-method implication: BARO breaks the MR/CR/Micro AC@1
-convergence band by 14pp on the low side. Methods are NOT all
-equivalent under canonical preprocessing — column-max-z methods
-suffer where graph-walking methods are robust. The methodological
-diversity is in HOW methods consume the telemetry, not just in their
-ranking algorithm.
+Cross-method implication: BARO sits 9pp below the MR/CR/Micro
+convergence band on the low side. Methods are NOT all equivalent
+under canonical preprocessing — column-max-z methods underperform
+graph-walking methods that share the same z-score onset detector.
+The methodological diversity is in HOW methods consume the
+telemetry, not just in their ranking algorithm.
+
+¹ The original committed findings entry (commit d1eb0e9) quoted
+overall AC@1 = 0.480 and per-fault {cpu 0.520, mem 0.760, disk
+0.360, delay 0.640, loss 0.120}. Those numbers came from a
+pre-commit dev iteration of `baro.py` that was fixed before the
+commit landed; the committed code produces 0.536. The discrepancy
+was caught by the cross-method edge-shift diagnostic which re-ran
+BARO and observed the 0.536 standard value. Full investigation in
+`results/baro_discrepancy_investigation.md`.
 
 This finding strengthens Paper 6's argument: aggregate AC@1 obscures
 real methodological diversity. Methods at the same AC@1 can have
@@ -253,54 +264,89 @@ telemetry window. Sometimes incidents start early in the available
 data; sometimes late. Edge-positioned inject is a normal deployment
 condition, not a corner case.
 
-DejaVu's 30pp supervised lift over unsupervised methods (MR, CR,
-Micro, BARO) holds only when inject is within [25%, 75%] of the
-analysis window. At edges, DejaVu's AC@1 (0.432) drops below
-MonitorRank's standard performance (0.632) and below MonitorRank's
-random-onset performance (0.416). The supervised method has learned
-to expect a particular telemetry window structure; the unsupervised
-methods are robust to any onset placement.
+DejaVu's supervised lift over unsupervised methods (MR, CR, Micro,
+BARO) is partially preserved even at edge offsets, because edge-
+fragility is a **benchmark-wide property** under canonical
+preprocessing, not a supervised-method property. Measured cross-
+method numbers (cross-method edge-shift diagnostic — see below)
+refute the original "supervised, fragile / unsupervised, robust"
+framing.
 
-This is a real deployment-realism gap that AC@1 alone hides. The
-NormalizedCase + S(M) protocol catches inject_time leakage but does
-not catch "training distribution depends on offset distribution." A
-follow-up evaluation dimension — call it "offset robustness" or
-"window-placement invariance" — would characterize methods on this
-axis. Considering for inclusion in Paper 6 §4.
+CROSS-METHOD EDGE-SHIFT (measured, all 5 methods)
+
+  method  | (a) standard | (b) edges | (c) center | edge drop
+  --------|--------------|-----------|------------|----------
+  MR      |    0.632     |   0.296   |   0.512    |  -33.6pp
+  CR      |    0.624     |   0.248   |   0.496    |  -37.6pp
+  Micro   |    0.624     |   0.240   |   0.488    |  -38.4pp
+  BARO    |    0.536     |   0.308   |   0.456    |  -22.8pp
+  DejaVu  |    0.720     |   0.432   |   0.720    |  -28.8pp
+
+All five methods lose 22-38pp at edge-positioned inject. DejaVu's
+absolute AC@1 at edges (0.432) is HIGHER than any unsupervised
+method's edge AC@1 (range 0.240-0.308). The supervised-vs-unsupervised
+gap is 12-19pp at edges vs 12-24pp at standard offsets — narrower at
+edges but the ranking is preserved.
+
+THREE DISTINCT EDGE-FRAGILITY MECHANISMS
+
+* MR/CR/Micro — **detector misalignment**. All three call the shared
+  `_onset.detect_onset` utility, which scans candidate pivots only in
+  the central [25%, 75%] band of the window. When inject sits at
+  offset 60s (5%) or 1140s (95%), the actual change point is OUTSIDE
+  the detector's search range; the detector returns a spurious
+  central-band pivot and pre/post statistics are computed against
+  the wrong split. This is the largest of the three mechanisms
+  (-33.6 to -38.4pp).
+
+* BARO — **short post-injection window**. BARO's BOCPD detector
+  scans the whole window, not just the central band, so it can find
+  edge-positioned change points. But when inject sits near the right
+  edge, post-injection has only a handful of samples; the
+  RobustScaler-z scoring is statistically underpowered. Smallest
+  unsupervised drop (-22.8pp) confirms BOCPD partially compensates
+  for the detector-misalignment problem, but scoring still degrades.
+
+* DejaVu — **training-distribution shift**. The supervised
+  classifier learned to expect inject in [25%, 75%] (the harness
+  hashed-offset distribution); edge-positioned inject is
+  out-of-distribution, degrading the temporal CNN's feature
+  extraction. Center remains identical to standard (the model is
+  robust within distribution, fragile outside it).
+
+This is a deployment-realism gap that AC@1 alone hides. The
+NormalizedCase + S(M) protocol catches inject_time leakage but
+does not catch "method assumes a particular telemetry window
+structure." A follow-up evaluation dimension — call it "offset
+robustness" or "window-placement invariance" — characterizes
+methods on this axis. Considering for inclusion in Paper 6 §4.
 
 PAPER 6 §4 NARRATIVE
 
-DejaVu is the first method in our evaluation that produces non-zero
-per-axis differentiation against the unsupervised baselines. The
-discriminating axis is NOT raw AC@1 on the standard protocol (where
-DejaVu wins by 30pp) but distribution-robustness (where DejaVu loses
-its advantage). This is exactly the kind of qualitative method
-differentiation that AC@1 alone hides and that our framework reveals.
+DejaVu is the first method in our evaluation that wins on raw AC@1
+across all evaluated regimes. Edge fragility is real but is shared
+by every method we have tested; it is a property of how canonical
+preprocessing interacts with onset placement, not a property of
+supervised learning. The cross-method edge-shift diagnostic
+surfaces this benchmark-wide property and motivates an explicit
+"offset robustness" axis in Paper 6 §4.
 
-Cross-method comparison (updated):
-  MonitorRank standard 0.632, edge-shifted ≈ 0.4 (unsupervised, robust)
-  CausalRCA standard 0.624, edge-shifted ≈ 0.4 (unsupervised, robust)
-  MicroRCA standard 0.624, edge-shifted ≈ 0.4 (unsupervised, robust)
-  BARO standard 0.480, edge-shifted ≈ 0.4 (unsupervised, robust)
-  DejaVu standard 0.720, edge-shifted = 0.432 (supervised, fragile)
-
-DejaVu trades robustness for in-band accuracy. The standard AC@1
-ranks DejaVu first; a deployment-realistic evaluation ranks it last.
-This belongs in the discussion of why aggregate AC@1 is insufficient.
-
-TODO before yRCA: run the edge-shift evaluation on MR/CR/Micro/BARO
-so the cross-method table is symmetric, not just sourced from DejaVu's
-diagnostic.
+The discriminating story for DejaVu is: in-band, supervised training
+adds 9pp over the unsupervised convergence band (0.720 vs ~0.62);
+at edges, the lift narrows to 12pp over the best unsupervised
+method (0.432 vs 0.308 BARO). DejaVu wins in both regimes; the
+unsupervised methods do NOT have an edge-robustness advantage to
+trade against DejaVu's in-band lead.
 
 ---
 
-## Cross-method finding (updated through DejaVu) — supervised methods break the convergence band
+## Cross-method finding (updated through DejaVu + edge-shift diag) — supervised methods break the convergence band; universal edge fragility
 
 Five metric-based RCA methods on RE1-OB:
   MonitorRank:  0.632 (random-walk PageRank, unsupervised)
   CausalRCA:    0.624 (PC algorithm + ancestor scoring, unsupervised)
   MicroRCA:     0.624 (attributed-graph asymmetric PageRank, unsupervised)
-  BARO:         0.480 (multivariate BOCPD + column-max-z, unsupervised)
+  BARO:         0.536 (multivariate BOCPD + column-max-z, unsupervised)
   DejaVu:       0.720 (GAT-attention neural classifier, SUPERVISED)
 
 The "correlation-based-RCA AC@1 convergence band" identified after
@@ -314,25 +360,27 @@ three of five fault types (CPU/MEM/DISK). It does so via supervised
 training on labeled historical cases — the previous four methods all
 diagnose from telemetry alone with no labeled history.
 
-BARO sits below the unsupervised band (0.480) for a different
-reason: its column-max-z scoring is hurt by canonical-schema
-preprocessing that helps graph-walk methods (reference comparison
-showed +12pp gap from canonical-schema alone). BARO is unsupervised
-and would not benefit from training-set access.
+BARO sits below the unsupervised band (0.536, 9pp below) for a
+different reason: its column-max-z scoring is hurt by canonical-
+schema preprocessing that helps graph-walk methods (reference
+comparison: 12pp gap from canonical-schema alone, 6.4pp from BOCPD
+onset vs ground-truth pivot). BARO is unsupervised and would not
+benefit from training-set access.
 
 Per-fault profile alignment:
 
 | fault | MR    | CR    | Micro | BARO  | DejaVu |
 |-------|-------|-------|-------|-------|--------|
-| cpu   | 0.680 | 0.640 | 0.680 | 0.520 | 1.000  |
-| mem   | 0.640 | 0.680 | 0.680 | 0.760 | 1.000  |
-| disk  | 0.720 | 0.760 | 0.720 | 0.360 | 1.000  |
-| delay | 0.960 | 0.880 | 0.960 | 0.640 | 0.440  |
+| cpu   | 0.680 | 0.640 | 0.680 | 0.680 | 1.000  |
+| mem   | 0.640 | 0.680 | 0.680 | 0.800 | 1.000  |
+| disk  | 0.720 | 0.760 | 0.720 | 0.400 | 1.000  |
+| delay | 0.960 | 0.880 | 0.960 | 0.680 | 0.440  |
 | loss  | 0.080 | 0.080 | 0.080 | 0.120 | 0.160  |
 
 Two patterns:
 1. **Resource faults** (cpu/mem/disk): supervised DejaVu dominates;
-   unsupervised methods plateau at ~0.70.
+   unsupervised methods plateau at ~0.70. BARO now matches graph-walk
+   methods on cpu/mem but still trails on disk.
 2. **Network faults** (delay/loss): unsupervised graph-walk methods
    (MR/CR/Micro) beat DejaVu on DELAY (0.96 vs 0.44), and all
    methods are weak on LOSS (≤ 0.16). Supervised training on a
@@ -345,7 +393,7 @@ temporal encoder and does not have a directly comparable lift:
   MonitorRank:  +0.216 onset-finding lift
   MicroRCA:     +0.248 onset-finding lift
   CausalRCA:    +0.280 onset-finding lift
-  BARO:         +0.104 onset-finding lift (smallest unsupervised)
+  BARO:         +0.160 onset-finding lift (smallest unsupervised)
   DejaVu:       N/A — onset implicit in temporal CNN encoder
 
 A new axis introduced by DejaVu: **training-size sensitivity**. Flat
@@ -353,6 +401,55 @@ curve N∈{25,50,75,100} → AC@1∈{0.64, 0.64, 0.68, 0.64}. Architecture
 inductive bias explains DejaVu's performance, not training data
 scale. This is a paper-relevant inversion of the standard deep-
 learning narrative.
+
+### Universal edge fragility (cross-method edge-shift diagnostic)
+
+Measured AC@1 under three offset regimes for all five methods:
+
+| method  | (a) standard | (b) edges | (c) center | edge drop (b−a) |
+|---------|--------------|-----------|------------|-----------------|
+| MR      |    0.632     |   0.296   |   0.512    |     -33.6pp     |
+| CR      |    0.624     |   0.248   |   0.496    |     -37.6pp     |
+| Micro   |    0.624     |   0.240   |   0.488    |     -38.4pp     |
+| BARO    |    0.536     |   0.308   |   0.456    |     -22.8pp     |
+| DejaVu  |    0.720     |   0.432   |   0.720    |     -28.8pp     |
+
+(a) = each case's hashed default offset in [25%, 75%]
+(b) = mean of offset=60s (5%) and offset=1140s (95%)
+(c) = offset=600s (exactly 50%)
+
+**Edge fragility is universal.** All five methods lose 22-38pp when
+inject is positioned near the window edges. The going-in hypothesis
+(unsupervised methods robust because they have no training
+distribution) is refuted. The three mechanisms that produce edge
+fragility are distinct:
+
+1. **Detector misalignment** (MR/CR/Micro, -33.6 to -38.4pp). The
+   shared `_onset.detect_onset` scans candidate pivots only in
+   [25%, 75%] of the window. Edge-positioned inject is outside the
+   detector's search range; detector returns a spurious central-band
+   pivot.
+
+2. **Short post-injection window** (BARO, -22.8pp). BARO's BOCPD
+   scans the whole window, so the change-point timestamp is
+   recoverable at edges; but the RobustScaler-z scoring is
+   statistically underpowered when post-injection has only a few
+   samples.
+
+3. **Training-distribution shift** (DejaVu, -28.8pp). The classifier
+   learned to expect inject in [25%, 75%]; edge-positioned inject is
+   OOD for the temporal CNN's feature extraction.
+
+DejaVu retains its supervised lift in absolute terms at edges
+(AC@1=0.432) vs the best unsupervised at edges (BARO=0.308). The
+supervised-vs-unsupervised gap is 12-19pp at edges vs 12-24pp at
+standard offsets — narrower but the ranking is preserved.
+
+**Methodological implication.** S(M)=0 catches inject_time leakage
+but not "method assumes a particular telemetry window structure."
+Offset robustness is a benchmark-wide property under canonical
+preprocessing and deserves its own axis in Paper 6 §4, reported
+alongside S(M), random-onset, and detected-onset.
 
 The remaining methods (yRCA, FODA-FCP) will either:
 - Extend the supervised-method-breaks-ceiling pattern (yRCA is

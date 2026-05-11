@@ -733,6 +733,32 @@ finding block. The published BARO Avg@5 number is ~0.80 on RE2-TT;
 our re-implementation's RE1-OB AC@1 is reported in the findings
 note alongside the random-onset and z-score-onset decompositions.
 
+### Headline numbers (committed code, post-fix)
+
+| metric | value |
+|--------|-------|
+| Native overall AC@1 | **0.536** |
+| Per-fault AC@1 | cpu 0.680, mem 0.800, disk 0.400, delay 0.680, loss 0.120 |
+| Reference (RCAEval BARO, raw cols + inject_time) | 0.720 |
+| Oracle (inject_time given, canonical schema) | 0.600 |
+| Canonical-schema preprocessing gap (oracle vs ref) | 12.0 pp |
+| BOCPD-vs-oracle gap (native vs oracle) | **6.4 pp** |
+| Total reference-to-native gap | 18.4 pp |
+| AC@1_random (random pivot) | 0.376 |
+| AC@1_zscore_onset (z-score pivot) | 0.568 |
+| BOCPD-vs-z-score gap | 3.2 pp (within noise) |
+| S(M) | 0.000 (structural) |
+
+**Note on the 0.480 in the original findings entry.** The findings
+note committed at `d1eb0e9` quoted overall AC@1 = 0.480 and a
+BOCPD-vs-oracle gap of 12 pp. Those numbers came from a pre-commit
+dev iteration of `baro.py` and were superseded by a fix that landed
+in `c9077b0` itself. The committed code produces 0.536. The
+discrepancy was caught by the cross-method edge-shift diagnostic,
+which independently re-ran BARO and observed 0.536. Full
+investigation: `results/baro_discrepancy_investigation.md`. The
+findings entry has been corrected.
+
 ## DejaVu (Li, Chen, et al.; FSE 2022)
 
 DejaVu is the first **trained** method in the suite. It learns a small
