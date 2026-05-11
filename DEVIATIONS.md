@@ -547,3 +547,188 @@ RCAEval did not publish MicroRCA-specific AC@k numbers we can
 directly compare against in the same way Table 5 did for MicroCause
 and MicroRank; the inter-method comparison within our suite is the
 strongest available reference.
+
+## BARO (Pham, Ha, Zhang; FSE 2024, art. 98)
+
+BARO's core contribution is **multivariate Bayesian Online Change-
+Point Detection (BOCPD)** on the metric matrix, followed by per-
+service root-cause scoring via a RobustScaler-style post-change-
+point shift magnitude. Because BARO does its own change-point
+detection from telemetry alone, the inject-time-clean contract is a
+natural fit — there is no `inject_time` dependency to remove.
+
+### Deviation 0: Method-internal change-point detector (not the shared one)
+
+The other three method adapters (MonitorRank, CausalRCA, MicroRCA)
+all reuse `evaluation.methods._onset.detect_onset` — a z-score-based
+pivot search that scans the central 25–75 % band of the case window
+for the time that maximises Σ_svc Σ_feat |mean(post) − mean(pre)| /
+std(pre). BARO does **not** reuse this utility. Its
+`_detect_change_point` is a from-scratch univariate-Gaussian BOCPD
+with a diagonal-multivariate predictive (sum of per-dimension log
+predictives), applied to the standardized matrix of canonical
+service-feature columns.
+
+The rationale is that BARO's change-point detector is its core
+contribution. Reusing the shared z-score utility would have made
+BARO an indistinguishable variant of the previous three methods —
+the cross-method comparison would have degenerated to "which scoring
+rule on top of a fixed pivot." The brief makes this point explicit
+in §2. The on-by-default detector is BOCPD; the harness exposes
+a `--with-zscore-onset` diagnostic flag that swaps BARO's BOCPD for
+`detect_onset` and keeps the rest of the scoring pipeline (§9
+change-point-detector comparison).
+
+### Deviation 1: Diagonal multivariate predictive (not full covariance)
+
+The published BARO method specifies a **multivariate** BOCPD
+predictive. The proper formulation uses a Normal-Inverse-Wishart
+conjugate prior with a full posterior covariance over all monitored
+dimensions, yielding a Student-t multivariate predictive at each
+step. We instead use a diagonal multivariate predictive: the per-
+dimension predictive is a univariate Gaussian with a Normal prior on
+the mean (known observation variance, estimated from the first
+quarter of the window), and the joint log predictive across
+dimensions is the sum of per-dimension log predictives.
+
+Two reasons:
+
+1. **No scipy dependency.** The Normal-Inverse-Wishart predictive
+   needs the multivariate Student-t density, which needs the gamma
+   function. The evaluation package's `pyproject.toml` keeps the
+   surface to `numpy / pandas / networkx / owlready2 / pytest`; we
+   would have either added a scipy dependency or implemented gamma
+   via `math.lgamma` elementwise.
+2. **Numerical robustness.** Full multivariate posteriors over
+   ~30-dimensional service-feature matrices on 1200-sample windows
+   were numerically unstable in early prototyping: the
+   posterior precision matrix degenerated under the truncated
+   run-length scheme. The diagonal version is well-conditioned
+   throughout and aligns with the diagonal-Gaussian assumption that
+   most published BOCPD implementations make in practice (e.g.,
+   `bayesian-changepoint-detection` on PyPI).
+
+The pure RCAEval reference (`RCAEval/e2e/baro.py`) does **not**
+actually implement BOCPD — it takes `inject_time` as input and just
+runs a RobustScaler+max-z scoring step. So the diagonal-multivariate
+BOCPD here is already strictly more faithful to the BARO paper than
+the RCAEval reference.
+
+### Deviation 2: Truncated run-length distribution
+
+Standard Adams & MacKay (2007) BOCPD maintains a run-length
+distribution that grows by one entry every sample, giving O(T²)
+memory and time per signal. We truncate it at `max_run_length=250`
+samples (default), renormalising after each truncation. This is the
+standard practical optimisation and is described in the Adams &
+MacKay paper itself. It has no effect on the change-point estimate
+when the true segment is shorter than the cap (which is always the
+case for the RCAEval RE1 injection cadence: roughly one anomalous
+segment per 20-minute case).
+
+### Deviation 3: Observation variance estimated, not given a hyperprior
+
+The full BOCPD treatment puts an Inverse-Gamma prior on the
+per-dimension observation variance and integrates it out. We instead
+estimate the per-dimension observation variance from the first
+quarter of the window (treating it as pre-anomaly normal). This is
+the same shortcut every paper-grade BOCPD demo we surveyed takes
+(including the original Adams & MacKay tech report's reference
+notebook). The variance estimate gets a small numerical floor
+(`obs_var_floor=1e-6`) so a wholly-flat input doesn't divide by
+zero.
+
+### Deviation 4: Detector restricted to the central [25 %, 75 %] band
+
+After running BOCPD over the full window we restrict the argmax to
+the central [25 %, 75 %] band of the cp-log-prob trace. The first
+and last quarters carry boundary artefacts — the prefix is also
+used to estimate `obs_var`, so a "change point" there is degenerate
+— and the same band is the band that `evaluation.extraction.
+schema_normalizer` uses for the per-case randomised injection
+offset. This is identical in spirit to the shared `detect_onset`
+utility's pivot band; the difference is purely in *what* statistic
+is being maxed inside the band.
+
+### Deviation 5: Per-service aggregation of column-level shifts
+
+The RCAEval reference returns a *metric-level* ranking (column
+names, e.g. `cartservice_cpu`). RCAEval RE1's ground truth is
+service-level, so the reference's evaluation does a post-hoc string-
+match on the column prefix to recover the service. We collapse this
+step into the method by aggregating each service's canonical
+features (latency / traffic / error / cpu / mem / disk / net) via
+`sum` (default) or `max`. This matches the shape every other
+adapter in this evaluation package returns and lets BARO go through
+the same `accuracy_at_k` metric without a special-case adapter.
+
+### Deviation 6: RobustScaler implemented natively, no sklearn
+
+The RCAEval reference uses `sklearn.preprocessing.RobustScaler`
+(median + IQR). We implement the equivalent transformation directly
+in numpy (`_robust_z`): subtract the pre-segment median, divide by
+the pre-segment IQR, take the max absolute value across the post
+segment. Falls back to `std(pre)` when IQR is zero (a wholly-flat
+pre-segment otherwise yields `inf`). Avoids the sklearn dependency.
+
+### Deviation 7: Explanation chain is a change-point-rooted tree
+
+BARO's natural explanation shape is "trigger event → set of services
+sorted by post-trigger shift." We materialise this as a
+`CanonicalExplanation` tree:
+
+* One `ExplanationAtom` for the detected change point (text:
+  `change point at t=… (P(r_t=0)=…)`), with `fuzzy_membership = `
+  the BOCPD posterior.
+* Top-K `ExplanationAtom`s for the highest-scoring services, each
+  with `fuzzy_membership = score / score_max`.
+* `CausalLink`s from the change-point atom out to each service atom
+  with `weight = score / total_head_score` and
+  `relation_type="post-change-shift-attribution"`.
+
+This is a different shape from MicroRCA's attributed-graph
+explanation, which has links between *services* rather than between
+the trigger event and services. The intent matches the cross-method
+explanation-fidelity metric: every method's explanation chain
+captures the structural shape its underlying algorithm produces;
+they are *not* normalised into a common shape.
+
+### Deviation 8: Schema normalization upstream of method input
+
+Same as the analogous point for the other three adapters. BARO
+consumes a `NormalizedCase`; the preprocessing differs from the
+paper's, but is upstream of the algorithm itself.
+
+### Decomposition diagnostics (brief §8, §9)
+
+The harness emits two BARO-specific diagnostic columns:
+
+* `AC@1_random` — BARO's BOCPD is replaced by a uniformly-random
+  in-band pivot. Isolates the contribution of the detector vs. the
+  scoring mechanism.
+* `AC@1_zscore_onset` — BARO's BOCPD is replaced by the shared
+  z-score `detect_onset` utility. Discriminates "Bayesian change-
+  point detection" vs. "z-score change-point detection" as a paper
+  axis (brief §9).
+
+The `S(BARO) = 0` shift-evaluation result is structural: BARO does
+not read `ground_truth` from inside `diagnose`, so the ±300 s ground-
+truth offset shift leaves the diagnosis bit-identical. This is
+asserted both by `evaluation.methods._protocol.
+validate_no_ground_truth_peeking` (static, before iteration) and by
+the per-case comparison in the harness output.
+
+### Validation against published baselines
+
+Validated via (a) synthetic 3-service and 5-service scenarios with
+a clear root cause, plus a BOCPD-band test that confirms the
+detector lands inside the central band on a clear step injection
+(`evaluation/tests/test_baro.py`), and (b) per-fault-type AC@k on
+all 125 RE1-OB cases via `evaluation/experiments/evaluate_baro.py`.
+Results live in `results/week2_baro_validation.csv`.
+
+Headline-number tables and cross-method comparison live in
+`paper/notes/findings.md` under "BARO entry" and the cross-method
+finding block. The published BARO Avg@5 number is ~0.80 on RE2-TT;
+our re-implementation's RE1-OB AC@1 is reported in the findings
+note alongside the random-onset and z-score-onset decompositions.

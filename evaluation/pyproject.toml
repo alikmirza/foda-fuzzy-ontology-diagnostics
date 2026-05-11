@@ -17,6 +17,18 @@ dependencies = [
     "pytest>=8.0",
 ]
 
+[project.optional-dependencies]
+# Baseline-specific dependencies. Install with:
+#   pip install -e ".[baselines]"
+# Without this extra, baseline tests/harnesses that need these packages
+# fail at import time with a clear ModuleNotFoundError. The core
+# inject_time-clean contract (schema_normalizer, _protocol, _onset)
+# requires only the base dependencies above.
+baselines = [
+    "causal-learn>=0.1.3",       # CausalRCA: PC-algorithm CPDAG learning
+    # other baseline-specific deps
+]
+
 [tool.hatch.build.targets.wheel]
 packages = [
     "benchmarks",

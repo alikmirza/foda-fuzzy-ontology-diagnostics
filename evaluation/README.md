@@ -18,8 +18,42 @@ diagnostics paper.
 
 ## Running
 
+Base install (core inject_time-clean contract: `schema_normalizer`,
+`_protocol`, `_onset`, plus methods whose dependencies are already in
+the base set — MonitorRank, MicroRCA, BARO):
+
 ```bash
 pip install -e evaluation
+pytest evaluation/tests/
+```
+
+Baseline-method install (adds `causal-learn` for CausalRCA's
+PC-algorithm step). Without this extra, `evaluation/tests/test_causalrca.py`
+and `test_evaluate_causalrca.py` fail at import with a
+`ModuleNotFoundError`:
+
+```bash
+pip install -e "evaluation[baselines]"
+pytest evaluation/tests/
+```
+
+### Python version
+
+The full test suite (including baselines) is validated on Python 3.12.
+`causal-learn` ships wheels for 3.10–3.12; the package itself works on
+Python ≥ 3.11 per the `pyproject.toml`, but **the baselines-extra suite
+must run under a Python where `causal-learn` is importable**. If you
+see 19 failures all originating at
+`from causallearn.search.ConstraintBased.PC import pc`, the cause is
+almost always running pytest under a Python interpreter where
+`causal-learn` was never installed — not a code regression.
+
+A working reference venv layout:
+
+```bash
+python3.12 -m venv ~/.venv/foda-eval
+source ~/.venv/foda-eval/bin/activate
+pip install -e "evaluation[baselines]"
 pytest evaluation/tests/
 ```
 
