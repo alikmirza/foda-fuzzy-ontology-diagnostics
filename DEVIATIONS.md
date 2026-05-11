@@ -394,3 +394,156 @@ scoring then preserves it. For comparison, MonitorRank under the
 same normalization scores `AC@1 = 0.632` overall — essentially
 identical, supporting the "shared upstream cause" interpretation
 over either method's structural step being the deciding factor.
+
+---
+
+## MicroRCA (Wu, Sun, Wang; NOMS 2020)
+
+Implementation: `evaluation/methods/microrca.py`. Consumes
+`NormalizedCase` from `evaluation/extraction/schema_normalizer.py`.
+
+The published MicroRCA builds an attributed service graph from the
+deployed service mesh's call topology, weights edges by anomaly
+correlation across services in the post-injection window, and ranks
+candidates with personalized PageRank using normalized per-service
+anomaly scores as the personalization vector. Our re-implementation
+matches the spirit — attributed graph, asymmetric weights,
+personalized PageRank — but parts ways on three concrete points:
+
+### Deviation 0: Onset detected from telemetry, not read from inject_time
+
+Same shape as MonitorRank/CausalRCA Deviation 0. Under the
+inject_time-removal contract (Deviation N1) the timestamp is hidden;
+`MicroRCAMethod.diagnose_normalized` calls
+`evaluation.methods._onset.detect_onset` to find the pre/post pivot
+from `case_window` alone. The detected pivot is used in two places:
+to compute per-service post-vs-pre z-scores (which become both the
+anomaly scores and the choice of "shape signal" each service
+contributes to the graph), and to bound the window over which
+edge-weight correlations are computed.
+
+Empirical witness: per-case `AC@1` is bit-identical between the true
+run and the ±300 s shifted runs. `S(M) = 0.000` overall and per-fault
+on RE1-OB.
+
+### Deviation 1: No deployed service-mesh topology — lagged correlation in its place
+
+The published method *requires* the call graph as input; edges
+between non-adjacent services in the topology simply don't exist.
+RE1 does not ship per-case call-graph metadata, and our
+normalization layer does not consume Envoy/Istio exports. We
+substitute **lagged Pearson correlation** between service shape
+signals in the post-onset window:
+
+* For every ordered pair `(u, v)`, the edge `u → v` carries weight
+  `|corr(u_signal[0 : T − lag], v_signal[lag : T])|` — i.e., "u
+  leads v by `lag` samples". `lag = 1` is the default, large enough
+  to break symmetry on RCAEval's median sampling rate, small enough
+  that real lead-lag dynamics still register.
+* The asymmetry is genuine: `u → v` and `v → u` look at different
+  column pairs (one shifted, one not), so they get different values.
+  That's the structural property the topology was supplying.
+* Self-loops carry the per-service anomaly z-score, normalized by
+  the max across services so they're comparable to the in-range
+  edge weights. This anchors PPR on the services whose own metrics
+  deviated most.
+
+**Why it's defensible without topology.** The deployed call graph
+encodes "u can affect v" prior knowledge; lagged correlation
+encodes "u empirically did affect v" posterior evidence. The two
+are different but compatible substitutes; the lagged form has the
+advantage of being recoverable from telemetry alone.
+
+**Where it falls short.** Without topology, the graph is dense (all
+service pairs participate, weighted by their lagged correlations).
+On RE1-OB the densification doesn't hurt — see the attributed-graph
+diagnostic below.
+
+### Deviation 2: Anomaly detection via z-score, not BIRCH clustering
+
+The paper detects anomalous services by online BIRCH clustering on
+per-service metric vectors and flagging points that don't fit any
+established cluster. We instead reuse the same `(post − pre) / σ_pre`
+z-score MonitorRank and CausalRCA compute. This makes the three
+methods directly comparable on the anomaly-scoring axis (so any
+performance difference is attributable to the *structural* step,
+not to a method-specific anomaly detector) and removes BIRCH's
+sensitivity to its `threshold` / `branching_factor` hyperparameters,
+which the paper does not pin down.
+
+### Deviation 3: Explanation chain carries attributed-graph edges
+
+Like CausalRCA, `CanonicalExplanation` for MicroRCA includes one
+`ExplanationAtom` per top-K service plus `CausalLink` edges drawn
+from the attributed graph induced on those services. The
+``relation_type`` is `"anomaly-correlates-with"`, distinguishing
+these edges from CausalRCA's `"causes"` — MicroRCA's edges are
+correlational, not causal in the SEM sense. Self-loops are dropped
+from the explanation graph because they live inside the
+personalization and add visual clutter.
+
+### Deviation 4: Schema normalization upstream of method input
+
+Same as the analogous points for MonitorRank and CausalRCA. The
+method consumes a `NormalizedCase`; the preprocessing differs from
+the paper's, but is upstream of the algorithm itself.
+
+### Attributed-graph effect diagnostic (brief §9)
+
+The harness emits an extra `AC@1_collapsed` column where MicroRCA
+is re-run with `collapsed_graph=True` (edges are symmetric Pearson
+on the post-onset signals, no lag). The delta between `AC@1` and
+`AC@1_collapsed` is the paper-relevant question: does MicroRCA's
+asymmetric edge weighting genuinely add discriminating power on
+this dataset?
+
+| fault   | n  | AC@1  | AC@1_collapsed | delta  |
+|---------|----|-------|----------------|--------|
+| cpu     | 25 | 0.680 | 0.680          | 0.000  |
+| delay   | 25 | 0.960 | 0.960          | 0.000  |
+| disk    | 25 | 0.720 | 0.720          | 0.000  |
+| loss    | 25 | 0.080 | 0.080          | 0.000  |
+| mem     | 25 | 0.680 | 0.680          | 0.000  |
+| overall |125 | 0.624 | 0.624          | 0.000  |
+
+The delta is exactly zero on every fault. Symmetric correlation
+produces the same top-1 service as asymmetric lagged correlation in
+every one of the 125 cases. **The asymmetric edge weighting adds no
+discriminating power on RE1-OB.** This is the same shape of finding
+CausalRCA produced for its PC-algorithm causal-discovery step: the
+per-service anomaly signal carries the entire result; whatever
+structural step sits on top is structurally underdetermining the
+rank.
+
+### Validation against published baselines
+
+Validated via (a) synthetic 3-service and 5-service scenarios with
+a clear root cause, plus an asymmetry test that confirms the
+attributed graph genuinely puts higher weight on the "leader" of a
+constructed lead-lag pair (`evaluation/tests/test_microrca.py`), and
+(b) per-fault-type AC@k on all 125 RE1-OB cases. Results live in
+`results/week2_microrca_validation.csv`.
+
+**Headline numbers** (RE1-OB, inject-time-clean contract):
+
+| fault   | n  | AC@1  | AC@3  | AC@5  | MRR   | S(M)  | AC@1_random | AC@1_collapsed |
+|---------|----|-------|-------|-------|-------|-------|-------------|----------------|
+| cpu     | 25 | 0.680 | 0.760 | 0.760 | 0.743 | 0.000 | 0.440       | 0.680          |
+| delay   | 25 | 0.960 | 0.960 | 0.960 | 0.964 | 0.000 | 0.400       | 0.960          |
+| disk    | 25 | 0.720 | 0.960 | 1.000 | 0.837 | 0.000 | 0.320       | 0.720          |
+| loss    | 25 | 0.080 | 0.480 | 0.800 | 0.354 | 0.000 | 0.040       | 0.080          |
+| mem     | 25 | 0.680 | 0.720 | 0.720 | 0.722 | 0.000 | 0.680       | 0.680          |
+| overall |125 | 0.624 | 0.776 | 0.848 | 0.724 | 0.000 | 0.376       | 0.624          |
+
+**Same dataset-preprocessing advantage observed.** Overall AC@1 =
+0.624 sits at the very top of the brief's expanded [0.10, 0.65]
+band and is essentially identical to MonitorRank (0.632) and
+CausalRCA (0.624) on the same normalized telemetry. The pattern is
+now firmly established across three methods with three different
+structural foundations (random-walk PageRank, PC-algorithm causal
+discovery, attributed-graph PPR): on RE1-OB step-change injections,
+the per-service post-vs-pre z-score carries the result.
+RCAEval did not publish MicroRCA-specific AC@k numbers we can
+directly compare against in the same way Table 5 did for MicroCause
+and MicroRank; the inter-method comparison within our suite is the
+strongest available reference.
