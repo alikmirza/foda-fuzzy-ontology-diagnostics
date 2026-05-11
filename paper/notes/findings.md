@@ -459,3 +459,239 @@ The remaining methods (yRCA, FODA-FCP) will either:
 - Or stay within the unsupervised convergence band
 
 Track which.
+
+---
+
+## yRCA entry — rule-based reasoning, below the unsupervised AC@1 band; lowest absolute edge fragility among unsupervised methods
+
+Configuration: synthetic events from canonical metric features
+(threshold |z|≥3.0), topology inferred from lagged feature
+correlation (threshold 0.5), forward chaining over a 5-rule core
+(R1 potential_root_cause, R2 explained_by via topology, R3
+final_root_cause, R4 retry_cascade, R5 timeout_propagation),
+shared `_onset.detect_onset` for event timestamping. Output is a
+role-tagged ExplanationAtom set + `rule_derived_explanation`
+links. Confidence is the derivation-multiplicity ratio (fraction
+of final_root_cause services derived through ≥ 2 distinct rule
+paths). See `evaluation/methods/yrca.py` and DEVIATIONS.md
+→ "yRCA adapter" for the full re-implementation note.
+
+(1) HEADLINE NUMBERS ON RE1-OB (125 cases, 5 fault × 25 each):
+
+  AC@1 overall = 0.328
+  AC@3 overall = 0.608
+  AC@5 overall = 0.712
+  MRR          = 0.509
+  S(yRCA)      = 0.000 across every fault type (no inject_time
+                 leakage; structural witness)
+  iterations   ≤ 4 on every observed case (well below the
+                 max_iterations=32 cap)
+
+Per-fault:
+
+| fault | AC@1  | AC@3  | AC@5  | MRR   |
+|-------|-------|-------|-------|-------|
+| cpu   | 0.640 | 0.800 | 0.800 | 0.737 |
+| mem   | 0.600 | 0.800 | 0.880 | 0.728 |
+| disk  | 0.200 | 0.720 | 0.840 | 0.474 |
+| delay | 0.120 | 0.400 | 0.640 | 0.345 |
+| loss  | 0.080 | 0.320 | 0.400 | 0.262 |
+
+yRCA's AC@1 (0.328) sits BELOW the unsupervised graph-walk
+convergence band (~0.62) AND below BARO (0.536). The synthetic-
+event abstraction (one event per service-feature pair, all
+timestamped at a single window-level onset) collapses the rich
+temporal information that graph-walk methods exploit. The
+ranking at AC@3 / AC@5 recovers somewhat (0.608 / 0.712), which
+matches the rule-engine output shape: yRCA names a small set of
+final_root_cause candidates per case, and the right service is
+often in that set but not always at position 1.
+
+Two interpretations consistent with the data:
+
+  (a) The synthetic-event regime is the binding constraint, not
+      the rule engine. yRCA's published log-based regime sees
+      many events per service over time; the window-level
+      abstraction we adopt under RE1-OB's metric-only contract
+      loses the lead-lag information that R2 and R5 need to
+      discriminate cause from dep.
+  (b) The 5-rule core is missing rules that fire in the
+      published yRCA Prolog ruleset. The richest unsupervised
+      adapter for RCAEval RE1-OB might require porting more
+      patterns; we restricted to a faithful core to keep the
+      adapter scope finite.
+
+The two interpretations predict different per-fault profiles.
+yRCA's CPU/MEM strengths (0.640 / 0.600) and DELAY/LOSS weakness
+(0.120 / 0.080) match resource-anomaly cases (where a single
+service-feature pair generates the strongest event) being well-
+captured, vs. network-fault cases (where the propagation signal
+is what discriminates) being poorly-captured. This is consistent
+with interpretation (a): the lost information is exactly the
+temporal-propagation signal that DELAY / LOSS faults rely on.
+
+(2) DECOMPOSITION: random-onset variant
+
+  AC@1_random overall = 0.248
+  AC@1_native − AC@1_random = +0.080
+
+The onset-finding lift is +8.0pp — substantially smaller than
+the unsupervised graph methods' +16-28pp onset-finding lift, but
+non-zero. The rule engine retains some discriminating power even
+on a random pivot, because R3's "unexplained final_root_cause"
+selection rule is largely topology-driven, not onset-driven.
+That's a paper-relevant observation: yRCA's value is more in
+the rule engine than in the onset detection, the opposite of
+graph-walk methods.
+
+(3) OFFSET ROBUSTNESS (Paper 6 §4 standard axis)
+
+  (a) standard (per-case hashed offset): 0.328
+  (b) edges (mean of 5 % / 95 %):         0.196   (-13.2pp)
+  (c) center (50 %):                      0.224   (-10.4pp)
+
+yRCA is the LEAST edge-fragile unsupervised method in absolute
+terms (−13.2pp vs MR/CR/Micro −33.6 to −38.4pp and BARO −22.8pp).
+Two combining factors:
+
+  - The rule engine aggregates events into a small set of
+    derived facts before ranking. Onset misalignment shifts
+    which events fire R1, but the rule-chain selection of
+    final_root_cause is more invariant than a per-feature z-
+    score sum.
+  - yRCA's standard AC@1 is the lowest of the unsupervised
+    methods, so there's less to lose. The proportional drop
+    (−40 %) is comparable to BARO (−43 %); the absolute drop is
+    smaller only because the baseline is lower.
+
+DEPLOYMENT-REALISM IMPLICATION
+
+yRCA's reduced edge-fragility comes at a steep AC@1 cost. For
+deployment scenarios where edge-positioned inject is the rule
+(unbounded telemetry windows, no fencepost on inject time),
+yRCA is the second-best UNSUPERVISED method at edges (0.196 vs
+BARO 0.308); for in-band deployment, graph-walk methods and
+BARO clearly outperform. yRCA's value proposition is the
+**explanation chain**, not the rank: a role-tagged service set
+plus rule-derived causal links is what Paper 6 §4's case-study
+figure (Figure 6) compares side-by-side with FODA-FCP.
+
+EXPLANATION SHAPE
+
+Each yRCA case emits:
+  - 1-N ExplanationAtom objects, one per service appearing in
+    the derived chain, role-tagged via `ontology_class`:
+    `yrca:Role/final_root_cause`,
+    `yrca:Role/intermediate_propagator`, or
+    `yrca:Role/potential_root_cause`.
+  - 0-M CausalLink objects with
+    `relation_type="rule_derived_explanation"` for every
+    `explained_by` derivation, weighted by the number of
+    independent rule paths.
+  - confidence = derivation-multiplicity ratio (fraction of
+    final_root_cause services derived through ≥ 2 distinct
+    rules). Overall mean confidence ≈ 0.4-0.6 across RE1-OB —
+    most cases derive their final root cause through one or two
+    rules, rarely more.
+
+A representative 5-correct + 5-incorrect sample is archived as
+`paper/artifacts/yrca_explanation_samples.json`, mirroring
+DejaVu's attention-sample dump format. Sample inspection
+confirms the role-tagging makes sense even on incorrect cases:
+the wrong service is named final_root_cause when the topology-
+inferred edges point in the wrong direction (e.g. a heavily-
+correlated downstream traffic signal ranks as the cause when
+the upstream latency signal didn't pass the z-threshold).
+
+---
+
+## Cross-method finding (updated through yRCA + edge-shift diag) — synthetic-event regime collapses rule-engine value; offset robustness now spans 0.196-0.720 at edges
+
+Six metric-based RCA methods on RE1-OB:
+
+  MonitorRank:  0.632 (random-walk PageRank, unsupervised)
+  CausalRCA:    0.624 (PC algorithm + ancestor scoring, unsupervised)
+  MicroRCA:     0.624 (attributed-graph asymmetric PageRank, unsupervised)
+  BARO:         0.536 (multivariate BOCPD + column-max-z, unsupervised)
+  DejaVu:       0.720 (GAT-attention neural classifier, SUPERVISED)
+  yRCA:         0.328 (rule-based reasoning over synthetic events,
+                       unsupervised)
+
+yRCA enters the suite BELOW the unsupervised correlation-based
+convergence band, the first method to do so. Three of the four
+correlation-based methods cluster at 0.624-0.632 (within 0.8pp);
+BARO sits at 0.536 due to its column-max-z scoring × canonical-
+preprocessing interaction; yRCA sits at 0.328 due to its
+synthetic-event abstraction.
+
+The result reframes the AC@1 spread:
+
+  - **Top**: supervised (DejaVu, 0.720)
+  - **Band**: unsupervised correlation-based (MR, CR, Micro,
+    0.624-0.632)
+  - **Below band**: unsupervised with method-specific scoring
+    constraints (BARO 0.536, yRCA 0.328)
+
+yRCA's value within Paper 6 is therefore NOT raw AC@1 — it is
+the explanation chain (role-tagged, rule-derived, with multi-
+rule confidence) that the case-study figure (Paper 6 §4 Figure
+6) will render side-by-side with FODA-FCP. This is the
+SemanticGroundedness comparison axis the brief identifies.
+
+### Updated universal-edge-fragility table (6 methods)
+
+| method  | (a) standard | (b) edges | (c) center | edge drop (b−a) |
+|---------|--------------|-----------|------------|-----------------|
+| MR      |    0.632     |   0.296   |   0.512    |     -33.6pp     |
+| CR      |    0.624     |   0.248   |   0.496    |     -37.6pp     |
+| Micro   |    0.624     |   0.240   |   0.488    |     -38.4pp     |
+| BARO    |    0.536     |   0.308   |   0.456    |     -22.8pp     |
+| DejaVu  |    0.720     |   0.432   |   0.720    |     -28.8pp     |
+| yRCA    |    0.328     |   0.196   |   0.224    |     -13.2pp     |
+
+(a) = each case's hashed default offset in [25%, 75%]
+(b) = mean of offset=60s (5%) and offset=1140s (95%)
+(c) = offset=600s (exactly 50%)
+
+**Edge fragility remains universal across all 6 methods**,
+ranging now from −13.2pp (yRCA, smallest absolute drop) to
+−38.4pp (Micro). Three mechanisms documented in the previous
+cross-method block still cover MR/CR/Micro (detector
+misalignment), BARO (short post-injection window), DejaVu
+(training-distribution shift). yRCA introduces a **fourth
+mechanism**:
+
+4. **Synthetic-event regime invariance partial.** yRCA's rule
+   engine aggregates events into a small set of facts before
+   ranking, partially insulating it from onset misalignment.
+   The −13.2pp absolute drop is the smallest of any method we
+   have tested — but yRCA's standard AC@1 is also the lowest,
+   so the proportional drop (−40 %) is in the same range as
+   the other unsupervised methods (−40 % to −60 %).
+
+yRCA's edge AC@1 of 0.196 is the lowest of all six methods at
+edges; even the best unsupervised method at edges (BARO,
+0.308) preserves a 11pp lead. So while yRCA is the least
+edge-fragile in absolute pp, it is also the worst-ranked
+method at edges.
+
+**Methodological observation.** Offset robustness, raw AC@1,
+and the proportional drop measure different things and rank
+methods differently. The brief's "lower is better for S(M),
+higher is better for AC@1, less is better for edge drop"
+framing is correct as far as it goes; the cross-method
+diagnostic shows that no single method dominates on all three
+axes simultaneously. DejaVu wins AC@1 (in-band and at edges);
+yRCA wins smallest absolute edge drop; MR/CR/Micro win
+unsupervised in-band AC@1.
+
+The remaining method (FODA-FCP) is the ontology-grounded
+candidate. Open question for Paper 6 §4: does ontology
+grounding move the unsupervised methods into the supervised
+band (closing the 9pp gap vs DejaVu), or does it primarily
+move explanation quality (SemanticGroundedness, the
+explanation-completeness metric) without moving raw AC@1?
+yRCA's data point — rich explanation chain, low AC@1 —
+suggests the explanation-quality and rank-quality axes can be
+decoupled. Track.
+

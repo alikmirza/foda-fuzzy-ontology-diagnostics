@@ -1,0 +1,2553 @@
+{
+  "samples": [
+    {
+      "case_id": "re1-ob_adservice_cpu_1",
+      "fault": "cpu",
+      "ground_truth": "adservice",
+      "predicted_top1": "adservice",
+      "ac1": 1.0,
+      "correct": true,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "fa3c4731-c19e-4d63-b749-8ff1ed8e4481",
+            "text": "adservice [final_root_cause] severity=748.11, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.75
+          }
+        ],
+        "links": [],
+        "raw_output": {
+          "onset_time": 1685202700.097227,
+          "n_events": 2,
+          "n_anomaly_events": 2,
+          "topology_edges": [
+            [
+              "cartservice",
+              "frontend"
+            ],
+            [
+              "currencyservice",
+              "cartservice"
+            ],
+            [
+              "currencyservice",
+              "frontend"
+            ],
+            [
+              "currencyservice",
+              "recommendationservice"
+            ],
+            [
+              "productcatalogservice",
+              "cartservice"
+            ],
+            [
+              "productcatalogservice",
+              "currencyservice"
+            ],
+            [
+              "productcatalogservice",
+              "frontend"
+            ],
+            [
+              "recommendationservice",
+              "cartservice"
+            ],
+            [
+              "recommendationservice",
+              "frontend"
+            ],
+            [
+              "shippingservice",
+              "cartservice"
+            ],
+            [
+              "shippingservice",
+              "currencyservice"
+            ],
+            [
+              "shippingservice",
+              "recommendationservice"
+            ]
+          ],
+          "iterations": 1,
+          "n_facts": 3,
+          "facts_by_relation": {
+            "potential_root_cause": 2,
+            "final_root_cause": 1
+          },
+          "final_root_causes": [
+            "adservice"
+          ],
+          "severity_by_service": {
+            "adservice": 748.1095682773079,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 0.0,
+            "paymentservice": 0.0,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "explanation_edges": []
+        },
+        "ranked_list": [
+          [
+            "adservice",
+            748.1095682773079
+          ],
+          [
+            "cartservice",
+            0.0
+          ],
+          [
+            "checkoutservice",
+            0.0
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "emailservice",
+            0.0
+          ],
+          [
+            "frontend",
+            0.0
+          ],
+          [
+            "main",
+            0.0
+          ],
+          [
+            "paymentservice",
+            0.0
+          ],
+          [
+            "productcatalogservice",
+            0.0
+          ],
+          [
+            "recommendationservice",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ],
+          [
+            "shippingservice",
+            0.0
+          ]
+        ],
+        "confidence": 0.0
+      }
+    },
+    {
+      "case_id": "re1-ob_adservice_cpu_3",
+      "fault": "cpu",
+      "ground_truth": "adservice",
+      "predicted_top1": "adservice",
+      "ac1": 1.0,
+      "correct": true,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "6cc9d5be-fdb0-40f1-97ab-0dfeb48118d7",
+            "text": "adservice [final_root_cause] severity=882.47, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.75
+          },
+          {
+            "id": "ff9a3062-7849-4f4c-818d-8fb828ff786a",
+            "text": "main [final_root_cause] severity=5.38, derived_by_rules=['R1', 'R2']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.006092683239657262
+          },
+          {
+            "id": "3da094f9-04f2-4d10-90d7-22ba913572e4",
+            "text": "paymentservice [intermediate_propagator] severity=4.13, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.003508414665560627
+          },
+          {
+            "id": "81549a2a-24d1-4c12-a82d-d56a602300bf",
+            "text": "recommendationservice [final_root_cause] severity=4.04, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.003432520425892119
+          }
+        ],
+        "links": [
+          {
+            "source": "ff9a3062-7849-4f4c-818d-8fb828ff786a",
+            "target": "3da094f9-04f2-4d10-90d7-22ba913572e4",
+            "source_service": "main",
+            "target_service": "paymentservice",
+            "weight": 0.5,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2"
+            ]
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1685211228.2398508,
+          "n_events": 5,
+          "n_anomaly_events": 5,
+          "topology_edges": [
+            [
+              "cartservice",
+              "frontend"
+            ],
+            [
+              "currencyservice",
+              "cartservice"
+            ],
+            [
+              "currencyservice",
+              "frontend"
+            ],
+            [
+              "currencyservice",
+              "productcatalogservice"
+            ],
+            [
+              "frontend",
+              "adservice"
+            ],
+            [
+              "main",
+              "paymentservice"
+            ],
+            [
+              "productcatalogservice",
+              "adservice"
+            ],
+            [
+              "productcatalogservice",
+              "frontend"
+            ]
+          ],
+          "iterations": 2,
+          "n_facts": 9,
+          "facts_by_relation": {
+            "potential_root_cause": 5,
+            "explained_by": 1,
+            "final_root_cause": 3
+          },
+          "final_root_causes": [
+            "adservice",
+            "main",
+            "recommendationservice"
+          ],
+          "severity_by_service": {
+            "adservice": 882.465767043482,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 5.376584388437112,
+            "paymentservice": 4.12807445193408,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 4.038775694036411,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "explanation_edges": [
+            {
+              "dep": "paymentservice",
+              "cause": "main",
+              "rule_ids": [
+                "R2"
+              ]
+            }
+          ]
+        },
+        "ranked_list": [
+          [
+            "adservice",
+            882.465767043482
+          ],
+          [
+            "main",
+            5.376584388437112
+          ],
+          [
+            "recommendationservice",
+            4.038775694036411
+          ],
+          [
+            "paymentservice",
+            0.0
+          ],
+          [
+            "cartservice",
+            0.0
+          ],
+          [
+            "checkoutservice",
+            0.0
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "emailservice",
+            0.0
+          ],
+          [
+            "frontend",
+            0.0
+          ],
+          [
+            "productcatalogservice",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ],
+          [
+            "shippingservice",
+            0.0
+          ]
+        ],
+        "confidence": 0.3333333333333333
+      }
+    },
+    {
+      "case_id": "re1-ob_adservice_cpu_4",
+      "fault": "cpu",
+      "ground_truth": "adservice",
+      "predicted_top1": "adservice",
+      "ac1": 1.0,
+      "correct": true,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "7aadbc05-6828-4569-a057-d40a7e3b2e4c",
+            "text": "adservice [final_root_cause] severity=197.14, derived_by_rules=['R1', 'R2']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 1.0
+          },
+          {
+            "id": "5466c5cd-150e-4c56-a01f-8aef5ffee5a4",
+            "text": "main [intermediate_propagator] severity=13.08, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.04975509588888734
+          }
+        ],
+        "links": [
+          {
+            "source": "7aadbc05-6828-4569-a057-d40a7e3b2e4c",
+            "target": "5466c5cd-150e-4c56-a01f-8aef5ffee5a4",
+            "source_service": "adservice",
+            "target_service": "main",
+            "weight": 0.5,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2"
+            ]
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1685229707.8105783,
+          "n_events": 3,
+          "n_anomaly_events": 3,
+          "topology_edges": [
+            [
+              "adservice",
+              "main"
+            ],
+            [
+              "cartservice",
+              "checkoutservice"
+            ],
+            [
+              "cartservice",
+              "currencyservice"
+            ],
+            [
+              "cartservice",
+              "frontend"
+            ],
+            [
+              "cartservice",
+              "productcatalogservice"
+            ],
+            [
+              "checkoutservice",
+              "frontend"
+            ],
+            [
+              "currencyservice",
+              "checkoutservice"
+            ],
+            [
+              "currencyservice",
+              "frontend"
+            ],
+            [
+              "paymentservice",
+              "cartservice"
+            ],
+            [
+              "paymentservice",
+              "checkoutservice"
+            ],
+            [
+              "paymentservice",
+              "currencyservice"
+            ],
+            [
+              "paymentservice",
+              "frontend"
+            ],
+            [
+              "paymentservice",
+              "recommendationservice"
+            ],
+            [
+              "paymentservice",
+              "shippingservice"
+            ],
+            [
+              "productcatalogservice",
+              "checkoutservice"
+            ],
+            [
+              "productcatalogservice",
+              "currencyservice"
+            ],
+            [
+              "productcatalogservice",
+              "frontend"
+            ],
+            [
+              "productcatalogservice",
+              "paymentservice"
+            ],
+            [
+              "productcatalogservice",
+              "recommendationservice"
+            ],
+            [
+              "productcatalogservice",
+              "shippingservice"
+            ],
+            [
+              "recommendationservice",
+              "cartservice"
+            ],
+            [
+              "recommendationservice",
+              "checkoutservice"
+            ],
+            [
+              "recommendationservice",
+              "currencyservice"
+            ],
+            [
+              "recommendationservice",
+              "frontend"
+            ],
+            [
+              "redis",
+              "cartservice"
+            ],
+            [
+              "redis",
+              "checkoutservice"
+            ],
+            [
+              "redis",
+              "currencyservice"
+            ],
+            [
+              "redis",
+              "frontend"
+            ],
+            [
+              "redis",
+              "paymentservice"
+            ],
+            [
+              "redis",
+              "productcatalogservice"
+            ],
+            [
+              "redis",
+              "recommendationservice"
+            ],
+            [
+              "redis",
+              "shippingservice"
+            ],
+            [
+              "shippingservice",
+              "cartservice"
+            ],
+            [
+              "shippingservice",
+              "checkoutservice"
+            ],
+            [
+              "shippingservice",
+              "currencyservice"
+            ],
+            [
+              "shippingservice",
+              "frontend"
+            ],
+            [
+              "shippingservice",
+              "recommendationservice"
+            ]
+          ],
+          "iterations": 2,
+          "n_facts": 5,
+          "facts_by_relation": {
+            "potential_root_cause": 3,
+            "explained_by": 1,
+            "final_root_cause": 1
+          },
+          "final_root_causes": [
+            "adservice"
+          ],
+          "severity_by_service": {
+            "adservice": 197.14008398001565,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 13.078298375958642,
+            "paymentservice": 0.0,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "explanation_edges": [
+            {
+              "dep": "main",
+              "cause": "adservice",
+              "rule_ids": [
+                "R2"
+              ]
+            }
+          ]
+        },
+        "ranked_list": [
+          [
+            "adservice",
+            197.14008398001565
+          ],
+          [
+            "main",
+            0.0
+          ],
+          [
+            "cartservice",
+            0.0
+          ],
+          [
+            "checkoutservice",
+            0.0
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "emailservice",
+            0.0
+          ],
+          [
+            "frontend",
+            0.0
+          ],
+          [
+            "paymentservice",
+            0.0
+          ],
+          [
+            "productcatalogservice",
+            0.0
+          ],
+          [
+            "recommendationservice",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ],
+          [
+            "shippingservice",
+            0.0
+          ]
+        ],
+        "confidence": 1.0
+      }
+    },
+    {
+      "case_id": "re1-ob_adservice_delay_4",
+      "fault": "delay",
+      "ground_truth": "adservice",
+      "predicted_top1": "adservice",
+      "ac1": 1.0,
+      "correct": true,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "55b9278f-d54a-4b87-84e1-4d14babb530a",
+            "text": "adservice [final_root_cause] severity=32367966005944696.00, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.75
+          },
+          {
+            "id": "7edbd6fa-fdbc-43e6-ab23-b046ca622ad1",
+            "text": "cartservice [final_root_cause] severity=565702330611536.00, derived_by_rules=['R1', 'R2', 'R5_timeout']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.017477228272781774
+          },
+          {
+            "id": "62ff280a-ec7a-48b7-8840-2bc3050de7fc",
+            "text": "currencyservice [intermediate_propagator] severity=1276296581112772.00, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.029573141409589214
+          },
+          {
+            "id": "8aa6c2c4-d9cd-48f3-8fd8-d6454e8e0ca7",
+            "text": "emailservice [final_root_cause] severity=97735911533945.00, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.00226464442149365
+          },
+          {
+            "id": "32483943-8d30-41b8-9399-7b350c2cd6cf",
+            "text": "frontend [intermediate_propagator] severity=608921680230694.00, derived_by_rules=['R1', 'R2', 'R5_timeout']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.018812478983661177
+          },
+          {
+            "id": "32e02e7e-9125-4759-baee-7c8ba7802fdd",
+            "text": "paymentservice [intermediate_propagator] severity=868115316203840.38, derived_by_rules=['R1', 'R2', 'R5_timeout']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.026820199824863954
+          },
+          {
+            "id": "e24a3cdd-7a20-468a-9040-e6c3daa4a2f6",
+            "text": "productcatalogservice [intermediate_propagator] severity=728199097194401.00, derived_by_rules=['R1', 'R2', 'R5_timeout']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.022497524158937268
+          },
+          {
+            "id": "5472ce1d-009f-4394-8d38-74ea3c73d7ae",
+            "text": "recommendationservice [intermediate_propagator] severity=419098742462568.00, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.009710961040591716
+          },
+          {
+            "id": "30231c00-fd7f-40da-861b-00a36fb29158",
+            "text": "shippingservice [final_root_cause] severity=384686835341408.00, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.00891360076357802
+          }
+        ],
+        "links": [
+          {
+            "source": "7edbd6fa-fdbc-43e6-ab23-b046ca622ad1",
+            "target": "32e02e7e-9125-4759-baee-7c8ba7802fdd",
+            "source_service": "cartservice",
+            "target_service": "paymentservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          },
+          {
+            "source": "32483943-8d30-41b8-9399-7b350c2cd6cf",
+            "target": "62ff280a-ec7a-48b7-8840-2bc3050de7fc",
+            "source_service": "frontend",
+            "target_service": "currencyservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          },
+          {
+            "source": "32483943-8d30-41b8-9399-7b350c2cd6cf",
+            "target": "e24a3cdd-7a20-468a-9040-e6c3daa4a2f6",
+            "source_service": "frontend",
+            "target_service": "productcatalogservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          },
+          {
+            "source": "32483943-8d30-41b8-9399-7b350c2cd6cf",
+            "target": "5472ce1d-009f-4394-8d38-74ea3c73d7ae",
+            "source_service": "frontend",
+            "target_service": "recommendationservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          },
+          {
+            "source": "32e02e7e-9125-4759-baee-7c8ba7802fdd",
+            "target": "32483943-8d30-41b8-9399-7b350c2cd6cf",
+            "source_service": "paymentservice",
+            "target_service": "frontend",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          },
+          {
+            "source": "32e02e7e-9125-4759-baee-7c8ba7802fdd",
+            "target": "5472ce1d-009f-4394-8d38-74ea3c73d7ae",
+            "source_service": "paymentservice",
+            "target_service": "recommendationservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          },
+          {
+            "source": "e24a3cdd-7a20-468a-9040-e6c3daa4a2f6",
+            "target": "32e02e7e-9125-4759-baee-7c8ba7802fdd",
+            "source_service": "productcatalogservice",
+            "target_service": "paymentservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          },
+          {
+            "source": "e24a3cdd-7a20-468a-9040-e6c3daa4a2f6",
+            "target": "5472ce1d-009f-4394-8d38-74ea3c73d7ae",
+            "source_service": "productcatalogservice",
+            "target_service": "recommendationservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1692585821.2369418,
+          "n_events": 18,
+          "n_anomaly_events": 18,
+          "topology_edges": [
+            [
+              "cartservice",
+              "paymentservice"
+            ],
+            [
+              "frontend",
+              "currencyservice"
+            ],
+            [
+              "frontend",
+              "productcatalogservice"
+            ],
+            [
+              "frontend",
+              "recommendationservice"
+            ],
+            [
+              "paymentservice",
+              "frontend"
+            ],
+            [
+              "paymentservice",
+              "recommendationservice"
+            ],
+            [
+              "productcatalogservice",
+              "paymentservice"
+            ],
+            [
+              "productcatalogservice",
+              "recommendationservice"
+            ]
+          ],
+          "iterations": 2,
+          "n_facts": 38,
+          "facts_by_relation": {
+            "potential_root_cause": 18,
+            "explained_by": 16,
+            "final_root_cause": 4
+          },
+          "final_root_causes": [
+            "adservice",
+            "cartservice",
+            "emailservice",
+            "shippingservice"
+          ],
+          "severity_by_service": {
+            "adservice": 3.2367966005944696e+16,
+            "cartservice": 565702330611536.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 1276296581112772.0,
+            "emailservice": 97735911533945.0,
+            "frontend": 608921680230694.0,
+            "main": 0.0,
+            "paymentservice": 868115316203840.4,
+            "productcatalogservice": 728199097194401.0,
+            "recommendationservice": 419098742462568.0,
+            "redis": 0.0,
+            "shippingservice": 384686835341408.0
+          },
+          "explanation_edges": [
+            {
+              "dep": "currencyservice",
+              "cause": "frontend",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            },
+            {
+              "dep": "frontend",
+              "cause": "paymentservice",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            },
+            {
+              "dep": "paymentservice",
+              "cause": "cartservice",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            },
+            {
+              "dep": "paymentservice",
+              "cause": "productcatalogservice",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            },
+            {
+              "dep": "productcatalogservice",
+              "cause": "frontend",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            },
+            {
+              "dep": "recommendationservice",
+              "cause": "frontend",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            },
+            {
+              "dep": "recommendationservice",
+              "cause": "paymentservice",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            },
+            {
+              "dep": "recommendationservice",
+              "cause": "productcatalogservice",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            }
+          ]
+        },
+        "ranked_list": [
+          [
+            "adservice",
+            3.2367966005944696e+16
+          ],
+          [
+            "cartservice",
+            565702330611536.0
+          ],
+          [
+            "shippingservice",
+            384686835341408.0
+          ],
+          [
+            "emailservice",
+            97735911533945.0
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "paymentservice",
+            0.0
+          ],
+          [
+            "productcatalogservice",
+            0.0
+          ],
+          [
+            "frontend",
+            0.0
+          ],
+          [
+            "recommendationservice",
+            0.0
+          ],
+          [
+            "checkoutservice",
+            0.0
+          ],
+          [
+            "main",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ]
+        ],
+        "confidence": 0.25
+      }
+    },
+    {
+      "case_id": "re1-ob_adservice_delay_5",
+      "fault": "delay",
+      "ground_truth": "adservice",
+      "predicted_top1": "adservice",
+      "ac1": 1.0,
+      "correct": true,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "31df4478-8013-4985-a60e-11353e45d072",
+            "text": "adservice [final_root_cause] severity=920.32, derived_by_rules=['R1', 'R2']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 1.0
+          },
+          {
+            "id": "32c16d6d-a032-4002-b2c7-ee1774da02f1",
+            "text": "checkoutservice [final_root_cause] severity=97.69, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.07961217815330719
+          },
+          {
+            "id": "76ce5fe7-75d5-4452-8017-e97382508587",
+            "text": "main [intermediate_propagator] severity=5.30, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.004316441792487992
+          }
+        ],
+        "links": [
+          {
+            "source": "31df4478-8013-4985-a60e-11353e45d072",
+            "target": "76ce5fe7-75d5-4452-8017-e97382508587",
+            "source_service": "adservice",
+            "target_service": "main",
+            "weight": 0.5,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2"
+            ]
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1692612208.6491451,
+          "n_events": 4,
+          "n_anomaly_events": 4,
+          "topology_edges": [
+            [
+              "adservice",
+              "main"
+            ],
+            [
+              "currencyservice",
+              "cartservice"
+            ],
+            [
+              "currencyservice",
+              "paymentservice"
+            ],
+            [
+              "currencyservice",
+              "productcatalogservice"
+            ],
+            [
+              "currencyservice",
+              "shippingservice"
+            ],
+            [
+              "emailservice",
+              "main"
+            ],
+            [
+              "frontend",
+              "cartservice"
+            ],
+            [
+              "frontend",
+              "currencyservice"
+            ],
+            [
+              "frontend",
+              "paymentservice"
+            ],
+            [
+              "frontend",
+              "productcatalogservice"
+            ],
+            [
+              "frontend",
+              "recommendationservice"
+            ],
+            [
+              "paymentservice",
+              "cartservice"
+            ],
+            [
+              "paymentservice",
+              "shippingservice"
+            ],
+            [
+              "productcatalogservice",
+              "cartservice"
+            ],
+            [
+              "productcatalogservice",
+              "paymentservice"
+            ],
+            [
+              "productcatalogservice",
+              "shippingservice"
+            ],
+            [
+              "recommendationservice",
+              "cartservice"
+            ],
+            [
+              "recommendationservice",
+              "currencyservice"
+            ],
+            [
+              "recommendationservice",
+              "paymentservice"
+            ],
+            [
+              "recommendationservice",
+              "productcatalogservice"
+            ],
+            [
+              "shippingservice",
+              "adservice"
+            ],
+            [
+              "shippingservice",
+              "cartservice"
+            ],
+            [
+              "shippingservice",
+              "checkoutservice"
+            ],
+            [
+              "shippingservice",
+              "recommendationservice"
+            ]
+          ],
+          "iterations": 2,
+          "n_facts": 7,
+          "facts_by_relation": {
+            "potential_root_cause": 4,
+            "explained_by": 1,
+            "final_root_cause": 2
+          },
+          "final_root_causes": [
+            "adservice",
+            "checkoutservice"
+          ],
+          "severity_by_service": {
+            "adservice": 920.32345334987,
+            "cartservice": 0.0,
+            "checkoutservice": 97.69193963567567,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 5.296696822195002,
+            "paymentservice": 0.0,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "explanation_edges": [
+            {
+              "dep": "main",
+              "cause": "adservice",
+              "rule_ids": [
+                "R2"
+              ]
+            }
+          ]
+        },
+        "ranked_list": [
+          [
+            "adservice",
+            920.32345334987
+          ],
+          [
+            "checkoutservice",
+            97.69193963567567
+          ],
+          [
+            "main",
+            0.0
+          ],
+          [
+            "cartservice",
+            0.0
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "emailservice",
+            0.0
+          ],
+          [
+            "frontend",
+            0.0
+          ],
+          [
+            "paymentservice",
+            0.0
+          ],
+          [
+            "productcatalogservice",
+            0.0
+          ],
+          [
+            "recommendationservice",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ],
+          [
+            "shippingservice",
+            0.0
+          ]
+        ],
+        "confidence": 0.5
+      }
+    },
+    {
+      "case_id": "re1-ob_adservice_cpu_2",
+      "fault": "cpu",
+      "ground_truth": "adservice",
+      "predicted_top1": "emailservice",
+      "ac1": 0.0,
+      "correct": false,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "bd479f4e-9a51-4e6c-9902-bdc46c69b066",
+            "text": "emailservice [final_root_cause] severity=3425651361147.00, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.75
+          }
+        ],
+        "links": [],
+        "raw_output": {
+          "onset_time": 1685207184.5611875,
+          "n_events": 1,
+          "n_anomaly_events": 1,
+          "topology_edges": [
+            [
+              "adservice",
+              "cartservice"
+            ],
+            [
+              "adservice",
+              "currencyservice"
+            ],
+            [
+              "adservice",
+              "frontend"
+            ],
+            [
+              "adservice",
+              "recommendationservice"
+            ],
+            [
+              "cartservice",
+              "frontend"
+            ],
+            [
+              "checkoutservice",
+              "adservice"
+            ],
+            [
+              "checkoutservice",
+              "cartservice"
+            ],
+            [
+              "checkoutservice",
+              "frontend"
+            ],
+            [
+              "checkoutservice",
+              "productcatalogservice"
+            ],
+            [
+              "currencyservice",
+              "frontend"
+            ],
+            [
+              "productcatalogservice",
+              "adservice"
+            ],
+            [
+              "productcatalogservice",
+              "cartservice"
+            ],
+            [
+              "productcatalogservice",
+              "currencyservice"
+            ],
+            [
+              "productcatalogservice",
+              "frontend"
+            ],
+            [
+              "productcatalogservice",
+              "recommendationservice"
+            ],
+            [
+              "recommendationservice",
+              "cartservice"
+            ],
+            [
+              "recommendationservice",
+              "currencyservice"
+            ],
+            [
+              "recommendationservice",
+              "frontend"
+            ]
+          ],
+          "iterations": 1,
+          "n_facts": 2,
+          "facts_by_relation": {
+            "potential_root_cause": 1,
+            "final_root_cause": 1
+          },
+          "final_root_causes": [
+            "emailservice"
+          ],
+          "severity_by_service": {
+            "adservice": 0.0,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.0,
+            "emailservice": 3425651361147.0,
+            "frontend": 0.0,
+            "main": 0.0,
+            "paymentservice": 0.0,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "explanation_edges": []
+        },
+        "ranked_list": [
+          [
+            "emailservice",
+            3425651361147.0
+          ],
+          [
+            "adservice",
+            0.0
+          ],
+          [
+            "cartservice",
+            0.0
+          ],
+          [
+            "checkoutservice",
+            0.0
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "frontend",
+            0.0
+          ],
+          [
+            "main",
+            0.0
+          ],
+          [
+            "paymentservice",
+            0.0
+          ],
+          [
+            "productcatalogservice",
+            0.0
+          ],
+          [
+            "recommendationservice",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ],
+          [
+            "shippingservice",
+            0.0
+          ]
+        ],
+        "confidence": 0.0
+      }
+    },
+    {
+      "case_id": "re1-ob_adservice_cpu_5",
+      "fault": "cpu",
+      "ground_truth": "adservice",
+      "predicted_top1": "paymentservice",
+      "ac1": 0.0,
+      "correct": false,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "945eb131-9e3f-4ec9-86ab-3dc5234c702b",
+            "text": "adservice [intermediate_propagator] severity=130.80, derived_by_rules=['R1', 'R2']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 1.0
+          },
+          {
+            "id": "a238a9c6-a41f-4141-baa2-a40a8209a6c9",
+            "text": "main [intermediate_propagator] severity=6.29, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.036047325132772895
+          },
+          {
+            "id": "90757711-af6a-4a40-b6b6-c9ec61c28980",
+            "text": "paymentservice [final_root_cause] severity=7.11, derived_by_rules=['R1', 'R2']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.05437159102958511
+          }
+        ],
+        "links": [
+          {
+            "source": "945eb131-9e3f-4ec9-86ab-3dc5234c702b",
+            "target": "a238a9c6-a41f-4141-baa2-a40a8209a6c9",
+            "source_service": "adservice",
+            "target_service": "main",
+            "weight": 0.5,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2"
+            ]
+          },
+          {
+            "source": "90757711-af6a-4a40-b6b6-c9ec61c28980",
+            "target": "945eb131-9e3f-4ec9-86ab-3dc5234c702b",
+            "source_service": "paymentservice",
+            "target_service": "adservice",
+            "weight": 0.5,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2"
+            ]
+          },
+          {
+            "source": "90757711-af6a-4a40-b6b6-c9ec61c28980",
+            "target": "a238a9c6-a41f-4141-baa2-a40a8209a6c9",
+            "source_service": "paymentservice",
+            "target_service": "main",
+            "weight": 0.5,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2"
+            ]
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1685220124.8445764,
+          "n_events": 4,
+          "n_anomaly_events": 4,
+          "topology_edges": [
+            [
+              "adservice",
+              "main"
+            ],
+            [
+              "cartservice",
+              "checkoutservice"
+            ],
+            [
+              "cartservice",
+              "currencyservice"
+            ],
+            [
+              "cartservice",
+              "frontend"
+            ],
+            [
+              "cartservice",
+              "productcatalogservice"
+            ],
+            [
+              "currencyservice",
+              "checkoutservice"
+            ],
+            [
+              "currencyservice",
+              "frontend"
+            ],
+            [
+              "emailservice",
+              "currencyservice"
+            ],
+            [
+              "emailservice",
+              "shippingservice"
+            ],
+            [
+              "frontend",
+              "checkoutservice"
+            ],
+            [
+              "frontend",
+              "emailservice"
+            ],
+            [
+              "paymentservice",
+              "adservice"
+            ],
+            [
+              "paymentservice",
+              "main"
+            ],
+            [
+              "productcatalogservice",
+              "checkoutservice"
+            ],
+            [
+              "productcatalogservice",
+              "currencyservice"
+            ],
+            [
+              "productcatalogservice",
+              "emailservice"
+            ],
+            [
+              "productcatalogservice",
+              "frontend"
+            ],
+            [
+              "productcatalogservice",
+              "recommendationservice"
+            ],
+            [
+              "recommendationservice",
+              "cartservice"
+            ],
+            [
+              "recommendationservice",
+              "checkoutservice"
+            ],
+            [
+              "recommendationservice",
+              "currencyservice"
+            ],
+            [
+              "recommendationservice",
+              "emailservice"
+            ],
+            [
+              "recommendationservice",
+              "frontend"
+            ],
+            [
+              "redis",
+              "cartservice"
+            ],
+            [
+              "redis",
+              "checkoutservice"
+            ],
+            [
+              "redis",
+              "currencyservice"
+            ],
+            [
+              "redis",
+              "emailservice"
+            ],
+            [
+              "redis",
+              "frontend"
+            ],
+            [
+              "redis",
+              "productcatalogservice"
+            ],
+            [
+              "redis",
+              "recommendationservice"
+            ],
+            [
+              "redis",
+              "shippingservice"
+            ],
+            [
+              "shippingservice",
+              "cartservice"
+            ],
+            [
+              "shippingservice",
+              "checkoutservice"
+            ],
+            [
+              "shippingservice",
+              "currencyservice"
+            ],
+            [
+              "shippingservice",
+              "frontend"
+            ],
+            [
+              "shippingservice",
+              "productcatalogservice"
+            ],
+            [
+              "shippingservice",
+              "recommendationservice"
+            ]
+          ],
+          "iterations": 2,
+          "n_facts": 8,
+          "facts_by_relation": {
+            "potential_root_cause": 4,
+            "explained_by": 3,
+            "final_root_cause": 1
+          },
+          "final_root_causes": [
+            "paymentservice"
+          ],
+          "severity_by_service": {
+            "adservice": 130.801661351158,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 6.286733352842729,
+            "paymentservice": 7.111894436975452,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "explanation_edges": [
+            {
+              "dep": "adservice",
+              "cause": "paymentservice",
+              "rule_ids": [
+                "R2"
+              ]
+            },
+            {
+              "dep": "main",
+              "cause": "adservice",
+              "rule_ids": [
+                "R2"
+              ]
+            },
+            {
+              "dep": "main",
+              "cause": "paymentservice",
+              "rule_ids": [
+                "R2"
+              ]
+            }
+          ]
+        },
+        "ranked_list": [
+          [
+            "paymentservice",
+            7.111894436975452
+          ],
+          [
+            "adservice",
+            122.68976691418256
+          ],
+          [
+            "main",
+            0.0
+          ],
+          [
+            "cartservice",
+            0.0
+          ],
+          [
+            "checkoutservice",
+            0.0
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "emailservice",
+            0.0
+          ],
+          [
+            "frontend",
+            0.0
+          ],
+          [
+            "productcatalogservice",
+            0.0
+          ],
+          [
+            "recommendationservice",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ],
+          [
+            "shippingservice",
+            0.0
+          ]
+        ],
+        "confidence": 1.0
+      }
+    },
+    {
+      "case_id": "re1-ob_adservice_delay_1",
+      "fault": "delay",
+      "ground_truth": "adservice",
+      "predicted_top1": "emailservice",
+      "ac1": 0.0,
+      "correct": false,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "e964309d-4570-463a-9ac4-c570b6db54d7",
+            "text": "adservice [intermediate_propagator] severity=922.50, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.75
+          },
+          {
+            "id": "7f0a7292-8af9-4dd3-97b6-6822b3e96ba2",
+            "text": "checkoutservice [intermediate_propagator] severity=33.75, derived_by_rules=['R1', 'R2', 'R5_timeout']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.03658838886972342
+          },
+          {
+            "id": "a8fdf2da-cf84-4c32-b02e-f67a8ffef877",
+            "text": "emailservice [final_root_cause] severity=16.96, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.013786145226700602
+          },
+          {
+            "id": "050653e5-cbcc-409f-b0f1-8483f0ea3433",
+            "text": "productcatalogservice [final_root_cause] severity=3.21, derived_by_rules=['R1', 'R2', 'R5_timeout']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.003475495183147622
+          },
+          {
+            "id": "f43fdb5f-8152-4539-b5ca-789ac3dad717",
+            "text": "recommendationservice [final_root_cause] severity=5.59, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.004546640104362943
+          }
+        ],
+        "links": [
+          {
+            "source": "7f0a7292-8af9-4dd3-97b6-6822b3e96ba2",
+            "target": "e964309d-4570-463a-9ac4-c570b6db54d7",
+            "source_service": "checkoutservice",
+            "target_service": "adservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          },
+          {
+            "source": "050653e5-cbcc-409f-b0f1-8483f0ea3433",
+            "target": "7f0a7292-8af9-4dd3-97b6-6822b3e96ba2",
+            "source_service": "productcatalogservice",
+            "target_service": "checkoutservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1692583744.8900807,
+          "n_events": 5,
+          "n_anomaly_events": 5,
+          "topology_edges": [
+            [
+              "cartservice",
+              "productcatalogservice"
+            ],
+            [
+              "checkoutservice",
+              "adservice"
+            ],
+            [
+              "frontend",
+              "adservice"
+            ],
+            [
+              "frontend",
+              "checkoutservice"
+            ],
+            [
+              "frontend",
+              "currencyservice"
+            ],
+            [
+              "paymentservice",
+              "cartservice"
+            ],
+            [
+              "productcatalogservice",
+              "checkoutservice"
+            ],
+            [
+              "productcatalogservice",
+              "currencyservice"
+            ],
+            [
+              "productcatalogservice",
+              "frontend"
+            ],
+            [
+              "productcatalogservice",
+              "shippingservice"
+            ],
+            [
+              "shippingservice",
+              "adservice"
+            ],
+            [
+              "shippingservice",
+              "checkoutservice"
+            ],
+            [
+              "shippingservice",
+              "currencyservice"
+            ],
+            [
+              "shippingservice",
+              "frontend"
+            ]
+          ],
+          "iterations": 2,
+          "n_facts": 12,
+          "facts_by_relation": {
+            "potential_root_cause": 5,
+            "explained_by": 4,
+            "final_root_cause": 3
+          },
+          "final_root_causes": [
+            "emailservice",
+            "productcatalogservice",
+            "recommendationservice"
+          ],
+          "severity_by_service": {
+            "adservice": 922.4976934411912,
+            "cartservice": 0.0,
+            "checkoutservice": 33.75270433904921,
+            "currencyservice": 0.0,
+            "emailservice": 16.956916230768794,
+            "frontend": 0.0,
+            "main": 0.0,
+            "paymentservice": 0.0,
+            "productcatalogservice": 3.2061362900196517,
+            "recommendationservice": 5.592353345576043,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "explanation_edges": [
+            {
+              "dep": "adservice",
+              "cause": "checkoutservice",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            },
+            {
+              "dep": "checkoutservice",
+              "cause": "productcatalogservice",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            }
+          ]
+        },
+        "ranked_list": [
+          [
+            "emailservice",
+            16.956916230768794
+          ],
+          [
+            "recommendationservice",
+            5.592353345576043
+          ],
+          [
+            "productcatalogservice",
+            3.2061362900196517
+          ],
+          [
+            "adservice",
+            904.5407772104224
+          ],
+          [
+            "checkoutservice",
+            15.795788108280416
+          ],
+          [
+            "cartservice",
+            0.0
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "frontend",
+            0.0
+          ],
+          [
+            "main",
+            0.0
+          ],
+          [
+            "paymentservice",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ],
+          [
+            "shippingservice",
+            0.0
+          ]
+        ],
+        "confidence": 0.3333333333333333
+      }
+    },
+    {
+      "case_id": "re1-ob_adservice_delay_2",
+      "fault": "delay",
+      "ground_truth": "adservice",
+      "predicted_top1": "checkoutservice",
+      "ac1": 0.0,
+      "correct": false,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "f2863d4c-4232-48ea-9477-b519e2a602a0",
+            "text": "adservice [intermediate_propagator] severity=704.41, derived_by_rules=['R1', 'R2', 'R5_timeout']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 1.0
+          },
+          {
+            "id": "2be93d42-d134-4880-92dd-99dda3b54975",
+            "text": "checkoutservice [final_root_cause] severity=35.96, derived_by_rules=['R1', 'R2', 'R5_timeout']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.05104291269983659
+          },
+          {
+            "id": "aa4b013f-3b2a-434d-a7f8-bab0be72a749",
+            "text": "main [intermediate_propagator] severity=6.19, derived_by_rules=['R1', 'R2']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.008788134910688635
+          },
+          {
+            "id": "f0805529-a5ad-4e97-b217-bbb59a3ed0cc",
+            "text": "shippingservice [intermediate_propagator] severity=20.69, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.022032032322229708
+          }
+        ],
+        "links": [
+          {
+            "source": "f2863d4c-4232-48ea-9477-b519e2a602a0",
+            "target": "aa4b013f-3b2a-434d-a7f8-bab0be72a749",
+            "source_service": "adservice",
+            "target_service": "main",
+            "weight": 0.5,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2"
+            ]
+          },
+          {
+            "source": "f2863d4c-4232-48ea-9477-b519e2a602a0",
+            "target": "f0805529-a5ad-4e97-b217-bbb59a3ed0cc",
+            "source_service": "adservice",
+            "target_service": "shippingservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          },
+          {
+            "source": "2be93d42-d134-4880-92dd-99dda3b54975",
+            "target": "f2863d4c-4232-48ea-9477-b519e2a602a0",
+            "source_service": "checkoutservice",
+            "target_service": "adservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          },
+          {
+            "source": "aa4b013f-3b2a-434d-a7f8-bab0be72a749",
+            "target": "f0805529-a5ad-4e97-b217-bbb59a3ed0cc",
+            "source_service": "main",
+            "target_service": "shippingservice",
+            "weight": 0.5,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2"
+            ]
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1692584709.042831,
+          "n_events": 4,
+          "n_anomaly_events": 4,
+          "topology_edges": [
+            [
+              "adservice",
+              "main"
+            ],
+            [
+              "adservice",
+              "shippingservice"
+            ],
+            [
+              "cartservice",
+              "currencyservice"
+            ],
+            [
+              "cartservice",
+              "frontend"
+            ],
+            [
+              "cartservice",
+              "redis"
+            ],
+            [
+              "cartservice",
+              "shippingservice"
+            ],
+            [
+              "checkoutservice",
+              "adservice"
+            ],
+            [
+              "checkoutservice",
+              "emailservice"
+            ],
+            [
+              "currencyservice",
+              "adservice"
+            ],
+            [
+              "currencyservice",
+              "frontend"
+            ],
+            [
+              "currencyservice",
+              "redis"
+            ],
+            [
+              "currencyservice",
+              "shippingservice"
+            ],
+            [
+              "frontend",
+              "adservice"
+            ],
+            [
+              "frontend",
+              "redis"
+            ],
+            [
+              "frontend",
+              "shippingservice"
+            ],
+            [
+              "main",
+              "cartservice"
+            ],
+            [
+              "main",
+              "currencyservice"
+            ],
+            [
+              "main",
+              "frontend"
+            ],
+            [
+              "main",
+              "productcatalogservice"
+            ],
+            [
+              "main",
+              "recommendationservice"
+            ],
+            [
+              "main",
+              "redis"
+            ],
+            [
+              "main",
+              "shippingservice"
+            ],
+            [
+              "paymentservice",
+              "cartservice"
+            ],
+            [
+              "paymentservice",
+              "currencyservice"
+            ],
+            [
+              "paymentservice",
+              "frontend"
+            ],
+            [
+              "paymentservice",
+              "productcatalogservice"
+            ],
+            [
+              "paymentservice",
+              "recommendationservice"
+            ],
+            [
+              "paymentservice",
+              "redis"
+            ],
+            [
+              "paymentservice",
+              "shippingservice"
+            ],
+            [
+              "productcatalogservice",
+              "cartservice"
+            ],
+            [
+              "productcatalogservice",
+              "currencyservice"
+            ],
+            [
+              "productcatalogservice",
+              "frontend"
+            ],
+            [
+              "productcatalogservice",
+              "recommendationservice"
+            ],
+            [
+              "productcatalogservice",
+              "redis"
+            ],
+            [
+              "productcatalogservice",
+              "shippingservice"
+            ],
+            [
+              "recommendationservice",
+              "cartservice"
+            ],
+            [
+              "recommendationservice",
+              "currencyservice"
+            ],
+            [
+              "recommendationservice",
+              "frontend"
+            ],
+            [
+              "recommendationservice",
+              "redis"
+            ],
+            [
+              "recommendationservice",
+              "shippingservice"
+            ],
+            [
+              "shippingservice",
+              "redis"
+            ]
+          ],
+          "iterations": 2,
+          "n_facts": 11,
+          "facts_by_relation": {
+            "potential_root_cause": 4,
+            "explained_by": 6,
+            "final_root_cause": 1
+          },
+          "final_root_causes": [
+            "checkoutservice"
+          ],
+          "severity_by_service": {
+            "adservice": 704.4149893479145,
+            "cartservice": 0.0,
+            "checkoutservice": 35.955392805741916,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 6.19049395950077,
+            "paymentservice": 0.0,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 20.69292508476846
+          },
+          "explanation_edges": [
+            {
+              "dep": "adservice",
+              "cause": "checkoutservice",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            },
+            {
+              "dep": "main",
+              "cause": "adservice",
+              "rule_ids": [
+                "R2"
+              ]
+            },
+            {
+              "dep": "shippingservice",
+              "cause": "adservice",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            },
+            {
+              "dep": "shippingservice",
+              "cause": "main",
+              "rule_ids": [
+                "R2"
+              ]
+            }
+          ]
+        },
+        "ranked_list": [
+          [
+            "checkoutservice",
+            35.955392805741916
+          ],
+          [
+            "adservice",
+            667.4595965421726
+          ],
+          [
+            "shippingservice",
+            0.0
+          ],
+          [
+            "main",
+            0.0
+          ],
+          [
+            "cartservice",
+            0.0
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "emailservice",
+            0.0
+          ],
+          [
+            "frontend",
+            0.0
+          ],
+          [
+            "paymentservice",
+            0.0
+          ],
+          [
+            "productcatalogservice",
+            0.0
+          ],
+          [
+            "recommendationservice",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ]
+        ],
+        "confidence": 1.0
+      }
+    },
+    {
+      "case_id": "re1-ob_adservice_delay_3",
+      "fault": "delay",
+      "ground_truth": "adservice",
+      "predicted_top1": "checkoutservice",
+      "ac1": 0.0,
+      "correct": false,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "dea1bf5a-8437-4572-a5d2-a8974a766c7f",
+            "text": "checkoutservice [final_root_cause] severity=11169286883182726.00, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.75
+          },
+          {
+            "id": "8ea9ec28-f78b-4608-b94c-06eb1e3377eb",
+            "text": "currencyservice [intermediate_propagator] severity=2339569961627826.00, derived_by_rules=['R1', 'R2', 'R5_timeout']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.20946457782819144
+          },
+          {
+            "id": "ba8d2938-c49a-4d76-853d-d9da1c9d72c1",
+            "text": "emailservice [final_root_cause] severity=11441419500777.50, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.0007682732761124962
+          },
+          {
+            "id": "0f53eb74-448c-4ec9-a078-cfdfb2f25145",
+            "text": "frontend [final_root_cause] severity=441424658553828.00, derived_by_rules=['R1', 'R2', 'R5_timeout']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.03952129291427445
+          },
+          {
+            "id": "76d60d49-c4a8-4f36-a712-73878e8bfa1d",
+            "text": "paymentservice [final_root_cause] severity=1172703528542294.00, derived_by_rules=['R1', 'R2', 'R5_timeout']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.10499359008389336
+          },
+          {
+            "id": "0117101e-29cb-4fbd-84b4-e5040b0e707e",
+            "text": "productcatalogservice [final_root_cause] severity=1633901413454508.00, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.1097139032157881
+          },
+          {
+            "id": "3846d400-e6a1-42c6-b865-14b0c23f3c56",
+            "text": "recommendationservice [intermediate_propagator] severity=582505945546713.00, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.03911435561905313
+          },
+          {
+            "id": "b26e521d-dd22-4046-aa2b-593163d3314d",
+            "text": "redis [final_root_cause] severity=1461074622755866.00, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/final_root_cause",
+            "fuzzy_membership": 0.09810885677194156
+          },
+          {
+            "id": "458ead8c-8af5-46a2-aeb0-c871d410cb07",
+            "text": "shippingservice [intermediate_propagator] severity=2601760928184586.00, derived_by_rules=['R1']",
+            "ontology_class": "yrca:Role/intermediate_propagator",
+            "fuzzy_membership": 0.17470414329463477
+          }
+        ],
+        "links": [
+          {
+            "source": "8ea9ec28-f78b-4608-b94c-06eb1e3377eb",
+            "target": "458ead8c-8af5-46a2-aeb0-c871d410cb07",
+            "source_service": "currencyservice",
+            "target_service": "shippingservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          },
+          {
+            "source": "0f53eb74-448c-4ec9-a078-cfdfb2f25145",
+            "target": "8ea9ec28-f78b-4608-b94c-06eb1e3377eb",
+            "source_service": "frontend",
+            "target_service": "currencyservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          },
+          {
+            "source": "0f53eb74-448c-4ec9-a078-cfdfb2f25145",
+            "target": "3846d400-e6a1-42c6-b865-14b0c23f3c56",
+            "source_service": "frontend",
+            "target_service": "recommendationservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          },
+          {
+            "source": "0f53eb74-448c-4ec9-a078-cfdfb2f25145",
+            "target": "458ead8c-8af5-46a2-aeb0-c871d410cb07",
+            "source_service": "frontend",
+            "target_service": "shippingservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          },
+          {
+            "source": "76d60d49-c4a8-4f36-a712-73878e8bfa1d",
+            "target": "3846d400-e6a1-42c6-b865-14b0c23f3c56",
+            "source_service": "paymentservice",
+            "target_service": "recommendationservice",
+            "weight": 0.6666666666666666,
+            "relation_type": "rule_derived_explanation",
+            "rule_ids": [
+              "R2",
+              "R5_timeout"
+            ]
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1692585092.924703,
+          "n_events": 15,
+          "n_anomaly_events": 15,
+          "topology_edges": [
+            [
+              "checkoutservice",
+              "adservice"
+            ],
+            [
+              "currencyservice",
+              "shippingservice"
+            ],
+            [
+              "frontend",
+              "currencyservice"
+            ],
+            [
+              "frontend",
+              "recommendationservice"
+            ],
+            [
+              "frontend",
+              "shippingservice"
+            ],
+            [
+              "paymentservice",
+              "cartservice"
+            ],
+            [
+              "paymentservice",
+              "recommendationservice"
+            ],
+            [
+              "recommendationservice",
+              "cartservice"
+            ]
+          ],
+          "iterations": 2,
+          "n_facts": 31,
+          "facts_by_relation": {
+            "potential_root_cause": 15,
+            "explained_by": 10,
+            "final_root_cause": 6
+          },
+          "final_root_causes": [
+            "checkoutservice",
+            "emailservice",
+            "frontend",
+            "paymentservice",
+            "productcatalogservice",
+            "redis"
+          ],
+          "severity_by_service": {
+            "adservice": 0.0,
+            "cartservice": 0.0,
+            "checkoutservice": 1.1169286883182726e+16,
+            "currencyservice": 2339569961627826.0,
+            "emailservice": 11441419500777.5,
+            "frontend": 441424658553828.0,
+            "main": 0.0,
+            "paymentservice": 1172703528542294.0,
+            "productcatalogservice": 1633901413454508.0,
+            "recommendationservice": 582505945546713.0,
+            "redis": 1461074622755866.0,
+            "shippingservice": 2601760928184586.0
+          },
+          "explanation_edges": [
+            {
+              "dep": "currencyservice",
+              "cause": "frontend",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            },
+            {
+              "dep": "recommendationservice",
+              "cause": "frontend",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            },
+            {
+              "dep": "recommendationservice",
+              "cause": "paymentservice",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            },
+            {
+              "dep": "shippingservice",
+              "cause": "currencyservice",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            },
+            {
+              "dep": "shippingservice",
+              "cause": "frontend",
+              "rule_ids": [
+                "R2",
+                "R5_timeout"
+              ]
+            }
+          ]
+        },
+        "ranked_list": [
+          [
+            "checkoutservice",
+            1.1169286883182726e+16
+          ],
+          [
+            "productcatalogservice",
+            1633901413454508.0
+          ],
+          [
+            "redis",
+            1461074622755866.0
+          ],
+          [
+            "paymentservice",
+            1172703528542294.0
+          ],
+          [
+            "frontend",
+            441424658553828.0
+          ],
+          [
+            "emailservice",
+            11441419500777.5
+          ],
+          [
+            "shippingservice",
+            0.0
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "recommendationservice",
+            0.0
+          ],
+          [
+            "adservice",
+            0.0
+          ],
+          [
+            "cartservice",
+            0.0
+          ],
+          [
+            "main",
+            0.0
+          ]
+        ],
+        "confidence": 0.3333333333333333
+      }
+    }
+  ],
+  "n_correct": 5,
+  "n_incorrect": 5,
+  "method": "yrca",
+  "data": "/Users/mirzazadaallahsukur/research/rcaeval-tools/RCAEval/data/RE1/RE1-OB"
+}
