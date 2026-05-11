@@ -732,3 +732,135 @@ Headline-number tables and cross-method comparison live in
 finding block. The published BARO Avg@5 number is ~0.80 on RE2-TT;
 our re-implementation's RE1-OB AC@1 is reported in the findings
 note alongside the random-onset and z-score-onset decompositions.
+
+## DejaVu (Li, Chen, et al.; FSE 2022)
+
+DejaVu is the first **trained** method in the suite. It learns a small
+neural classifier from historical labeled failure cases and predicts
+``(failure_unit, failure_type)`` jointly for a new case. The
+``RCAMethod`` base class now exposes a default no-op ``train`` that
+DejaVu overrides; the AST-based protocol validator inspects only
+``diagnose`` (training legitimately reads labels — that is the whole
+point of supervised learning), so the train method is exempt by name.
+
+### Deviation 0: Schema normalization upstream of training data
+
+Same as the analogous point for the other four adapters. DejaVu sees
+each training and test case as a ``NormalizedCase`` — bounded
+``case_window``, canonical service-feature columns, randomized
+injection offset. The paper's setting is the A0/A1/A2 cloud-service
+benchmark with method-specific feature engineering; we substitute the
+canonical schema for cross-method comparability. This is the only
+deviation that exists *because* of the evaluation contract rather
+than for tractability.
+
+### Deviation 1: Single-head self-attention instead of full GAT
+
+The published method uses a graph attention network over the service-
+call graph. Two simplifications:
+
+1. **No call graph** — RE1 doesn't ship one. We substitute a fully-
+   connected service graph with mask attention over services-present-
+   in-the-case. This collapses the GAT to a single-head scaled-dot-
+   product self-attention over service embeddings; equivalent to a GAT
+   on a complete graph.
+2. **Single head** instead of multi-head. With 12 services and
+   ``hidden=32``, multi-head adds ~3× the parameter count without
+   measurable head specialisation on RE1-OB.
+
+Total parameter count at the default configuration is ~10 k — well
+under the brief's 1 M ceiling. The brief's intent was "small, focused
+classifier, not a foundation model"; we are an order of magnitude
+under even that.
+
+### Deviation 2: 1D-Conv temporal encoder, not LSTM/Transformer
+
+The published method uses an LSTM-based encoder (with attention) over
+the per-service time series. We use two stacked Conv1d layers
+(kernel 5, padding 2) followed by adaptive average pooling. Rationale:
+
+* **Permutation invariance over time** — RCAEval's injection times
+  are randomised inside the window via ``schema_normalizer``'s
+  per-case offset hash. A recurrent encoder would learn to attend
+  preferentially to specific window positions, which would not
+  generalise. Conv + adaptive pool is shift-invariant by construction.
+* **Speed.** CPU forward-pass on a 1200-step window with 12 services
+  × 7 features takes ~10 ms; an LSTM over the same window is
+  10–100× slower without measurable AC@k benefit on this dataset.
+
+### Deviation 3: No graph-convolution propagation step
+
+The DejaVu paper interleaves attention with graph convolution: the
+attention output is fed back into a GCN layer using the call graph,
+and the cycle repeats. We omit the GCN step — the attention is
+already aware of every other service, and without a call graph the
+GCN reduces to "average over neighbours" which the attention already
+implements through its keys-and-values.
+
+### Deviation 4: Service vocabulary = union of training-case services
+
+The trained classifier has fixed output cardinality. We take the
+service vocabulary as the union of services seen across the training
+set. Test cases whose ground-truth service is outside that vocabulary
+cannot possibly be ranked top-1 — the head simply does not have a
+class for it. We log this as a hard ceiling for the harness's
+reported AC@1 (no published equivalent of "vocabulary coverage" is in
+the paper; the original DejaVu paper trains and tests within a fixed
+A0/A1/A2 service set so this case does not arise there).
+
+### Deviation 5: 5-fold cross-validation, stratified by fault type
+
+The DejaVu paper uses time-based train/test splits on its A0/A1/A2
+dataset. RCAEval RE1-OB has no such temporal partition; we use
+5-fold cross-validation with stratification by fault type (cpu /
+mem / disk / delay / loss). Fold assignment is deterministic via a
+SHA-256-of-``case.id`` hash + a per-fault-group starting offset, so
+the assignment reproduces exactly across runs and machines.
+
+### Deviation 6: Joint loss with type-loss weight 0.5
+
+The published method has separate failure-unit and failure-type
+losses with a balancing weight. We use cross-entropy on both heads
+with the type head weighted at 0.5; the primary objective is the
+service rank (the AC@k metric scores it directly), so the type head
+is held at half weight. Empirically: at 0.5 the model converges on
+both heads; at 0.1 the type head underfits; at 1.0 the unit head
+underfits.
+
+### Deviation 7: Explanation chain rooted at the predicted failure type
+
+DejaVu's interpretability claim is "attention attribution over
+services." We surface this as a ``CanonicalExplanation`` graph:
+
+* One atom for the predicted **failure type** (root, with
+  ``ontology_class="foda:FailureType/{type}"``).
+* Top-K atoms for the predicted **failure unit** services.
+* Per-unit attention attribution: the top-3 most-attended services
+  by the model's attention matrix, with
+  ``relation_type="neural-attention-attribution"``.
+
+This shape differs from BARO's "change-point → service" tree and
+MicroRCA's "service ↔ service" attributed graph; the intent is to
+preserve each method's own interpretability claim faithfully.
+
+### Decomposition diagnostics (brief §8, §9)
+
+The harness emits two DejaVu-specific diagnostics:
+
+* **Training-size ablation** — train on ``N ∈ {25, 50, 75, 100}``
+  cases and test on a fixed 25-case held-out fold-0. Isolates how
+  much of DejaVu's AC@1 comes from training-data size vs.
+  architecture: a flat ablation curve means the architecture is
+  doing the work; a monotonically-growing curve means training data
+  is contributing real signal.
+* **Attention-sample dump** — 5 correct-prediction + 5 incorrect-
+  prediction cases written to ``results/dejavu_attention_samples.json``
+  with their full ``(S × S)`` attention matrices and service vocab.
+  Material for Paper 6's SemanticGroundedness inspection.
+
+### Validation against published baselines
+
+The DejaVu paper reports AC@1 ≈ 0.50–0.65 on A0/A1/A2. RCAEval does
+not publish DejaVu numbers. Our RE1-OB result is reported in
+``paper/notes/findings.md`` under "DejaVu entry" alongside the
+training-size ablation and the cross-method finding block.
