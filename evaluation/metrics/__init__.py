@@ -1,6 +1,26 @@
-"""Metrics for evaluating RCA outputs."""
+"""Metrics for evaluating RCA outputs.
 
-from .base import Metric
+Two metric families:
+
+* **Ranking metrics** (:class:`Metric`): score ``(case, output)`` pairs;
+  see :mod:`ranking_metrics`.
+* **Semantic-quality metrics** (:class:`SemanticMetric`): score a
+  :class:`CanonicalExplanation` against an
+  :class:`OntologyAdapter`-wrapped ontology. Paper 6 Phase 2's four
+  metrics (SemanticGroundedness, SemanticCoherence,
+  ExplanationCompleteness, ConfidenceCalibration) share this contract.
+"""
+
+from .base import Metric, SemanticMetric
+from .ontology_adapter import OntologyAdapter
 from .ranking_metrics import accuracy_at_k, mean_reciprocal_rank
+from .semantic_groundedness import SemanticGroundedness
 
-__all__ = ["Metric", "accuracy_at_k", "mean_reciprocal_rank"]
+__all__ = [
+    "Metric",
+    "SemanticMetric",
+    "OntologyAdapter",
+    "SemanticGroundedness",
+    "accuracy_at_k",
+    "mean_reciprocal_rank",
+]
