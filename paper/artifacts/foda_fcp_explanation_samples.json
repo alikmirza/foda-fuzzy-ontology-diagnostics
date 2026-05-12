@@ -1,0 +1,2524 @@
+{
+  "samples": [
+    {
+      "case_id": "re1-ob_adservice_cpu_1",
+      "fault": "cpu",
+      "ground_truth": "adservice",
+      "predicted_top1": "adservice",
+      "ac1": 1.0,
+      "correct": true,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "21676163-761b-43ca-864a-9081bff8f405",
+            "text": "#1 adservice \u2192 ResourceContention (H=0.820, C=0.820, rules=['R15'], evidence=[cpu_HIGH(\u03bc=1.00), memory_HIGH(\u03bc=1.00)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ResourceContention",
+            "fuzzy_membership": 1.0
+          },
+          {
+            "id": "73808d14-71d2-4752-ad86-6c64b60e07a3",
+            "text": "#2 cartservice \u2192 ContributingFactor (unmapped category) (H=0.000, C=0.000, rules=[], evidence=[no strong fuzzy evidence])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ContributingFactor",
+            "fuzzy_membership": 0.0
+          },
+          {
+            "id": "a2f0f9c2-d591-4056-bfc3-a4f40df0ca71",
+            "text": "#3 checkoutservice \u2192 ContributingFactor (unmapped category) (H=0.000, C=0.000, rules=[], evidence=[no strong fuzzy evidence])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ContributingFactor",
+            "fuzzy_membership": 0.0
+          },
+          {
+            "id": "193217d5-89a4-4aec-9f58-e6c4f76597c4",
+            "text": "Recommendation for adservice: Rec_ResourceContention (suggests_mitigation, derived from ResourceContention prototype)",
+            "ontology_class": "http://foda.com/ontology/diagnostic#Rec_ResourceContention",
+            "fuzzy_membership": 1.0
+          }
+        ],
+        "links": [
+          {
+            "source_atom_id": "21676163-761b-43ca-864a-9081bff8f405",
+            "target_atom_id": "193217d5-89a4-4aec-9f58-e6c4f76597c4",
+            "weight": 1.0,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "73808d14-71d2-4752-ad86-6c64b60e07a3",
+            "target_atom_id": "21676163-761b-43ca-864a-9081bff8f405",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "73808d14-71d2-4752-ad86-6c64b60e07a3",
+            "target_atom_id": "193217d5-89a4-4aec-9f58-e6c4f76597c4",
+            "weight": 0.0,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "a2f0f9c2-d591-4056-bfc3-a4f40df0ca71",
+            "target_atom_id": "21676163-761b-43ca-864a-9081bff8f405",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "a2f0f9c2-d591-4056-bfc3-a4f40df0ca71",
+            "target_atom_id": "193217d5-89a4-4aec-9f58-e6c4f76597c4",
+            "weight": 0.0,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1685202700.097227,
+          "propagator_kind": "damped",
+          "damping_factor": 0.85,
+          "topology_edges": [
+            [
+              "cartservice",
+              "paymentservice"
+            ],
+            [
+              "main",
+              "paymentservice"
+            ],
+            [
+              "productcatalogservice",
+              "frontend"
+            ],
+            [
+              "redis",
+              "cartservice"
+            ]
+          ],
+          "topology_n_edges": 4,
+          "local_confidence_H": {
+            "adservice": 0.82,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 0.0,
+            "paymentservice": 0.0,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "final_confidence_C": {
+            "adservice": 0.82,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 0.0,
+            "paymentservice": 0.0,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "dominant_category": {
+            "adservice": "RESOURCE_CONTENTION",
+            "cartservice": "UNKNOWN",
+            "checkoutservice": "UNKNOWN",
+            "currencyservice": "UNKNOWN",
+            "emailservice": "UNKNOWN",
+            "frontend": "UNKNOWN",
+            "main": "UNKNOWN",
+            "paymentservice": "UNKNOWN",
+            "productcatalogservice": "UNKNOWN",
+            "recommendationservice": "UNKNOWN",
+            "redis": "UNKNOWN",
+            "shippingservice": "UNKNOWN"
+          },
+          "fired_rules": {
+            "adservice": [
+              "R15"
+            ],
+            "cartservice": [],
+            "checkoutservice": [],
+            "currencyservice": [],
+            "emailservice": [],
+            "frontend": [],
+            "main": [],
+            "paymentservice": [],
+            "productcatalogservice": [],
+            "recommendationservice": [],
+            "redis": [],
+            "shippingservice": []
+          },
+          "predicted_fault_local_name": "ResourceContention"
+        },
+        "ranked_list": [
+          [
+            "adservice",
+            0.82
+          ],
+          [
+            "cartservice",
+            0.0
+          ],
+          [
+            "checkoutservice",
+            0.0
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "emailservice",
+            0.0
+          ],
+          [
+            "frontend",
+            0.0
+          ],
+          [
+            "main",
+            0.0
+          ],
+          [
+            "paymentservice",
+            0.0
+          ],
+          [
+            "productcatalogservice",
+            0.0
+          ],
+          [
+            "recommendationservice",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ],
+          [
+            "shippingservice",
+            0.0
+          ]
+        ],
+        "confidence": 1.0
+      }
+    },
+    {
+      "case_id": "re1-ob_adservice_cpu_3",
+      "fault": "cpu",
+      "ground_truth": "adservice",
+      "predicted_top1": "adservice",
+      "ac1": 1.0,
+      "correct": true,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "0c645881-c350-4a25-825e-27b5be00a5b1",
+            "text": "#1 adservice \u2192 ResourceContention (H=0.820, C=0.820, rules=['R01', 'R05', 'R15'], evidence=[cpu_HIGH(\u03bc=1.00), memory_HIGH(\u03bc=1.00)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ResourceContention",
+            "fuzzy_membership": 0.552814822109767
+          },
+          {
+            "id": "55dc247f-51a3-4cba-b94c-ed5440e28c11",
+            "text": "#2 frontend \u2192 ContributingFactor (unmapped category) (H=0.000, C=0.440, rules=[], evidence=[no strong fuzzy evidence])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ContributingFactor",
+            "fuzzy_membership": 0.29693273601884373
+          },
+          {
+            "id": "a8e83caa-d59b-4346-afc2-7b59d30be9db",
+            "text": "#3 currencyservice \u2192 ContributingFactor (unmapped category) (H=0.000, C=0.223, rules=[], evidence=[no strong fuzzy evidence])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ContributingFactor",
+            "fuzzy_membership": 0.1502524418713894
+          },
+          {
+            "id": "07d13d9e-aacc-417b-bd86-217dc7cb3513",
+            "text": "Recommendation for adservice: Rec_ResourceContention (suggests_mitigation, derived from ResourceContention prototype)",
+            "ontology_class": "http://foda.com/ontology/diagnostic#Rec_ResourceContention",
+            "fuzzy_membership": 0.552814822109767
+          }
+        ],
+        "links": [
+          {
+            "source_atom_id": "0c645881-c350-4a25-825e-27b5be00a5b1",
+            "target_atom_id": "07d13d9e-aacc-417b-bd86-217dc7cb3513",
+            "weight": 0.552814822109767,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "55dc247f-51a3-4cba-b94c-ed5440e28c11",
+            "target_atom_id": "0c645881-c350-4a25-825e-27b5be00a5b1",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "55dc247f-51a3-4cba-b94c-ed5440e28c11",
+            "target_atom_id": "07d13d9e-aacc-417b-bd86-217dc7cb3513",
+            "weight": 0.29693273601884373,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "a8e83caa-d59b-4346-afc2-7b59d30be9db",
+            "target_atom_id": "0c645881-c350-4a25-825e-27b5be00a5b1",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "a8e83caa-d59b-4346-afc2-7b59d30be9db",
+            "target_atom_id": "07d13d9e-aacc-417b-bd86-217dc7cb3513",
+            "weight": 0.1502524418713894,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1685211228.2398508,
+          "propagator_kind": "damped",
+          "damping_factor": 0.85,
+          "topology_edges": [
+            [
+              "currencyservice",
+              "frontend"
+            ],
+            [
+              "frontend",
+              "adservice"
+            ],
+            [
+              "main",
+              "paymentservice"
+            ]
+          ],
+          "topology_n_edges": 3,
+          "local_confidence_H": {
+            "adservice": 0.82,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 0.0,
+            "paymentservice": 0.021212099448920663,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "final_confidence_C": {
+            "adservice": 0.82,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.22287210365368115,
+            "emailservice": 0.0,
+            "frontend": 0.44044557742901014,
+            "main": 0.016169422607658634,
+            "paymentservice": 0.021212099448920663,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "dominant_category": {
+            "adservice": "RESOURCE_CONTENTION",
+            "cartservice": "UNKNOWN",
+            "checkoutservice": "UNKNOWN",
+            "currencyservice": "UNKNOWN",
+            "emailservice": "UNKNOWN",
+            "frontend": "UNKNOWN",
+            "main": "UNKNOWN",
+            "paymentservice": "MEMORY_PRESSURE",
+            "productcatalogservice": "UNKNOWN",
+            "recommendationservice": "UNKNOWN",
+            "redis": "UNKNOWN",
+            "shippingservice": "UNKNOWN"
+          },
+          "fired_rules": {
+            "adservice": [
+              "R01",
+              "R05",
+              "R15"
+            ],
+            "cartservice": [],
+            "checkoutservice": [],
+            "currencyservice": [],
+            "emailservice": [],
+            "frontend": [],
+            "main": [],
+            "paymentservice": [
+              "R05"
+            ],
+            "productcatalogservice": [],
+            "recommendationservice": [],
+            "redis": [],
+            "shippingservice": []
+          },
+          "predicted_fault_local_name": "ResourceContention"
+        },
+        "ranked_list": [
+          [
+            "adservice",
+            0.82
+          ],
+          [
+            "frontend",
+            0.44044557742901014
+          ],
+          [
+            "currencyservice",
+            0.22287210365368115
+          ],
+          [
+            "paymentservice",
+            0.021212099448920663
+          ],
+          [
+            "main",
+            0.016169422607658634
+          ],
+          [
+            "cartservice",
+            0.0
+          ],
+          [
+            "checkoutservice",
+            0.0
+          ],
+          [
+            "emailservice",
+            0.0
+          ],
+          [
+            "productcatalogservice",
+            0.0
+          ],
+          [
+            "recommendationservice",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ],
+          [
+            "shippingservice",
+            0.0
+          ]
+        ],
+        "confidence": 0.552814822109767
+      }
+    },
+    {
+      "case_id": "re1-ob_adservice_cpu_4",
+      "fault": "cpu",
+      "ground_truth": "adservice",
+      "predicted_top1": "adservice",
+      "ac1": 1.0,
+      "correct": true,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "ac0b10cd-16d1-4b55-bc84-944ab3e1dd4f",
+            "text": "#1 adservice \u2192 ResourceContention (H=0.820, C=0.824, rules=['R01', 'R05', 'R15'], evidence=[cpu_HIGH(\u03bc=1.00), memory_HIGH(\u03bc=1.00)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ResourceContention",
+            "fuzzy_membership": 0.8563385949716932
+          },
+          {
+            "id": "a3be47b7-88c0-48db-8025-c199505e1e30",
+            "text": "#2 paymentservice \u2192 MemoryLeak (H=0.096, C=0.096, rules=['R05', 'R06'], evidence=[memory_HIGH(\u03bc=0.33), latency_ELEVATED(\u03bc=0.13)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#MemoryLeak",
+            "fuzzy_membership": 0.09943169970584083
+          },
+          {
+            "id": "b4ec2901-0d0c-4907-856f-d876f2f836a1",
+            "text": "#3 main \u2192 ContributingFactor (unmapped category) (H=0.000, C=0.043, rules=[], evidence=[no strong fuzzy evidence])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ContributingFactor",
+            "fuzzy_membership": 0.04422970532246605
+          },
+          {
+            "id": "5689717e-af4d-4d2e-b0d3-bc5edd4b16b6",
+            "text": "Recommendation for adservice: Rec_ResourceContention (suggests_mitigation, derived from ResourceContention prototype)",
+            "ontology_class": "http://foda.com/ontology/diagnostic#Rec_ResourceContention",
+            "fuzzy_membership": 0.8563385949716932
+          }
+        ],
+        "links": [
+          {
+            "source_atom_id": "ac0b10cd-16d1-4b55-bc84-944ab3e1dd4f",
+            "target_atom_id": "5689717e-af4d-4d2e-b0d3-bc5edd4b16b6",
+            "weight": 0.8563385949716932,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "a3be47b7-88c0-48db-8025-c199505e1e30",
+            "target_atom_id": "ac0b10cd-16d1-4b55-bc84-944ab3e1dd4f",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "a3be47b7-88c0-48db-8025-c199505e1e30",
+            "target_atom_id": "5689717e-af4d-4d2e-b0d3-bc5edd4b16b6",
+            "weight": 0.09943169970584083,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "b4ec2901-0d0c-4907-856f-d876f2f836a1",
+            "target_atom_id": "ac0b10cd-16d1-4b55-bc84-944ab3e1dd4f",
+            "weight": 0.021069214798079144,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "b4ec2901-0d0c-4907-856f-d876f2f836a1",
+            "target_atom_id": "5689717e-af4d-4d2e-b0d3-bc5edd4b16b6",
+            "weight": 0.04422970532246605,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1685229707.8105783,
+          "propagator_kind": "damped",
+          "damping_factor": 0.85,
+          "topology_edges": [
+            [
+              "adservice",
+              "main"
+            ],
+            [
+              "checkoutservice",
+              "currencyservice"
+            ],
+            [
+              "checkoutservice",
+              "productcatalogservice"
+            ],
+            [
+              "checkoutservice",
+              "recommendationservice"
+            ],
+            [
+              "checkoutservice",
+              "redis"
+            ],
+            [
+              "checkoutservice",
+              "shippingservice"
+            ],
+            [
+              "emailservice",
+              "productcatalogservice"
+            ],
+            [
+              "emailservice",
+              "redis"
+            ],
+            [
+              "frontend",
+              "checkoutservice"
+            ],
+            [
+              "frontend",
+              "currencyservice"
+            ],
+            [
+              "frontend",
+              "productcatalogservice"
+            ],
+            [
+              "frontend",
+              "recommendationservice"
+            ],
+            [
+              "frontend",
+              "redis"
+            ],
+            [
+              "frontend",
+              "shippingservice"
+            ],
+            [
+              "main",
+              "paymentservice"
+            ],
+            [
+              "productcatalogservice",
+              "currencyservice"
+            ],
+            [
+              "productcatalogservice",
+              "recommendationservice"
+            ],
+            [
+              "productcatalogservice",
+              "shippingservice"
+            ],
+            [
+              "recommendationservice",
+              "currencyservice"
+            ],
+            [
+              "redis",
+              "currencyservice"
+            ],
+            [
+              "redis",
+              "productcatalogservice"
+            ],
+            [
+              "redis",
+              "recommendationservice"
+            ],
+            [
+              "redis",
+              "shippingservice"
+            ],
+            [
+              "shippingservice",
+              "currencyservice"
+            ],
+            [
+              "shippingservice",
+              "recommendationservice"
+            ]
+          ],
+          "topology_n_edges": 25,
+          "local_confidence_H": {
+            "adservice": 0.82,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 0.0,
+            "paymentservice": 0.09563587269525775,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "final_confidence_C": {
+            "adservice": 0.8236476807198535,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 0.042541226591539916,
+            "paymentservice": 0.09563587269525775,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "dominant_category": {
+            "adservice": "RESOURCE_CONTENTION",
+            "cartservice": "UNKNOWN",
+            "checkoutservice": "UNKNOWN",
+            "currencyservice": "UNKNOWN",
+            "emailservice": "UNKNOWN",
+            "frontend": "UNKNOWN",
+            "main": "UNKNOWN",
+            "paymentservice": "MEMORY_PRESSURE",
+            "productcatalogservice": "UNKNOWN",
+            "recommendationservice": "UNKNOWN",
+            "redis": "UNKNOWN",
+            "shippingservice": "UNKNOWN"
+          },
+          "fired_rules": {
+            "adservice": [
+              "R01",
+              "R05",
+              "R15"
+            ],
+            "cartservice": [],
+            "checkoutservice": [],
+            "currencyservice": [],
+            "emailservice": [],
+            "frontend": [],
+            "main": [],
+            "paymentservice": [
+              "R05",
+              "R06"
+            ],
+            "productcatalogservice": [],
+            "recommendationservice": [],
+            "redis": [],
+            "shippingservice": []
+          },
+          "predicted_fault_local_name": "ResourceContention"
+        },
+        "ranked_list": [
+          [
+            "adservice",
+            0.8236476807198535
+          ],
+          [
+            "paymentservice",
+            0.09563587269525775
+          ],
+          [
+            "main",
+            0.042541226591539916
+          ],
+          [
+            "cartservice",
+            0.0
+          ],
+          [
+            "checkoutservice",
+            0.0
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "emailservice",
+            0.0
+          ],
+          [
+            "frontend",
+            0.0
+          ],
+          [
+            "productcatalogservice",
+            0.0
+          ],
+          [
+            "recommendationservice",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ],
+          [
+            "shippingservice",
+            0.0
+          ]
+        ],
+        "confidence": 0.8563385949716932
+      }
+    },
+    {
+      "case_id": "re1-ob_adservice_delay_4",
+      "fault": "delay",
+      "ground_truth": "adservice",
+      "predicted_top1": "adservice",
+      "ac1": 1.0,
+      "correct": true,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "23df33e7-775f-40d7-947f-7dbf57d5ad09",
+            "text": "#1 adservice \u2192 ContributingFactor (unmapped category) (H=0.000, C=0.000, rules=[], evidence=[no strong fuzzy evidence])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ContributingFactor",
+            "fuzzy_membership": 0.0
+          },
+          {
+            "id": "006cf1e6-e058-4276-a33e-cb526047a843",
+            "text": "#2 cartservice \u2192 ContributingFactor (unmapped category) (H=0.000, C=0.000, rules=[], evidence=[no strong fuzzy evidence])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ContributingFactor",
+            "fuzzy_membership": 0.0
+          },
+          {
+            "id": "2f0a5a71-2f52-46e5-bbf8-dbba3d1d8d19",
+            "text": "#3 checkoutservice \u2192 ContributingFactor (unmapped category) (H=0.000, C=0.000, rules=[], evidence=[no strong fuzzy evidence])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ContributingFactor",
+            "fuzzy_membership": 0.0
+          }
+        ],
+        "links": [
+          {
+            "source_atom_id": "006cf1e6-e058-4276-a33e-cb526047a843",
+            "target_atom_id": "23df33e7-775f-40d7-947f-7dbf57d5ad09",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "2f0a5a71-2f52-46e5-bbf8-dbba3d1d8d19",
+            "target_atom_id": "23df33e7-775f-40d7-947f-7dbf57d5ad09",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1692585821.2369418,
+          "propagator_kind": "iterative",
+          "damping_factor": 0.85,
+          "topology_edges": [
+            [
+              "cartservice",
+              "paymentservice"
+            ],
+            [
+              "frontend",
+              "currencyservice"
+            ],
+            [
+              "frontend",
+              "productcatalogservice"
+            ],
+            [
+              "frontend",
+              "recommendationservice"
+            ],
+            [
+              "paymentservice",
+              "frontend"
+            ],
+            [
+              "paymentservice",
+              "recommendationservice"
+            ],
+            [
+              "productcatalogservice",
+              "paymentservice"
+            ],
+            [
+              "productcatalogservice",
+              "recommendationservice"
+            ]
+          ],
+          "topology_n_edges": 8,
+          "local_confidence_H": {
+            "adservice": 0.0,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 0.0,
+            "paymentservice": 0.0,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "final_confidence_C": {
+            "adservice": 0.0,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 0.0,
+            "paymentservice": 0.0,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "dominant_category": {
+            "adservice": "UNKNOWN",
+            "cartservice": "UNKNOWN",
+            "checkoutservice": "UNKNOWN",
+            "currencyservice": "UNKNOWN",
+            "emailservice": "UNKNOWN",
+            "frontend": "UNKNOWN",
+            "main": "UNKNOWN",
+            "paymentservice": "UNKNOWN",
+            "productcatalogservice": "UNKNOWN",
+            "recommendationservice": "UNKNOWN",
+            "redis": "UNKNOWN",
+            "shippingservice": "UNKNOWN"
+          },
+          "fired_rules": {
+            "adservice": [],
+            "cartservice": [],
+            "checkoutservice": [],
+            "currencyservice": [],
+            "emailservice": [],
+            "frontend": [],
+            "main": [],
+            "paymentservice": [],
+            "productcatalogservice": [],
+            "recommendationservice": [],
+            "redis": [],
+            "shippingservice": []
+          },
+          "predicted_fault_local_name": null
+        },
+        "ranked_list": [
+          [
+            "adservice",
+            0.0
+          ],
+          [
+            "cartservice",
+            0.0
+          ],
+          [
+            "checkoutservice",
+            0.0
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "emailservice",
+            0.0
+          ],
+          [
+            "frontend",
+            0.0
+          ],
+          [
+            "main",
+            0.0
+          ],
+          [
+            "paymentservice",
+            0.0
+          ],
+          [
+            "productcatalogservice",
+            0.0
+          ],
+          [
+            "recommendationservice",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ],
+          [
+            "shippingservice",
+            0.0
+          ]
+        ],
+        "confidence": 0.0
+      }
+    },
+    {
+      "case_id": "re1-ob_adservice_delay_5",
+      "fault": "delay",
+      "ground_truth": "adservice",
+      "predicted_top1": "adservice",
+      "ac1": 1.0,
+      "correct": true,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "7b6b6b88-8177-438b-bbdb-fa871729da66",
+            "text": "#1 adservice \u2192 LatencySpike (H=0.880, C=0.902, rules=['R10'], evidence=[latency_CRITICAL(\u03bc=1.00)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#LatencySpike",
+            "fuzzy_membership": 0.3523132922025146
+          },
+          {
+            "id": "8ff3a80d-6bc6-4c8f-9511-a9f5265d15dc",
+            "text": "#2 checkoutservice \u2192 LatencySpike (H=0.880, C=0.880, rules=['R10'], evidence=[latency_CRITICAL(\u03bc=1.00)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#LatencySpike",
+            "fuzzy_membership": 0.3437031267971317
+          },
+          {
+            "id": "1f0a105f-640a-42df-8409-df62399b13ba",
+            "text": "#3 shippingservice \u2192 ContributingFactor (unmapped category) (H=0.000, C=0.778, rules=[], evidence=[no strong fuzzy evidence])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ContributingFactor",
+            "fuzzy_membership": 0.3039835810003538
+          },
+          {
+            "id": "634e9530-8d6f-45db-a0cb-51e75f80ba58",
+            "text": "Recommendation for adservice: Rec_LatencySpike (suggests_mitigation, derived from LatencySpike prototype)",
+            "ontology_class": "http://foda.com/ontology/diagnostic#Rec_LatencySpike",
+            "fuzzy_membership": 0.3523132922025146
+          }
+        ],
+        "links": [
+          {
+            "source_atom_id": "7b6b6b88-8177-438b-bbdb-fa871729da66",
+            "target_atom_id": "634e9530-8d6f-45db-a0cb-51e75f80ba58",
+            "weight": 0.3523132922025146,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "8ff3a80d-6bc6-4c8f-9511-a9f5265d15dc",
+            "target_atom_id": "7b6b6b88-8177-438b-bbdb-fa871729da66",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "8ff3a80d-6bc6-4c8f-9511-a9f5265d15dc",
+            "target_atom_id": "634e9530-8d6f-45db-a0cb-51e75f80ba58",
+            "weight": 0.3437031267971317,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "1f0a105f-640a-42df-8409-df62399b13ba",
+            "target_atom_id": "7b6b6b88-8177-438b-bbdb-fa871729da66",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "1f0a105f-640a-42df-8409-df62399b13ba",
+            "target_atom_id": "634e9530-8d6f-45db-a0cb-51e75f80ba58",
+            "weight": 0.3039835810003538,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1692612208.6491451,
+          "propagator_kind": "iterative",
+          "damping_factor": 0.85,
+          "topology_edges": [
+            [
+              "adservice",
+              "main"
+            ],
+            [
+              "cartservice",
+              "productcatalogservice"
+            ],
+            [
+              "cartservice",
+              "recommendationservice"
+            ],
+            [
+              "currencyservice",
+              "adservice"
+            ],
+            [
+              "currencyservice",
+              "recommendationservice"
+            ],
+            [
+              "main",
+              "currencyservice"
+            ],
+            [
+              "paymentservice",
+              "shippingservice"
+            ],
+            [
+              "productcatalogservice",
+              "currencyservice"
+            ],
+            [
+              "productcatalogservice",
+              "paymentservice"
+            ],
+            [
+              "productcatalogservice",
+              "shippingservice"
+            ],
+            [
+              "recommendationservice",
+              "paymentservice"
+            ],
+            [
+              "recommendationservice",
+              "productcatalogservice"
+            ],
+            [
+              "shippingservice",
+              "adservice"
+            ],
+            [
+              "shippingservice",
+              "checkoutservice"
+            ],
+            [
+              "shippingservice",
+              "recommendationservice"
+            ]
+          ],
+          "topology_n_edges": 15,
+          "local_confidence_H": {
+            "adservice": 0.88,
+            "cartservice": 0.09704786156639171,
+            "checkoutservice": 0.88,
+            "currencyservice": 0.21980950194276602,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 0.0,
+            "paymentservice": 0.0,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "final_confidence_C": {
+            "adservice": 0.9020450294629098,
+            "cartservice": 0.6504573401717797,
+            "checkoutservice": 0.88,
+            "currencyservice": 0.6731794998214663,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 0.3877995710547537,
+            "paymentservice": 0.3334328033062002,
+            "productcatalogservice": 0.7176622276140532,
+            "recommendationservice": 0.6670130825186671,
+            "redis": 0.0,
+            "shippingservice": 0.7783040956685987
+          },
+          "dominant_category": {
+            "adservice": "LATENCY_ANOMALY",
+            "cartservice": "RESOURCE_CONTENTION",
+            "checkoutservice": "LATENCY_ANOMALY",
+            "currencyservice": "MEMORY_PRESSURE",
+            "emailservice": "UNKNOWN",
+            "frontend": "UNKNOWN",
+            "main": "UNKNOWN",
+            "paymentservice": "UNKNOWN",
+            "productcatalogservice": "UNKNOWN",
+            "recommendationservice": "UNKNOWN",
+            "redis": "UNKNOWN",
+            "shippingservice": "UNKNOWN"
+          },
+          "fired_rules": {
+            "adservice": [
+              "R10"
+            ],
+            "cartservice": [
+              "R06",
+              "R15"
+            ],
+            "checkoutservice": [
+              "R10"
+            ],
+            "currencyservice": [
+              "R06"
+            ],
+            "emailservice": [],
+            "frontend": [],
+            "main": [],
+            "paymentservice": [],
+            "productcatalogservice": [],
+            "recommendationservice": [],
+            "redis": [],
+            "shippingservice": []
+          },
+          "predicted_fault_local_name": "LatencySpike"
+        },
+        "ranked_list": [
+          [
+            "adservice",
+            0.9020450294629098
+          ],
+          [
+            "checkoutservice",
+            0.88
+          ],
+          [
+            "shippingservice",
+            0.7783040956685987
+          ],
+          [
+            "productcatalogservice",
+            0.7176622276140532
+          ],
+          [
+            "currencyservice",
+            0.6731794998214663
+          ],
+          [
+            "recommendationservice",
+            0.6670130825186671
+          ],
+          [
+            "cartservice",
+            0.6504573401717797
+          ],
+          [
+            "main",
+            0.3877995710547537
+          ],
+          [
+            "paymentservice",
+            0.3334328033062002
+          ],
+          [
+            "emailservice",
+            0.0
+          ],
+          [
+            "frontend",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ]
+        ],
+        "confidence": 0.3523132922025146
+      }
+    },
+    {
+      "case_id": "re1-ob_adservice_delay_1",
+      "fault": "delay",
+      "ground_truth": "adservice",
+      "predicted_top1": "checkoutservice",
+      "ac1": 0.0,
+      "correct": false,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "bc6adf3b-891a-4b6a-ba25-5c9a3d53f73e",
+            "text": "#1 checkoutservice \u2192 LatencySpike (H=0.880, C=0.948, rules=['R10'], evidence=[latency_CRITICAL(\u03bc=1.00)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#LatencySpike",
+            "fuzzy_membership": 0.34327781174417005
+          },
+          {
+            "id": "c35e155a-307f-45a4-b67b-5f418fddac03",
+            "text": "#2 productcatalogservice \u2192 MemoryLeak (H=0.008, C=0.922, rules=['R06'], evidence=[cpu_MEDIUM(\u03bc=0.31)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#MemoryLeak",
+            "fuzzy_membership": 0.3340509059917317
+          },
+          {
+            "id": "b5aedca6-1b1f-401d-b5a4-a264583183c9",
+            "text": "#3 adservice \u2192 LatencySpike (H=0.880, C=0.891, rules=['R10'], evidence=[latency_CRITICAL(\u03bc=1.00)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#LatencySpike",
+            "fuzzy_membership": 0.32267128226409825
+          },
+          {
+            "id": "64028a02-e3df-4b46-aec9-507919f8ea13",
+            "text": "Recommendation for checkoutservice: Rec_LatencySpike (suggests_mitigation, derived from LatencySpike prototype)",
+            "ontology_class": "http://foda.com/ontology/diagnostic#Rec_LatencySpike",
+            "fuzzy_membership": 0.34327781174417005
+          }
+        ],
+        "links": [
+          {
+            "source_atom_id": "bc6adf3b-891a-4b6a-ba25-5c9a3d53f73e",
+            "target_atom_id": "64028a02-e3df-4b46-aec9-507919f8ea13",
+            "weight": 0.34327781174417005,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "c35e155a-307f-45a4-b67b-5f418fddac03",
+            "target_atom_id": "bc6adf3b-891a-4b6a-ba25-5c9a3d53f73e",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "c35e155a-307f-45a4-b67b-5f418fddac03",
+            "target_atom_id": "64028a02-e3df-4b46-aec9-507919f8ea13",
+            "weight": 0.3340509059917317,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "b5aedca6-1b1f-401d-b5a4-a264583183c9",
+            "target_atom_id": "bc6adf3b-891a-4b6a-ba25-5c9a3d53f73e",
+            "weight": 0.1885677273725143,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "b5aedca6-1b1f-401d-b5a4-a264583183c9",
+            "target_atom_id": "64028a02-e3df-4b46-aec9-507919f8ea13",
+            "weight": 0.32267128226409825,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1692583744.8900807,
+          "propagator_kind": "damped",
+          "damping_factor": 0.85,
+          "topology_edges": [
+            [
+              "adservice",
+              "main"
+            ],
+            [
+              "cartservice",
+              "productcatalogservice"
+            ],
+            [
+              "checkoutservice",
+              "adservice"
+            ],
+            [
+              "checkoutservice",
+              "main"
+            ],
+            [
+              "frontend",
+              "adservice"
+            ],
+            [
+              "frontend",
+              "checkoutservice"
+            ],
+            [
+              "frontend",
+              "main"
+            ],
+            [
+              "paymentservice",
+              "cartservice"
+            ],
+            [
+              "productcatalogservice",
+              "checkoutservice"
+            ],
+            [
+              "productcatalogservice",
+              "frontend"
+            ],
+            [
+              "productcatalogservice",
+              "main"
+            ],
+            [
+              "productcatalogservice",
+              "shippingservice"
+            ],
+            [
+              "shippingservice",
+              "adservice"
+            ],
+            [
+              "shippingservice",
+              "checkoutservice"
+            ],
+            [
+              "shippingservice",
+              "frontend"
+            ],
+            [
+              "shippingservice",
+              "main"
+            ]
+          ],
+          "topology_n_edges": 16,
+          "local_confidence_H": {
+            "adservice": 0.88,
+            "cartservice": 0.0,
+            "checkoutservice": 0.88,
+            "currencyservice": 0.0,
+            "emailservice": 0.3285906448766594,
+            "frontend": 0.0,
+            "main": 0.13855811638248183,
+            "paymentservice": 0.0,
+            "productcatalogservice": 0.008348914030334042,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "final_confidence_C": {
+            "adservice": 0.8907097312541866,
+            "cartservice": 0.42532215106981286,
+            "checkoutservice": 0.9475925012561777,
+            "currencyservice": 0.0,
+            "emailservice": 0.3285906448766594,
+            "frontend": 0.6721594323484903,
+            "main": 0.13855811638248183,
+            "paymentservice": 0.3189301279837542,
+            "productcatalogservice": 0.922122324036206,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.849693998420703
+          },
+          "dominant_category": {
+            "adservice": "LATENCY_ANOMALY",
+            "cartservice": "UNKNOWN",
+            "checkoutservice": "LATENCY_ANOMALY",
+            "currencyservice": "UNKNOWN",
+            "emailservice": "MEMORY_PRESSURE",
+            "frontend": "UNKNOWN",
+            "main": "MEMORY_PRESSURE",
+            "paymentservice": "UNKNOWN",
+            "productcatalogservice": "MEMORY_PRESSURE",
+            "recommendationservice": "UNKNOWN",
+            "redis": "UNKNOWN",
+            "shippingservice": "UNKNOWN"
+          },
+          "fired_rules": {
+            "adservice": [
+              "R10"
+            ],
+            "cartservice": [],
+            "checkoutservice": [
+              "R10"
+            ],
+            "currencyservice": [],
+            "emailservice": [
+              "R06"
+            ],
+            "frontend": [],
+            "main": [
+              "R06"
+            ],
+            "paymentservice": [],
+            "productcatalogservice": [
+              "R06"
+            ],
+            "recommendationservice": [],
+            "redis": [],
+            "shippingservice": []
+          },
+          "predicted_fault_local_name": "LatencySpike"
+        },
+        "ranked_list": [
+          [
+            "checkoutservice",
+            0.9475925012561777
+          ],
+          [
+            "productcatalogservice",
+            0.922122324036206
+          ],
+          [
+            "adservice",
+            0.8907097312541866
+          ],
+          [
+            "shippingservice",
+            0.849693998420703
+          ],
+          [
+            "frontend",
+            0.6721594323484903
+          ],
+          [
+            "cartservice",
+            0.42532215106981286
+          ],
+          [
+            "emailservice",
+            0.3285906448766594
+          ],
+          [
+            "paymentservice",
+            0.3189301279837542
+          ],
+          [
+            "main",
+            0.13855811638248183
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "recommendationservice",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ]
+        ],
+        "confidence": 0.34327781174417005
+      }
+    },
+    {
+      "case_id": "re1-ob_cartservice_delay_1",
+      "fault": "delay",
+      "ground_truth": "cartservice",
+      "predicted_top1": "adservice",
+      "ac1": 0.0,
+      "correct": false,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "1dcb4c63-36c5-40ed-b2cf-9e7f69ab803d",
+            "text": "#1 adservice \u2192 ContributingFactor (unmapped category) (H=0.000, C=0.000, rules=[], evidence=[no strong fuzzy evidence])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ContributingFactor",
+            "fuzzy_membership": 0.0
+          },
+          {
+            "id": "b4e4dbae-08f6-4979-81fd-288cff64be72",
+            "text": "#2 cartservice \u2192 ContributingFactor (unmapped category) (H=0.000, C=0.000, rules=[], evidence=[no strong fuzzy evidence])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ContributingFactor",
+            "fuzzy_membership": 0.0
+          },
+          {
+            "id": "34a2fe2d-5f6a-47e4-8f3b-939680767aeb",
+            "text": "#3 checkoutservice \u2192 ContributingFactor (unmapped category) (H=0.000, C=0.000, rules=[], evidence=[no strong fuzzy evidence])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ContributingFactor",
+            "fuzzy_membership": 0.0
+          }
+        ],
+        "links": [
+          {
+            "source_atom_id": "b4e4dbae-08f6-4979-81fd-288cff64be72",
+            "target_atom_id": "1dcb4c63-36c5-40ed-b2cf-9e7f69ab803d",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "34a2fe2d-5f6a-47e4-8f3b-939680767aeb",
+            "target_atom_id": "1dcb4c63-36c5-40ed-b2cf-9e7f69ab803d",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1692627722.1269746,
+          "propagator_kind": "damped",
+          "damping_factor": 0.85,
+          "topology_edges": [
+            [
+              "adservice",
+              "cartservice"
+            ],
+            [
+              "adservice",
+              "checkoutservice"
+            ],
+            [
+              "adservice",
+              "frontend"
+            ],
+            [
+              "checkoutservice",
+              "cartservice"
+            ],
+            [
+              "checkoutservice",
+              "frontend"
+            ],
+            [
+              "checkoutservice",
+              "recommendationservice"
+            ],
+            [
+              "currencyservice",
+              "cartservice"
+            ],
+            [
+              "currencyservice",
+              "checkoutservice"
+            ],
+            [
+              "currencyservice",
+              "frontend"
+            ],
+            [
+              "emailservice",
+              "cartservice"
+            ],
+            [
+              "emailservice",
+              "checkoutservice"
+            ],
+            [
+              "emailservice",
+              "frontend"
+            ],
+            [
+              "emailservice",
+              "recommendationservice"
+            ],
+            [
+              "frontend",
+              "cartservice"
+            ],
+            [
+              "frontend",
+              "recommendationservice"
+            ],
+            [
+              "productcatalogservice",
+              "cartservice"
+            ],
+            [
+              "productcatalogservice",
+              "checkoutservice"
+            ],
+            [
+              "productcatalogservice",
+              "frontend"
+            ],
+            [
+              "recommendationservice",
+              "cartservice"
+            ],
+            [
+              "redis",
+              "cartservice"
+            ],
+            [
+              "redis",
+              "checkoutservice"
+            ],
+            [
+              "redis",
+              "frontend"
+            ]
+          ],
+          "topology_n_edges": 22,
+          "local_confidence_H": {
+            "adservice": 0.0,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 0.0,
+            "paymentservice": 0.0,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "final_confidence_C": {
+            "adservice": 0.0,
+            "cartservice": 0.0,
+            "checkoutservice": 0.0,
+            "currencyservice": 0.0,
+            "emailservice": 0.0,
+            "frontend": 0.0,
+            "main": 0.0,
+            "paymentservice": 0.0,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.0,
+            "redis": 0.0,
+            "shippingservice": 0.0
+          },
+          "dominant_category": {
+            "adservice": "UNKNOWN",
+            "cartservice": "UNKNOWN",
+            "checkoutservice": "UNKNOWN",
+            "currencyservice": "UNKNOWN",
+            "emailservice": "UNKNOWN",
+            "frontend": "UNKNOWN",
+            "main": "UNKNOWN",
+            "paymentservice": "UNKNOWN",
+            "productcatalogservice": "UNKNOWN",
+            "recommendationservice": "UNKNOWN",
+            "redis": "UNKNOWN",
+            "shippingservice": "UNKNOWN"
+          },
+          "fired_rules": {
+            "adservice": [],
+            "cartservice": [],
+            "checkoutservice": [],
+            "currencyservice": [],
+            "emailservice": [],
+            "frontend": [],
+            "main": [],
+            "paymentservice": [],
+            "productcatalogservice": [],
+            "recommendationservice": [],
+            "redis": [],
+            "shippingservice": []
+          },
+          "predicted_fault_local_name": null
+        },
+        "ranked_list": [
+          [
+            "adservice",
+            0.0
+          ],
+          [
+            "cartservice",
+            0.0
+          ],
+          [
+            "checkoutservice",
+            0.0
+          ],
+          [
+            "currencyservice",
+            0.0
+          ],
+          [
+            "emailservice",
+            0.0
+          ],
+          [
+            "frontend",
+            0.0
+          ],
+          [
+            "main",
+            0.0
+          ],
+          [
+            "paymentservice",
+            0.0
+          ],
+          [
+            "productcatalogservice",
+            0.0
+          ],
+          [
+            "recommendationservice",
+            0.0
+          ],
+          [
+            "redis",
+            0.0
+          ],
+          [
+            "shippingservice",
+            0.0
+          ]
+        ],
+        "confidence": 0.0
+      }
+    },
+    {
+      "case_id": "re1-ob_checkoutservice_delay_1",
+      "fault": "delay",
+      "ground_truth": "checkoutservice",
+      "predicted_top1": "paymentservice",
+      "ac1": 0.0,
+      "correct": false,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "82c6cb50-d8a4-4341-bd72-78fc3f4fdd91",
+            "text": "#1 paymentservice \u2192 MemoryLeak (H=0.413, C=0.984, rules=['R02', 'R04', 'R06', 'R15', 'R16'], evidence=[memory_HIGH(\u03bc=0.59), throughput_LOW(\u03bc=0.15), cpu_MEDIUM(\u03bc=0.75)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#MemoryLeak",
+            "fuzzy_membership": 0.3448380826172678
+          },
+          {
+            "id": "e5dce52e-e39d-4295-9640-5011c0f65c50",
+            "text": "#2 checkoutservice \u2192 LatencySpike (H=0.880, C=0.958, rules=['R02', 'R03', 'R10'], evidence=[latency_CRITICAL(\u03bc=1.00), throughput_LOW(\u03bc=0.39)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#LatencySpike",
+            "fuzzy_membership": 0.3357632565115994
+          },
+          {
+            "id": "253d3759-eeed-4355-a29b-8c7169ef4a00",
+            "text": "#3 adservice \u2192 ContributingFactor (unmapped category) (H=0.000, C=0.911, rules=[], evidence=[no strong fuzzy evidence])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ContributingFactor",
+            "fuzzy_membership": 0.3193986608711328
+          },
+          {
+            "id": "3de39f63-88ce-4057-9853-4ec45e4b5fe5",
+            "text": "Recommendation for paymentservice: Rec_MemoryLeak (suggests_mitigation, derived from MemoryLeak prototype)",
+            "ontology_class": "http://foda.com/ontology/diagnostic#Rec_MemoryLeak",
+            "fuzzy_membership": 0.3448380826172678
+          }
+        ],
+        "links": [
+          {
+            "source_atom_id": "82c6cb50-d8a4-4341-bd72-78fc3f4fdd91",
+            "target_atom_id": "3de39f63-88ce-4057-9853-4ec45e4b5fe5",
+            "weight": 0.3448380826172678,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "e5dce52e-e39d-4295-9640-5011c0f65c50",
+            "target_atom_id": "82c6cb50-d8a4-4341-bd72-78fc3f4fdd91",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "e5dce52e-e39d-4295-9640-5011c0f65c50",
+            "target_atom_id": "3de39f63-88ce-4057-9853-4ec45e4b5fe5",
+            "weight": 0.3357632565115994,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "253d3759-eeed-4355-a29b-8c7169ef4a00",
+            "target_atom_id": "82c6cb50-d8a4-4341-bd72-78fc3f4fdd91",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "253d3759-eeed-4355-a29b-8c7169ef4a00",
+            "target_atom_id": "3de39f63-88ce-4057-9853-4ec45e4b5fe5",
+            "weight": 0.3193986608711328,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1692602969.715009,
+          "propagator_kind": "iterative",
+          "damping_factor": 0.85,
+          "topology_edges": [
+            [
+              "adservice",
+              "checkoutservice"
+            ],
+            [
+              "adservice",
+              "emailservice"
+            ],
+            [
+              "adservice",
+              "main"
+            ],
+            [
+              "adservice",
+              "paymentservice"
+            ],
+            [
+              "cartservice",
+              "currencyservice"
+            ],
+            [
+              "checkoutservice",
+              "frontend"
+            ],
+            [
+              "checkoutservice",
+              "paymentservice"
+            ],
+            [
+              "currencyservice",
+              "frontend"
+            ],
+            [
+              "currencyservice",
+              "redis"
+            ],
+            [
+              "emailservice",
+              "cartservice"
+            ],
+            [
+              "emailservice",
+              "currencyservice"
+            ],
+            [
+              "emailservice",
+              "frontend"
+            ],
+            [
+              "emailservice",
+              "redis"
+            ],
+            [
+              "frontend",
+              "main"
+            ],
+            [
+              "frontend",
+              "paymentservice"
+            ],
+            [
+              "main",
+              "currencyservice"
+            ],
+            [
+              "main",
+              "emailservice"
+            ],
+            [
+              "main",
+              "redis"
+            ],
+            [
+              "paymentservice",
+              "cartservice"
+            ],
+            [
+              "paymentservice",
+              "currencyservice"
+            ],
+            [
+              "paymentservice",
+              "emailservice"
+            ],
+            [
+              "paymentservice",
+              "main"
+            ],
+            [
+              "paymentservice",
+              "redis"
+            ],
+            [
+              "redis",
+              "cartservice"
+            ],
+            [
+              "redis",
+              "frontend"
+            ],
+            [
+              "shippingservice",
+              "checkoutservice"
+            ]
+          ],
+          "topology_n_edges": 26,
+          "local_confidence_H": {
+            "adservice": 0.0,
+            "cartservice": 0.09078960787642953,
+            "checkoutservice": 0.88,
+            "currencyservice": 0.053324213810551885,
+            "emailservice": 0.30595531490050315,
+            "frontend": 0.0,
+            "main": 0.0,
+            "paymentservice": 0.41276881521757447,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.11458440877780468,
+            "redis": 0.0,
+            "shippingservice": 0.31460273634057007
+          },
+          "final_confidence_C": {
+            "adservice": 0.911023946916878,
+            "cartservice": 0.418711796156386,
+            "checkoutservice": 0.9577008442758551,
+            "currencyservice": 0.6609491993126715,
+            "emailservice": 0.909150113932628,
+            "frontend": 0.8180336587638127,
+            "main": 0.8832747942619756,
+            "paymentservice": 0.983585060176516,
+            "productcatalogservice": 0.0,
+            "recommendationservice": 0.11458440877780474,
+            "redis": 0.5604171392247779,
+            "shippingservice": 0.6432185568993136
+          },
+          "dominant_category": {
+            "adservice": "UNKNOWN",
+            "cartservice": "MEMORY_PRESSURE",
+            "checkoutservice": "LATENCY_ANOMALY",
+            "currencyservice": "CPU_SATURATION",
+            "emailservice": "MEMORY_PRESSURE",
+            "frontend": "UNKNOWN",
+            "main": "UNKNOWN",
+            "paymentservice": "MEMORY_PRESSURE",
+            "productcatalogservice": "UNKNOWN",
+            "recommendationservice": "MEMORY_PRESSURE",
+            "redis": "UNKNOWN",
+            "shippingservice": "MEMORY_PRESSURE"
+          },
+          "fired_rules": {
+            "adservice": [],
+            "cartservice": [
+              "R04",
+              "R05",
+              "R11"
+            ],
+            "checkoutservice": [
+              "R02",
+              "R03",
+              "R10"
+            ],
+            "currencyservice": [
+              "R01"
+            ],
+            "emailservice": [
+              "R04",
+              "R06",
+              "R16"
+            ],
+            "frontend": [],
+            "main": [],
+            "paymentservice": [
+              "R02",
+              "R04",
+              "R06",
+              "R15",
+              "R16"
+            ],
+            "productcatalogservice": [],
+            "recommendationservice": [
+              "R05"
+            ],
+            "redis": [],
+            "shippingservice": [
+              "R06"
+            ]
+          },
+          "predicted_fault_local_name": "MemoryLeak"
+        },
+        "ranked_list": [
+          [
+            "paymentservice",
+            0.983585060176516
+          ],
+          [
+            "checkoutservice",
+            0.9577008442758551
+          ],
+          [
+            "adservice",
+            0.911023946916878
+          ],
+          [
+            "emailservice",
+            0.909150113932628
+          ],
+          [
+            "main",
+            0.8832747942619756
+          ],
+          [
+            "frontend",
+            0.8180336587638127
+          ],
+          [
+            "currencyservice",
+            0.6609491993126715
+          ],
+          [
+            "shippingservice",
+            0.6432185568993136
+          ],
+          [
+            "redis",
+            0.5604171392247779
+          ],
+          [
+            "cartservice",
+            0.418711796156386
+          ],
+          [
+            "recommendationservice",
+            0.11458440877780474
+          ],
+          [
+            "productcatalogservice",
+            0.0
+          ]
+        ],
+        "confidence": 0.3448380826172678
+      }
+    },
+    {
+      "case_id": "re1-ob_currencyservice_cpu_1",
+      "fault": "cpu",
+      "ground_truth": "currencyservice",
+      "predicted_top1": "shippingservice",
+      "ac1": 0.0,
+      "correct": false,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "a6b83b37-848a-4adc-94f8-e92daf38e17d",
+            "text": "#1 shippingservice \u2192 CpuSaturation (H=0.920, C=0.994, rules=['R03', 'R10'], evidence=[cpu_HIGH(\u03bc=1.00), latency_CRITICAL(\u03bc=1.00)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#CpuSaturation",
+            "fuzzy_membership": 0.3353441658281193
+          },
+          {
+            "id": "d0ca5c3b-ab6e-4d4e-af46-ffc87050032b",
+            "text": "#2 adservice \u2192 CpuSaturation (H=0.908, C=0.986, rules=['R03', 'R10'], evidence=[cpu_HIGH(\u03bc=0.99), latency_CRITICAL(\u03bc=1.00)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#CpuSaturation",
+            "fuzzy_membership": 0.33256316289413423
+          },
+          {
+            "id": "16c74a27-03f0-4b25-9a72-851140e52292",
+            "text": "#3 emailservice \u2192 ResourceContention (H=0.950, C=0.984, rules=['R03', 'R10', 'R14', 'R15'], evidence=[cpu_HIGH(\u03bc=1.00), memory_HIGH(\u03bc=1.00), latency_CRITICAL(\u03bc=1.00)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ResourceContention",
+            "fuzzy_membership": 0.33209267127774655
+          },
+          {
+            "id": "57a988ef-b8e4-4957-99bd-72fec12d2b3c",
+            "text": "Recommendation for shippingservice: Rec_CpuSaturation (suggests_mitigation, derived from CpuSaturation prototype)",
+            "ontology_class": "http://foda.com/ontology/diagnostic#Rec_CpuSaturation",
+            "fuzzy_membership": 0.3353441658281193
+          }
+        ],
+        "links": [
+          {
+            "source_atom_id": "a6b83b37-848a-4adc-94f8-e92daf38e17d",
+            "target_atom_id": "57a988ef-b8e4-4957-99bd-72fec12d2b3c",
+            "weight": 0.3353441658281193,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "d0ca5c3b-ab6e-4d4e-af46-ffc87050032b",
+            "target_atom_id": "a6b83b37-848a-4adc-94f8-e92daf38e17d",
+            "weight": 0.0,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "d0ca5c3b-ab6e-4d4e-af46-ffc87050032b",
+            "target_atom_id": "57a988ef-b8e4-4957-99bd-72fec12d2b3c",
+            "weight": 0.33256316289413423,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "16c74a27-03f0-4b25-9a72-851140e52292",
+            "target_atom_id": "a6b83b37-848a-4adc-94f8-e92daf38e17d",
+            "weight": 0.21813298290459304,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "16c74a27-03f0-4b25-9a72-851140e52292",
+            "target_atom_id": "57a988ef-b8e4-4957-99bd-72fec12d2b3c",
+            "weight": 0.33209267127774655,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1685514051.304025,
+          "propagator_kind": "iterative",
+          "damping_factor": 0.85,
+          "topology_edges": [
+            [
+              "adservice",
+              "frontend"
+            ],
+            [
+              "adservice",
+              "productcatalogservice"
+            ],
+            [
+              "cartservice",
+              "adservice"
+            ],
+            [
+              "cartservice",
+              "productcatalogservice"
+            ],
+            [
+              "cartservice",
+              "recommendationservice"
+            ],
+            [
+              "emailservice",
+              "checkoutservice"
+            ],
+            [
+              "frontend",
+              "cartservice"
+            ],
+            [
+              "frontend",
+              "checkoutservice"
+            ],
+            [
+              "frontend",
+              "productcatalogservice"
+            ],
+            [
+              "frontend",
+              "recommendationservice"
+            ],
+            [
+              "main",
+              "productcatalogservice"
+            ],
+            [
+              "paymentservice",
+              "main"
+            ],
+            [
+              "recommendationservice",
+              "adservice"
+            ],
+            [
+              "recommendationservice",
+              "productcatalogservice"
+            ],
+            [
+              "shippingservice",
+              "checkoutservice"
+            ],
+            [
+              "shippingservice",
+              "emailservice"
+            ],
+            [
+              "shippingservice",
+              "frontend"
+            ]
+          ],
+          "topology_n_edges": 17,
+          "local_confidence_H": {
+            "adservice": 0.9081827833666067,
+            "cartservice": 0.043211054215496834,
+            "checkoutservice": 0.92,
+            "currencyservice": 0.95,
+            "emailservice": 0.95,
+            "frontend": 0.0,
+            "main": 0.6174285019007585,
+            "paymentservice": 0.82,
+            "productcatalogservice": 0.88,
+            "recommendationservice": 0.5448913476542235,
+            "redis": 0.0,
+            "shippingservice": 0.92
+          },
+          "final_confidence_C": {
+            "adservice": 0.985735183349919,
+            "cartservice": 0.8927414839518002,
+            "checkoutservice": 0.92,
+            "currencyservice": 0.95,
+            "emailservice": 0.9843406207780802,
+            "frontend": 0.9759352731335755,
+            "main": 0.7774216334147583,
+            "paymentservice": 0.9291309551575282,
+            "productcatalogservice": 0.88,
+            "recommendationservice": 0.9519873539619426,
+            "redis": 0.0,
+            "shippingservice": 0.9939782263050437
+          },
+          "dominant_category": {
+            "adservice": "CPU_SATURATION",
+            "cartservice": "LATENCY_ANOMALY",
+            "checkoutservice": "CPU_SATURATION",
+            "currencyservice": "CASCADING_FAILURE",
+            "emailservice": "CASCADING_FAILURE",
+            "frontend": "UNKNOWN",
+            "main": "RESOURCE_CONTENTION",
+            "paymentservice": "RESOURCE_CONTENTION",
+            "productcatalogservice": "LATENCY_ANOMALY",
+            "recommendationservice": "LATENCY_ANOMALY",
+            "redis": "UNKNOWN",
+            "shippingservice": "CPU_SATURATION"
+          },
+          "fired_rules": {
+            "adservice": [
+              "R03",
+              "R10"
+            ],
+            "cartservice": [
+              "R10"
+            ],
+            "checkoutservice": [
+              "R03",
+              "R10"
+            ],
+            "currencyservice": [
+              "R03",
+              "R10",
+              "R14",
+              "R15"
+            ],
+            "emailservice": [
+              "R03",
+              "R10",
+              "R14",
+              "R15"
+            ],
+            "frontend": [],
+            "main": [
+              "R06",
+              "R15"
+            ],
+            "paymentservice": [
+              "R15"
+            ],
+            "productcatalogservice": [
+              "R10"
+            ],
+            "recommendationservice": [
+              "R01",
+              "R03",
+              "R10"
+            ],
+            "redis": [],
+            "shippingservice": [
+              "R03",
+              "R10"
+            ]
+          },
+          "predicted_fault_local_name": "CpuSaturation"
+        },
+        "ranked_list": [
+          [
+            "shippingservice",
+            0.9939782263050437
+          ],
+          [
+            "adservice",
+            0.985735183349919
+          ],
+          [
+            "emailservice",
+            0.9843406207780802
+          ],
+          [
+            "frontend",
+            0.9759352731335755
+          ],
+          [
+            "recommendationservice",
+            0.9519873539619426
+          ],
+          [
+            "currencyservice",
+            0.95
+          ],
+          [
+            "paymentservice",
+            0.9291309551575282
+          ],
+          [
+            "checkoutservice",
+            0.92
+          ],
+          [
+            "cartservice",
+            0.8927414839518002
+          ],
+          [
+            "productcatalogservice",
+            0.88
+          ],
+          [
+            "main",
+            0.7774216334147583
+          ],
+          [
+            "redis",
+            0.0
+          ]
+        ],
+        "confidence": 0.3353441658281193
+      }
+    },
+    {
+      "case_id": "re1-ob_productcatalogservice_delay_2",
+      "fault": "delay",
+      "ground_truth": "productcatalogservice",
+      "predicted_top1": "recommendationservice",
+      "ac1": 0.0,
+      "correct": false,
+      "explanation": {
+        "atoms": [
+          {
+            "id": "62fab56b-885e-493b-9fa5-6ad28409f1a6",
+            "text": "#1 recommendationservice \u2192 CpuSaturation (H=0.920, C=0.999, rules=['R02', 'R03', 'R10'], evidence=[cpu_HIGH(\u03bc=1.00), latency_CRITICAL(\u03bc=1.00), throughput_LOW(\u03bc=0.78)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#CpuSaturation",
+            "fuzzy_membership": 0.3348261032586525
+          },
+          {
+            "id": "753033c6-c2a1-4b5d-967c-805fd5ca9688",
+            "text": "#2 productcatalogservice \u2192 LatencySpike (H=0.880, C=0.995, rules=['R02', 'R03', 'R10'], evidence=[latency_CRITICAL(\u03bc=1.00), throughput_LOW(\u03bc=1.00)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#LatencySpike",
+            "fuzzy_membership": 0.33370131064680997
+          },
+          {
+            "id": "b2eb0bca-2d32-4e1c-a25c-98fd166547fe",
+            "text": "#3 frontend \u2192 ResourceContention (H=0.950, C=0.989, rules=['R02', 'R03', 'R04', 'R10', 'R14', 'R15'], evidence=[cpu_HIGH(\u03bc=1.00), memory_HIGH(\u03bc=1.00), latency_CRITICAL(\u03bc=1.00)])",
+            "ontology_class": "http://foda.com/ontology/diagnostic#ResourceContention",
+            "fuzzy_membership": 0.3314725860945375
+          },
+          {
+            "id": "d0be6ee4-d357-48c2-bf9d-17e497da24ee",
+            "text": "Recommendation for recommendationservice: Rec_CpuSaturation (suggests_mitigation, derived from CpuSaturation prototype)",
+            "ontology_class": "http://foda.com/ontology/diagnostic#Rec_CpuSaturation",
+            "fuzzy_membership": 0.3348261032586525
+          }
+        ],
+        "links": [
+          {
+            "source_atom_id": "62fab56b-885e-493b-9fa5-6ad28409f1a6",
+            "target_atom_id": "d0be6ee4-d357-48c2-bf9d-17e497da24ee",
+            "weight": 0.3348261032586525,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "753033c6-c2a1-4b5d-967c-805fd5ca9688",
+            "target_atom_id": "62fab56b-885e-493b-9fa5-6ad28409f1a6",
+            "weight": 0.26792567112862403,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "753033c6-c2a1-4b5d-967c-805fd5ca9688",
+            "target_atom_id": "d0be6ee4-d357-48c2-bf9d-17e497da24ee",
+            "weight": 0.33370131064680997,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          },
+          {
+            "source_atom_id": "b2eb0bca-2d32-4e1c-a25c-98fd166547fe",
+            "target_atom_id": "62fab56b-885e-493b-9fa5-6ad28409f1a6",
+            "weight": 0.2625951603163176,
+            "relation_type": "contributes_to:propagation:noisy_or"
+          },
+          {
+            "source_atom_id": "b2eb0bca-2d32-4e1c-a25c-98fd166547fe",
+            "target_atom_id": "d0be6ee4-d357-48c2-bf9d-17e497da24ee",
+            "weight": 0.3314725860945375,
+            "relation_type": "suggests_mitigation:recommendation:fault_prototype"
+          }
+        ],
+        "raw_output": {
+          "onset_time": 1692624035.0952601,
+          "propagator_kind": "damped",
+          "damping_factor": 0.85,
+          "topology_edges": [
+            [
+              "adservice",
+              "cartservice"
+            ],
+            [
+              "adservice",
+              "checkoutservice"
+            ],
+            [
+              "adservice",
+              "main"
+            ],
+            [
+              "currencyservice",
+              "checkoutservice"
+            ],
+            [
+              "currencyservice",
+              "recommendationservice"
+            ],
+            [
+              "frontend",
+              "adservice"
+            ],
+            [
+              "frontend",
+              "checkoutservice"
+            ],
+            [
+              "productcatalogservice",
+              "adservice"
+            ],
+            [
+              "productcatalogservice",
+              "checkoutservice"
+            ],
+            [
+              "productcatalogservice",
+              "frontend"
+            ],
+            [
+              "recommendationservice",
+              "checkoutservice"
+            ],
+            [
+              "recommendationservice",
+              "frontend"
+            ],
+            [
+              "recommendationservice",
+              "productcatalogservice"
+            ]
+          ],
+          "topology_n_edges": 13,
+          "local_confidence_H": {
+            "adservice": 0.7552902157520641,
+            "cartservice": 0.0005574139223466723,
+            "checkoutservice": 0.88,
+            "currencyservice": 0.8,
+            "emailservice": 0.17353438191451676,
+            "frontend": 0.95,
+            "main": 0.82,
+            "paymentservice": 0.027354522448437724,
+            "productcatalogservice": 0.88,
+            "recommendationservice": 0.92,
+            "redis": 0.0,
+            "shippingservice": 0.4543763911484989
+          },
+          "final_confidence_C": {
+            "adservice": 0.9272862902066924,
+            "cartservice": 0.0005574139223466723,
+            "checkoutservice": 0.88,
+            "currencyservice": 0.9325046411797794,
+            "emailservice": 0.17353438191451676,
+            "frontend": 0.9885975543726019,
+            "main": 0.82,
+            "paymentservice": 0.027354522448437724,
+            "productcatalogservice": 0.9952445946835564,
+            "recommendationservice": 0.9985992227037654,
+            "redis": 0.0,
+            "shippingservice": 0.4543763911484989
+          },
+          "dominant_category": {
+            "adservice": "RESOURCE_CONTENTION",
+            "cartservice": "MEMORY_PRESSURE",
+            "checkoutservice": "LATENCY_ANOMALY",
+            "currencyservice": "CPU_SATURATION",
+            "emailservice": "CPU_SATURATION",
+            "frontend": "CASCADING_FAILURE",
+            "main": "RESOURCE_CONTENTION",
+            "paymentservice": "MEMORY_PRESSURE",
+            "productcatalogservice": "LATENCY_ANOMALY",
+            "recommendationservice": "CPU_SATURATION",
+            "redis": "UNKNOWN",
+            "shippingservice": "CPU_SATURATION"
+          },
+          "fired_rules": {
+            "adservice": [
+              "R02",
+              "R04",
+              "R15"
+            ],
+            "cartservice": [
+              "R04"
+            ],
+            "checkoutservice": [
+              "R02",
+              "R03",
+              "R10"
+            ],
+            "currencyservice": [
+              "R02"
+            ],
+            "emailservice": [
+              "R02"
+            ],
+            "frontend": [
+              "R02",
+              "R03",
+              "R04",
+              "R10",
+              "R14",
+              "R15"
+            ],
+            "main": [
+              "R15"
+            ],
+            "paymentservice": [
+              "R04",
+              "R06",
+              "R16"
+            ],
+            "productcatalogservice": [
+              "R02",
+              "R03",
+              "R10"
+            ],
+            "recommendationservice": [
+              "R02",
+              "R03",
+              "R10"
+            ],
+            "redis": [],
+            "shippingservice": [
+              "R02"
+            ]
+          },
+          "predicted_fault_local_name": "CpuSaturation"
+        },
+        "ranked_list": [
+          [
+            "recommendationservice",
+            0.9985992227037654
+          ],
+          [
+            "productcatalogservice",
+            0.9952445946835564
+          ],
+          [
+            "frontend",
+            0.9885975543726019
+          ],
+          [
+            "currencyservice",
+            0.9325046411797794
+          ],
+          [
+            "adservice",
+            0.9272862902066924
+          ],
+          [
+            "checkoutservice",
+            0.88
+          ],
+          [
+            "main",
+            0.82
+          ],
+          [
+            "shippingservice",
+            0.4543763911484989
+          ],
+          [
+            "emailservice",
+            0.17353438191451676
+          ],
+          [
+            "paymentservice",
+            0.027354522448437724
+          ],
+          [
+            "cartservice",
+            0.0005574139223466723
+          ],
+          [
+            "redis",
+            0.0
+          ]
+        ],
+        "confidence": 0.3348261032586525
+      }
+    }
+  ],
+  "n_correct": 5,
+  "n_incorrect": 5,
+  "method": "foda-fcp",
+  "data": "/Users/mirzazadaallahsukur/research/rcaeval-tools/RCAEval/data/RE1/RE1-OB",
+  "note": "Case-id selection: the 5 correct cases match yRCA's correct set; the 5 incorrect cases include 1 overlap with yRCA (adservice_delay_1) and 4 cases that yRCA gets right but FODA-FCP gets wrong. The 9/10-vs-5/10 disagreement is documented in findings.md \u2192 FODA-FCP entry (Section 4 paper-relevant finding)."
+}

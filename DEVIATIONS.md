@@ -1021,3 +1021,234 @@ Deviation 1). Our RE1-OB result is reported in
 ``paper/notes/findings.md`` under "yRCA entry" alongside the
 cross-method offset-robustness update.
 
+---
+
+## FODA-FCP (Fuzzy Contribution Propagation; dissertation centerpiece, AICT 2026)
+
+Implementation: ``evaluation/methods/foda_fcp.py``. Reference Java
+implementation: ``fuzzy-rca-engine/src/main/java/com/foda/rca/``
+(``FuzzyRcaEngineImpl``, ``FaultFuzzifierImpl``,
+``MamdaniFuzzyRuleEngine``, ``DampedConfidencePropagator``,
+``OntologyGroundedExplanationBuilder``). The Python adapter is a
+faithful re-implementation of the AICT 2026 paper's five-phase
+pipeline on the inject_time-clean :class:`NormalizedCase` contract.
+
+The Mamdani rule base (16 rules, six fault categories, certainty
+factors) and the damped Noisy-OR propagation equation (δ = 0.85
+default, Eq. 4) are ported verbatim. The OWL vocabulary mapping
+agrees with the Java reference's
+``OntologyGroundedExplanationBuilder.CATEGORY_TO_FAULT_LOCAL_NAME``
+table. Three substantive deviations follow.
+
+### Deviation 0: Onset detected from telemetry, not read from inject_time
+
+Same shape as MonitorRank / CausalRCA / MicroRCA / yRCA Deviation 0.
+The AICT paper assumes the diagnostic engine is called at the moment
+the fault is reported — i.e. a tooling layer hands FCP the
+``ServiceMetrics`` snapshot for "now". Under the inject_time-removal
+contract (Deviation N1 above), no such oracle exists; the adapter
+calls :func:`evaluation.methods._onset.detect_onset` on
+``case.case_window`` to pick a pre/post pivot. The pivot is used to
+compute post-vs-pre z-scores that feed the fuzzifier.
+
+Empirical witness: per-case ``AC@1`` is bit-identical between the
+true run and the ±300 s shifted runs (shift moves only the side-
+channel ``inject_time``, not ``case_window``). ``S(FODA-FCP) = 0.000``
+overall and per-fault on RE1-OB; see
+``results/week2_foda_fcp_validation.csv`` and
+``evaluation/tests/test_foda_fcp.py::TestShiftInvariance``.
+
+### Deviation 1: z-score-driven fuzzy memberships, not SLO-calibrated crisp thresholds
+
+The Java fuzzifier (``FaultFuzzifierImpl``) uses SLO-calibrated
+crisp thresholds in raw metric units:
+
+| Term            | Threshold (raw units) |
+|-----------------|-----------------------|
+| ``cpu_HIGH``    | ≥ 85 %                |
+| ``cpu_MEDIUM``  | 30–80 %               |
+| ``latency_CRITICAL`` | ≥ 600 ms         |
+| ``memory_HIGH`` | ≥ 90 %                |
+| ``errorRate_HIGH``  | ≥ 15 %            |
+| ``throughput_LOW`` | < 30 % of baseline |
+
+These thresholds were calibrated for a specific deployment
+environment (foda-fuzzy-ontology-diagnostics microservices). RCAEval
+RE1-OB's canonical-schema ``{service}_{cpu, mem, latency, error,
+traffic}`` columns are emitted on **different scales** per case (cpu
+in [0, 1] as a fraction in some cases, raw counter values in
+others; latency in seconds vs. milliseconds; traffic in req/min
+vs. req/s; …). Applying the Java thresholds directly would
+misclassify nearly every case.
+
+The adapter substitutes a **z-score-driven fuzzification** that
+preserves the LOW / MEDIUM / HIGH (and ELEVATED / CRITICAL / etc.)
+shape of the Java fuzzifier but reads its input as post-vs-pre
+z-magnitudes against the pre-onset baseline:
+
+* ``HIGH`` = trap(|z|; 1, 3, ∞, ∞)
+* ``MEDIUM`` = tri(|z|; 0.5, 1.5, 3)
+* ``LOW`` = trap(|z|; 0, 0, 0.5, 1)
+* ``CRITICAL`` = trap(z; 2, 4, ∞, ∞)   (signed: positive z only)
+* ``ELEVATED`` = tri(z; 0.5, 2, 4)     (signed: positive z only)
+* ``throughput_LOW`` = trap(−z; 0.5, 2, ∞, ∞)
+  (i.e. high LOW membership when z is very negative, meaning the
+  service's traffic dropped relative to baseline)
+
+**Why** — the canonical-schema preprocessing in
+``schema_normalizer`` is unit-agnostic by design (different RCAEval
+benchmarks emit different units for the same canonical feature);
+hardcoded raw-unit thresholds are incompatible. The z-score-driven
+shape preserves the rule base's semantic intent (``cpu_HIGH`` =
+"this service's CPU is anomalously high relative to its own
+baseline") while being robust to unit changes.
+
+**What we give up** — the rule base's certainty factors were
+calibrated against the crisp threshold distribution. Under the
+z-score regime the firing-strength distribution is different, so
+the per-category aggregation magnitudes are not numerically
+comparable to the Java reference. The qualitative ordering ("which
+category wins for a CPU-saturated service") is preserved; the
+absolute confidence value is not.
+
+### Deviation 2: No deployed service-mesh topology — lagged correlation in its place
+
+The AICT paper's FCP requires a service dependency graph (the
+``ServiceDependencyGraph`` input to ``FuzzyRcaEngine.diagnose``).
+RCAEval RE1 does not ship per-case topology metadata. We substitute
+**lagged Pearson correlation** between services' representative
+signals in the post-onset window, the same convention MicroRCA and
+yRCA use:
+
+* For each service, pick the canonical feature with the highest
+  |z| as its representative signal (latency / traffic / cpu / mem /
+  error). Fall back to the first available canonical feature when
+  every feature is flat.
+* For every ordered pair ``(u, v)``, add an edge ``u → v`` with
+  weight ``|corr(u_signal[: T − lag], v_signal[lag:])|`` when (a)
+  that weight exceeds ``topology_threshold`` (default 0.5) and (b)
+  the forward direction's lagged correlation outranks the reverse.
+* Self-loops excluded.
+
+The damped Noisy-OR propagator (``_propagate_damped``) is a
+faithful port of ``DampedConfidencePropagator``: reverse-
+topological pass with ``P(s) = 1 − ∏(1 − C(t) · w · δ)`` and
+``C(s) = 1 − (1 − H(s)) · (1 − P(s))``. On cyclic graphs (which
+the inferred correlation graph can produce) the adapter falls
+back to a Jacobi fixed-point iteration (``_propagate_iterative``),
+faithful port of ``IterativeConfidencePropagator``.
+
+### Deviation 3: Adapter-level explanation expansion (Recommendation atom + suggests_mitigation links)
+
+The Java ``OntologyGroundedExplanationBuilder`` produces a
+**six-paragraph natural-language string** with embedded
+ContributingFactor and Recommendation enrichment from the OWL
+graph. Paper 6 needs a **structured** CanonicalExplanation graph
+whose nodes and edges can be inspected by the SemanticGroundedness
+metrics phase (atoms with ontology classes, links with relation
+types and weights). The adapter therefore expands the Java
+output into:
+
+* One :class:`ExplanationAtom` per service in the top-K head,
+  tagged with the predicted Mamdani category's DiagnosticKB fault
+  prototype as a **full URI**
+  (``http://foda.com/ontology/diagnostic#CpuSaturation`` etc.).
+  ``fuzzy_membership`` is the service's final confidence ``C(s)``
+  normalized by the sum across the top-K head.
+* One additional Recommendation atom for the predicted root cause,
+  tagged with the ``Rec_*`` individual associated with the root's
+  fault prototype (e.g. ``Rec_CpuSaturation``). Same fuzzy
+  membership as the root atom.
+* :class:`CausalLink` edges in three relation types:
+  - ``contributes_to:propagation:noisy_or`` from every non-root
+    ContributingFactor atom to the root atom, weighted by the FCP
+    propagation contribution ``C(t) · w(root, t) · δ``.
+  - ``suggests_mitigation:recommendation:fault_prototype`` from
+    every ContributingFactor atom to the Recommendation atom,
+    weighted by the source atom's fuzzy membership.
+  - The relation_type suffix after the first colon documents the
+    FCP sub-process that derived the link (``propagation:noisy_or``
+    for Eq. 4 contributions, ``recommendation:fault_prototype`` for
+    OWL-derived mitigation suggestions).
+
+The natural-language string is **not** emitted — the structured
+graph carries the same information in a form Paper 6's metrics
+can consume directly. The atom text still mentions the ontology
+class name and the fired Mamdani rules so a human can read the
+chain without loading the OWL graph.
+
+### Deviation 4: Confidence = top1_C / sum(C over top-K), not raw final_confidence
+
+The Java reference reports ``RankedCause.finalConfidence`` (i.e.
+``C(s)``) directly as the diagnostic confidence. The harness's
+``DiagnosticOutput.confidence`` column is a cross-method-
+comparable scalar in [0, 1] interpreted as "how concentrated is
+the diagnosis on the top-1 candidate". The adapter therefore
+synthesizes confidence as the relative concentration of fuzzy
+contribution mass on the top-1 service within the top-K head:
+
+```
+confidence = top1_C / sum(C over top-K)
+```
+
+clipped to [0, 1]. A unique winner with much higher C than the
+runners-up gives confidence near 1; a near-tie gives confidence
+near 1/K. Mirrors the convention adopted by the other six
+adapters (MR's ``1 − top2/top1``, CR's ``1 − top2/top1``, etc.)
+so cross-method calibration analysis is meaningful.
+
+### Onset detection: shared utility
+
+FODA-FCP's pre/post split for fuzzifier z-score computation is
+anchored at the :func:`evaluation.methods._onset.detect_onset`
+pivot. This is the same opt-in shared utility that MonitorRank,
+CausalRCA, MicroRCA, and yRCA reuse. The adapter therefore
+inherits the detector's edge-fragility under canonical
+preprocessing — see the cross-method offset-robustness diagnostic
+in ``paper/notes/findings.md`` (FODA-FCP entry).
+
+### Decomposition diagnostics (brief §8, §9, Paper 6 §4)
+
+The harness ``evaluate_foda_fcp.py`` emits two FODA-FCP-specific
+diagnostic axes:
+
+* **``--with-random-onset``** — replace
+  :func:`detect_onset` with a uniformly-random in-band pivot.
+  Detector-vs-rule-engine decomposition.
+* **``--with-offset-robustness``** — re-normalize each case at the
+  per-case hashed default, 5 %, 95 %, and 50 % of the window.
+  Reports the five offset-robustness columns
+  (``a_standard``, ``b_edge_left``, ``b_edge_right``,
+  ``b_edges_mean``, ``c_centered``) on the Paper 6 §4 standard
+  reporting axis. FODA-FCP inherits the shared
+  ``_onset.detect_onset`` utility's [25 %, 75 %] search band
+  constraint and is therefore expected to fragilise at edges
+  similarly to MonitorRank / CausalRCA / MicroRCA / yRCA. The
+  ``--append-offset-diagnostic`` flag appends per-case rows to
+  the shared cross-method diagnostic CSV
+  (``results/cross_method_offset_diagnostic.csv``) under
+  ``method="FODA-FCP"``.
+
+### Validation against published baselines
+
+Validated via (a) synthetic 3-service and 5-service scenarios
+with a clear root cause, plus the explanation-shape tests in
+``evaluation/tests/test_foda_fcp.py::TestOntologyGroundedExplanation``
+that assert atoms carry full DiagnosticKB URIs and that exactly
+one Recommendation atom is emitted for the predicted root cause,
+and (b) per-fault-type AC@k on all 125 RE1-OB cases via
+``evaluation/experiments/evaluate_foda_fcp.py``. Results live in
+``results/week2_foda_fcp_validation.csv``. Headline numbers and
+cross-method comparison live in ``paper/notes/findings.md`` under
+"FODA-FCP entry" and the final cross-method finding block.
+
+The AICT 2026 paper's evaluation used a different
+benchmark / deployment environment with calibrated SLO thresholds;
+direct number comparison against the published AC@k figures is
+not meaningful under canonical-schema preprocessing
+(Deviation 1). FODA-FCP's value within Paper 6 is the
+ontology-grounded **explanation chain** (Recommendation atom,
+suggests_mitigation links, full DiagnosticKB URIs) that Paper 6
+Phase 2's SemanticGroundedness metrics will measure against the
+other six methods' chains.
+
