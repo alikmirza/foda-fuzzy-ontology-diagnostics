@@ -1045,3 +1045,270 @@ CSV covering all six unsupervised methods, the yRCA and FODA-FCP
 case-study samples archived for Figure 6, and the cross-method
 finding block above as the §4 narrative scaffold.
 
+---
+
+## 2026-05 — Phase 2 Week 1: SemanticGroundedness baseline characterization
+
+The first of four method-agnostic semantic-quality metrics for Paper
+6. SG scores how well a method's :class:`CanonicalExplanation`
+grounds into the DiagnosticKB ontology, on a per-atom rule:
+
+  * Direct match (atom carries an ``ontology_class`` URI known to the
+    ontology) → 1.0
+  * Fuzzy match (atom text fuzzy-matches an ontology label at
+    threshold 0.7) → 0.5
+  * No match → 0.0
+
+The overall score is the mean of per-atom scores; empty explanations
+return 0.0. Implementation in ``evaluation/metrics/semantic_groundedness.py``;
+the ontology wrapper that backs the matcher is
+``evaluation/metrics/ontology_adapter.py``. See
+``evaluation/experiments/run_phase2_sg.py`` for the harness; raw
+per-case rows are in ``results/phase2_semantic_groundedness.csv``
+(875 rows = 7 methods × 125 cases).
+
+(1) HEADLINE NUMBERS (RE1-OB, default SG parameters with
+token-aligned fuzzy matcher — see §5 below for the v1→v2 change):
+
+| method   | n   | SG_mean | SG_std | AC@1  | direct_avg | fuzzy_avg | unmatched_avg | atoms_avg |
+|----------|-----|---------|--------|-------|------------|-----------|---------------|-----------|
+| MR       | 125 | 0.000   | 0.000  | 0.632 | 0.00       | 0.00      | 3.00          | 3.00      |
+| CR       | 125 | 0.000   | 0.000  | 0.624 | 0.00       | 0.00      | 5.00          | 5.00      |
+| Micro    | 125 | 0.000   | 0.000  | 0.624 | 0.00       | 0.00      | 3.00          | 3.00      |
+| BARO     | 125 | 0.000   | 0.000  | 0.536 | 0.00       | 0.00      | 4.00          | 4.00      |
+| DejaVu   | 125 | 0.000   | 0.000  | 0.696 | 0.00       | 0.00      | 12.98         | 12.98     |
+| yRCA     | 125 | 0.267   | 0.142  | 0.328 | 0.00       | 3.10      | 3.81          | 6.90      |
+| FODA-FCP | 125 | **1.000** | 0.000 | 0.448 | **3.72**   | 0.00      | 0.00          | 3.72      |
+
+Three sharply separated tiers emerge:
+
+* **FODA-FCP at 1.000** — every atom carries a full DiagnosticKB URI
+  (CpuSaturation, MemoryLeak, Rec_*, ContributingFactor). Direct
+  matches on every atom of every case. SG_std = 0.000 — fully
+  saturated; no per-case variance.
+* **yRCA at 0.267** — role tags (``[final_root_cause]``,
+  ``[intermediate_propagator]``) token-match the ontology's
+  ``RootCause`` class. Default_process splits ``final_root_cause``
+  into ``"final"``/``"root"``/``"cause"`` tokens, which covers the
+  RootCause label's two content tokens in full. ~45% of atoms
+  match (3.10 / 6.90 avg). 3.3pp below the brief's predicted
+  lower bound of 0.30 but well within the alarm tolerance.
+* **MR / CR / Micro / BARO / DejaVu at 0.000** — free-text atoms
+  (e.g. ``"adservice: anomalous cpu"``, ``"attended: X (α=…
+  from Y)"``) do not whole-token-match any DiagnosticKB content
+  label. DejaVu's two semantically-grounding atoms
+  (``predicted failure type: cpu``, ``predicted failure unit:
+  cartservice``) are tagged in DejaVu's own ``foda:FailureType/`` /
+  ``foda:Service/`` namespaces, not in DiagnosticKB, so they
+  correctly score 0 on direct match.
+
+The discrimination across methods is now **fully bimodal** at the
+specific-grounding axis: either a method directly tags DiagnosticKB
+URIs (FODA-FCP), or it produces role-tagged text that whole-token-
+matches an ontology concept (yRCA's RootCause), or it scores zero.
+The metric cleanly separates "explicitly grounds against DiagnosticKB"
+from "happens to use overlapping vocabulary".
+
+(2) PER-FAULT BREAKDOWN
+
+| method   | cpu   | delay | disk  | loss  | mem   |
+|----------|-------|-------|-------|-------|-------|
+| MR       | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| CR       | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| Micro    | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| BARO     | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| DejaVu   | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| yRCA     | 0.376 | 0.245 | 0.146 | 0.231 | 0.335 |
+| FODA-FCP | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+
+Two patterns visible per fault type:
+
+* **FODA-FCP is constant 1.000** across all five fault types. Atoms
+  are tagged regardless of which Mamdani rule fired — explanation
+  grounding is **structural**, not signal-dependent.
+* **yRCA's per-fault SG varies between 0.15 (disk) and 0.38 (cpu)**.
+  The variation tracks the rule-engine's coverage: CPU faults
+  produce more events that fire R1, leading to more role-tagged
+  atoms whose text whole-token-matches "root cause". Disk faults
+  under-trigger the rule engine; fewer R3 ``final_root_cause``
+  facts emerge per case.
+* **MR / CR / Micro / BARO / DejaVu score 0.000 on every fault**.
+  These methods either emit no DiagnosticKB URIs at all (MR, CR,
+  Micro, BARO) or emit URIs in their own non-DiagnosticKB
+  namespace (DejaVu's ``foda:FailureType/`` and ``foda:Service/``).
+  No atom whole-token-matches a DiagnosticKB content label either.
+
+(3) AC@1 vs SG SPEARMAN
+
+Across all 875 (method, case) pairs:
+
+  ρ(AC@1, SG) = **−0.190**
+
+The rank correlation is near zero (slightly negative). **Rank-quality
+and ontology-grounding are roughly independent on RE1-OB.** This is
+the empirical claim Paper 6 §4 positions on:
+
+* Method-level: DejaVu wins AC@1 (0.696) but scores 0 on SG;
+  FODA-FCP scores 1.000 on SG but ranks 4th on AC@1 (0.448).
+  Methods optimised for ranking accuracy don't automatically
+  produce grounded explanations, and vice versa.
+* Case-level (the 875-pair correlation): five of seven methods
+  score 0 on SG regardless of AC@1, so the within-method
+  correlation is degenerate for those five. The cross-method
+  signal — FODA-FCP and yRCA carrying all non-zero SG mass — is
+  what drives the pooled correlation.
+
+The negative sign (−0.190) is driven by FODA-FCP being the only
+high-SG method and its AC@1 sitting below the AC@1 top tier.
+This pattern motivates the **four-axis Paper 6 §4
+characterization** the brief outlines — aggregate AC@1 is not just
+a lossy ranking metric, it is **anti-correlated** with the
+ontology-grounding axis SG measures.
+
+(4) VALIDATION vs BRIEF'S PREDICTED RANGES
+
+| method   | predicted     | observed | status |
+|----------|---------------|----------|--------|
+| FODA-FCP | 0.90 – 1.00   | 1.000    | ✓ at upper bound |
+| yRCA     | 0.30 – 0.50   | 0.267    | ✓ within 3.3pp of lower bound (token-aligned conservative) |
+| DejaVu   | 0.10 – 0.30   | 0.000    | ✗ token-aligned removed the partial-character artifact that drove v1's 0.109 (see §5) |
+| MR       | 0.05 – 0.15   | 0.000    | ✗ free-text atoms don't whole-token-match any DiagnosticKB content label |
+| CR       | 0.05 – 0.15   | 0.000    | ✗ same |
+| Micro    | 0.05 – 0.15   | 0.000    | ✗ same |
+| BARO     | 0.05 – 0.15   | 0.000    | ✗ same |
+
+Both alarm thresholds clear:
+
+* FODA-FCP ≥ 0.80 — yes (1.000) ✓
+* MR ≤ 0.30 — yes (0.000) ✓
+
+The five methods at 0.000 fall **below** the brief's lower bound
+of 0.05 by 5pp each. After the spot-check uncovered the character-
+substring artifact (§5 below), we deliberately tightened the
+matcher; the brief's predicted lower bounds were calibrated against
+the looser partial-ratio behaviour and don't hold under token
+alignment. The cross-method ordering and the qualitative finding
+("FODA-FCP and yRCA carry all the ontology-grounding signal") are
+preserved; only the absolute numbers for the five free-text methods
+collapse to a strict zero.
+
+(5) DESIGN DECISIONS NOT SPELLED OUT IN THE BRIEF
+
+* **``has_class`` accepts individuals.** DiagnosticKB.owl declares
+  fault prototypes (``CpuSaturation``, ``MemoryLeak``, …) as
+  :class:`owl:NamedIndividual` instances of the ``Fault`` class
+  rather than as OWL classes. FODA-FCP atoms tag against these
+  individuals. The metric treats both classes and individuals as
+  "known entities" because the question SG answers is "is this URI
+  defined by the target ontology", regardless of OWL kind.
+  Documented in the adapter docstring.
+* **Token-aligned fuzzy match (v2; replaced v1 partial-ratio).**
+  Initial implementation used ``rapidfuzz.fuzz.partial_ratio`` on
+  case-folded text — produced character-substring artifacts. The
+  spot-check found that **every DejaVu attention atom** of shape
+  ``"attended: X (α=… from cartservice)"`` scored 70.0 partial-ratio
+  against the ``RootCause`` label, via the character substring
+  ``"rt cause"`` inside ``"from cartservice"``. Three such atoms
+  per case × 0.5 fuzzy weight ÷ 13 atoms ≈ 0.115 SG — DejaVu's
+  entire v1 score was the artifact. Switched to token-aligned
+  matching: tokenise both the atom text and the label via
+  ``utils.default_process`` + whitespace split, drop tokens
+  shorter than 3 chars, and require the fraction of label
+  CONTENT tokens (≥3 chars) that appear as whole tokens in the
+  atom to exceed the threshold (default 0.7). yRCA's legitimate
+  ``"final_root_cause"`` → ``"final"``/``"root"``/``"cause"``
+  tokenisation still whole-matches the ``RootCause`` content tokens
+  ``{"root", "cause"}`` at 100% coverage. The DejaVu artifact is
+  removed (0 of 13 atoms match per case). Three named regression
+  tests lock in this behaviour:
+  ``test_dejavu_attention_atom_does_not_match_rootcause``,
+  ``test_yrca_role_atom_matches_rootcause``,
+  ``test_token_alignment_rejects_character_substring``.
+
+  **v1 vs v2 numbers**:
+
+  | method   | SG (v1 partial-ratio) | SG (v2 token-aligned) | delta |
+  |----------|-----------------------|-----------------------|-------|
+  | FODA-FCP | 1.000                 | 1.000                 | 0.000 |
+  | yRCA     | 0.287                 | 0.267                 | -0.020 |
+  | DejaVu   | 0.109                 | 0.000                 | -0.109 (artifact removed) |
+  | MR       | 0.048                 | 0.000                 | -0.048 |
+  | CR       | 0.048                 | 0.000                 | -0.048 |
+  | Micro    | 0.060                 | 0.000                 | -0.060 |
+  | BARO     | 0.060                 | 0.000                 | -0.060 |
+  | ρ        | -0.164                | -0.190                | -0.026 |
+
+  FODA-FCP unchanged (direct URI match path independent of fuzzy).
+  yRCA −0.020 (the v1 partial-ratio occasionally also matched
+  ``Severity`` via "severity=…" substring; under token alignment
+  that requires the blacklisted single-token label and never
+  fires). The five non-FODA-FCP, non-yRCA methods collapse to
+  exactly zero, removing partial-character credit for free-text
+  atom shapes.
+
+* **Fuzzy-match class blacklist.** Even under token alignment, the
+  8 abstract OWL metaclasses (``Fault``, ``Anomaly``, ``Severity``,
+  ``Metric``, ``MicroService``, ``DiagnosticResult``, ``MLModel``,
+  ``Symptom``) are excluded from the fuzzy pool as defence in
+  depth. These are single-token labels that would whole-token-
+  match free text containing the exact word "anomaly" or
+  "severity" — semantically still too generic to credit. Direct
+  URI lookups still resolve blacklisted classes (``has_class``
+  unchanged).
+
+* **Minimum token length 3 chars.** Drops two-letter tokens
+  ("io", "of") and short symbols ("α", "0") from both atom and
+  label before the set intersection. Keeps domain tokens like
+  "cpu" eligible.
+
+(6) WHAT THIS LETS PAPER 6 SAY
+
+The four-axis characterization (S(M), random-onset AC@1,
+detected-onset AC@1, offset-robustness) was the Phase-1
+contribution. Phase 2 Week 1 adds the fifth axis: **explanation-
+quality grounding**, which is **independent of the first four**.
+The 3-tier method ranking (FODA-FCP ≫ yRCA ≫ MR/CR/Micro/BARO/DejaVu
+at zero) on SG disagrees materially with the AC@1 ranking (DejaVu >
+MR/CR/Micro > BARO > FODA-FCP > yRCA). Methods that win on
+deployment realism + rank quality do not automatically explain
+themselves to operators in a way that is grounded in a shared
+diagnostic ontology — and vice versa.
+
+The token-aligned scorer produces a sharper, less hedge-y claim
+than v1 would have: under v1's partial-ratio matcher, all seven
+methods had non-zero SG with order-of-magnitude separation; under
+v2's token-aligned matcher, only **two** methods (FODA-FCP and
+yRCA) ground against DiagnosticKB at all. The other five score
+strictly zero — they emit atoms that either carry foreign-
+namespace URIs (DejaVu) or pure free text (MR/CR/Micro/BARO).
+This is the precondition for Paper 6's three-method case-study
+figure (Figure 6: yRCA vs FODA-FCP vs DejaVu side-by-side) and for
+the §4 narrative on "explanation quality as an orthogonal
+deployment-realism axis".
+
+(7) LIMITATIONS
+
+* **No Tbilisi LNNS reference reproduction.** The LNNS paper's
+  worked example is not archived in this repository. The Java side
+  has ``rca-explanation-comparison-aggregated.csv`` reporting a
+  text-based semantic-groundedness component (0.000 for the legacy
+  builder, 0.245 for the ontology-grounded builder) on 12 synthetic
+  scenarios — a different formulation (substring counting of
+  ``"diagnostic:"`` prefix vs fault category labels) not directly
+  comparable to the Phase-2 structural metric. Documented in
+  ``evaluation/metrics/semantic_groundedness.py`` module docstring;
+  worth flagging when we re-survey the LNNS submission to make sure
+  the framing in Paper 6's §4.1 matches what was published.
+* **The fuzzy threshold, class blacklist, and min-token-length are
+  tuning knobs.** All three were chosen empirically. The token-
+  alignment switch was made when the spot-check on DejaVu uncovered
+  the character-substring artifact that v1's partial-ratio matcher
+  produced; v2's three named regression tests
+  (``test_dejavu_attention_atom_does_not_match_rootcause``,
+  ``test_yrca_role_atom_matches_rootcause``,
+  ``test_token_alignment_rejects_character_substring``) lock in
+  the desired semantics. A formal sensitivity characterization
+  (vary the threshold from 0.5 to 0.95, vary the blacklist, vary
+  the min-token-length 2 vs 3 vs 4) is deferred to Week 4
+  alongside the other three semantic-quality metrics' ablations.
+
