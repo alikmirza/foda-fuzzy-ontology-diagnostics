@@ -1388,3 +1388,134 @@ the metric module. Calibrating SC to a different deployment's
 fault-propagation regime means editing
 ``ontology/DiagnosticKB.owl``, not the metric.
 
+
+## ExplanationCompleteness metric (Paper 6 Phase 2 Week 3)
+
+### Three-category contract
+
+EC scores three binary detectors (root cause type, affected
+component, mitigation recommendation) and reports their fraction
+in ``{0.0, 0.333, 0.667, 1.0}``. Each detector accepts an atom
+either via its ``ontology_class`` URI membership in a
+category-specific DiagnosticKB set or via a token-aligned label
+match against the same category's labels at coverage ≥ 0.7
+(SG's threshold). The component detector additionally accepts a
+whole-token match against the case's ``services`` list — needed
+because DiagnosticKB doesn't enumerate specific microservices.
+
+### Strict cause-detection threshold (design choice)
+
+The text-level cause detector uses the **same 0.7 coverage
+threshold as Week 1's SG**. This is a deliberate choice with
+trade-offs on cross-method comparability:
+
+* **Strict reading (shipped).** A method that emits a fault
+  label as a bare service-type token (DejaVu's ``"predicted
+  failure type: cpu"`` → bare token ``"cpu"``) does **not**
+  whole-token-cover the DiagnosticKB label ``"CPU Saturation"``
+  at 0.7 (coverage is 1/2 = 0.5). Result: DejaVu's failure-
+  type atom does **not** trigger ``has_cause``; DejaVu's EC on
+  RE1-OB is 0.333 (component only).
+
+  The rationale: a method that names a fault as ``"cpu"``
+  without naming the fault class
+  (``"CpuSaturation"`` / ``"CPU Saturation"`` / equivalent) is
+  undercommunicating diagnostic content. The operator reading
+  ``"predicted failure type: cpu"`` learns *which kind of
+  symptom* but not *which fault prototype the explanation
+  asserts*. EC's strict reading enforces conformance to
+  DiagnosticKB's vocabulary as a precondition for the cause
+  credit, the same way SG's atom-level grounding enforces it
+  for atom-level credit.
+
+* **Lenient alternative (NOT shipped).** A variant that accepts
+  single-token matches against single-token Fault labels (e.g.,
+  ``"cpu"`` against ``"CpuSaturation"`` after dropping the
+  ``"saturation"`` portion, or against a ``label_aliases`` list
+  including ``"cpu"`` as a synonym) would raise DejaVu's EC to
+  ``0.667`` (cause + component, no mitigation). yRCA's
+  ``"derived_by_rules=['cpu_high']"`` text, similarly tokenised
+  to ``{cpu, high}``, would still need the alias table.
+
+  Trade-off: the lenient rule increases EC values for non-
+  DiagnosticKB-vocabulary methods at the cost of letting any
+  text containing ``"cpu"`` count as a cause claim — including
+  free-text atoms like ``"cpu_usage spiked at t=42"`` that name
+  the *metric* not the *fault prototype*. We judge this too
+  permissive for Paper 6's "structured explanation" axis.
+
+* **Cross-vocabulary alias table (future work).** A more
+  defensible loosening would maintain an explicit
+  ``{benchmark_category: ontology_fault_uri}`` map (e.g.,
+  RCAEval ``"cpu"`` → DiagnosticKB ``"#CpuSaturation"``) and
+  consult it before falling back to the token-coverage rule.
+  This is out of scope for the dissertation but a natural
+  Week-5+ extension if Paper 6 wants to credit benchmark-
+  vocabulary fault names without weakening the strict rule.
+
+The strict choice means **the 0.333 floor that MR / CR / Micro /
+BARO / DejaVu / yRCA all hit is a structural property of the
+metric**, not a measurement defect. It says "these methods do
+not produce DiagnosticKB-vocabulary fault-type content"; the
+service-name text rule still credits the component category for
+all of them, so they don't collapse to zero. FCP's 0.824 mean
+reflects the only method that surfaces DiagnosticKB
+fault/recommendation atoms across the case suite.
+
+### Mitigation detector
+
+Symmetric to the cause detector: accepts atoms whose
+``ontology_class`` is in the Recommendation URI set, or whose
+text whole-token-covers a Recommendation label at 0.7. No
+single-token or lenient variant shipped. Only FCP currently
+emits ``Rec_*`` atoms; the strict rule is consistent with the
+cause detector's design.
+
+### Affected-component detector
+
+Asymmetric to the other two: in addition to ontology-side URI
+membership (``MicroService`` class), it accepts a **whole content
+token** match against the case's ``services`` list. Whole-token
+match defends against substring artifacts
+(``"adservice"`` ∉ ``"loadservice"`` tokenisation). The
+service-name path is what lifts every method's EC off zero —
+all six non-FCP methods produce atoms naming the affected
+service in text.
+
+### Knobs exposed for future use
+
+* :data:`_TEXT_MATCH_THRESHOLD` (= 0.7) — coverage cutoff,
+  matched to Week 1 SG.
+* :data:`_MIN_TOKEN_LEN` (= 3) — content-token minimum length.
+* :data:`PROPAGATION_RELATIONS` is **not** used by EC (only by
+  SC); EC's category sets come from the OntologyAdapter
+  helpers added in Week 3 (``list_fault_prototypes``,
+  ``list_recommendations``, ``list_microservices``).
+
+### Cross-method properties on RE1-OB
+
+* FCP EC = 0.824 — driven by 90 / 125 cases scoring 1.0 (full
+  three-category chain). 31 cases score 0.333 (silent Mamdani
+  + silent fuzzy fallback) and 4 score 0.667 (cause but no
+  mitigation). The 0.824 ≠ 0.9 gap is the same Phase-1 cpu-
+  vs-mem asymmetry projected onto the completeness axis.
+* yRCA / DejaVu / MR / CR / Micro / BARO EC = 0.333 — all hit
+  the floor under the strict reading; service-name text
+  match fires, cause and mitigation detectors do not.
+* ρ(SG, EC) and ρ(SC, EC) — see findings.md for the numbers
+  and the "high correlations reflect the lack of
+  ontology-grounded baselines" caveat.
+
+### Why we ship strict
+
+The strict reading makes EC's claim auditable: a method's
+``has_cause = 1`` IS a claim about that method's DiagnosticKB-
+vocabulary conformance, full stop. Loosening it via single-
+token matches or aliases changes that claim ("the method
+**may** be referring to a DiagnosticKB fault prototype") and
+introduces tuning surface area that's bad for cross-paper
+comparability. The strict rule is conservative; readers can
+infer "method X surfaces a fault type in some vocabulary"
+from AC@1 + the per-method explanation snippets, without
+needing EC to credit it implicitly.
+

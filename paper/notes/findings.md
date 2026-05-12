@@ -1817,3 +1817,381 @@ The variant-4 metric replaces v2 outright; ``DEVIATIONS.md``
 captures the design history under
 ``## SemanticCoherence metric (Paper 6 Phase 2 Week 2)``.
 
+
+## 2026-05 — Phase 2 Week 3: ExplanationCompleteness baseline characterization
+
+**Headline.** EC asks the operator's question: does the chain
+tell me *what kind of fault*, *which service*, and *what to do*?
+Each category is a binary detector; aggregate is the fraction
+present, taking one of four values in
+``{0.0, 0.333, 0.667, 1.0}``. EC complements SG (atom-level
+grounding) and SC (link-level coherence) on a structural axis —
+the four metrics together characterise an explanation's
+**actionability** (EC), **groundedness** (SG), **coherence** (SC),
+and the upstream **rank quality** (AC@1).
+
+FCP scores **0.824** mean EC — 90/125 cases at 1.0, 4/125 at
+0.667, 31/125 at 0.333 (no method scored 0.0). All other six
+methods score exactly **0.333** on every case (component-only:
+the service-name text rule fires on all 125 cases for every
+method, but neither the strict DiagnosticKB-vocabulary cause
+detector nor the recommendation detector ever fires). The FCP
+alarm at 0.9 is **tripped** — the diagnostic in §3 below shows
+this is a Phase-1 explanation-completeness issue, not a metric
+defect.
+
+(1) DESIGN DECISIONS
+
+**Strict ontology vocabulary.** Each category detector matches
+atoms via either (a) the atom's ``ontology_class`` URI being in
+the relevant DiagnosticKB category set, or (b) the atom's text
+covering ≥ 70 % of a category-specific label's content tokens
+(token-aligned per Week 1 SG's tokenisation). EC inherits SG's
+0.7 threshold for the text path so the two metrics agree on
+what "groundedness" looks like at the atom level.
+
+**Per-category URI sets, not global label search.** The Week-1
+SG matcher uses :meth:`OntologyAdapter.find_class_by_label` which
+returns the single best match across **all** ontology labels and
+prefers shorter labels as a tiebreaker. EC needs a different
+question — "is there ANY label in *this* category that the text
+covers?" — because a text like
+``"final_root_cause: cartservice cpu saturation"`` covers both
+``"Root Cause"`` (RootCause class) and ``"CPU Saturation"`` (a
+Fault prototype) at 100 %; the SG matcher's shorter-label
+tiebreaker returns RootCause, which is NOT a fault prototype,
+producing a false negative on the root-cause category. EC
+addresses this with :func:`_text_matches_any_label` which
+iterates over the category-specific URI subset and short-
+circuits on the first match clearing the threshold.
+
+**Affected-component text rule = service-name whole-token match.**
+DiagnosticKB doesn't enumerate specific RE1-OB services
+(cartservice, frontend, …) — the runtime discovers them per
+case from :attr:`NormalizedCase.services`. So the affected-
+component detector has two paths: (a) an atom whose
+``ontology_class`` is :class:`MicroService` or one of its
+individuals (currently just the class URI, since no services are
+declared), or (b) any service name from the case's service list
+appearing as a **whole content token** in the atom text. The
+whole-token rule defends against substring false-positives
+(``"adservice"`` ≠ ``"loadservice"``).
+
+**Mitigation-token substring matching is NOT used here.** The
+Week 2 SC metric uses substring matching to detect
+``suggests_mitigation``-style relation types and exclude those
+links from SC's denominator. EC instead checks atom-level
+``ontology_class`` against the Recommendation URI set and atom
+text against Recommendation labels — i.e., the same atom-level
+contract the cause detector uses. Mitigation is recognised by
+its *ontology category*, not by a relation-type substring.
+
+(2) NUMBERS
+
+Headline aggregates (7 methods × 125 cases):
+
+| Method   |  n   | EC mean | EC std | SG mean | SC mean | AC@1  | cause% | comp% | mit%  |
+| -------- | ---: | ------: | -----: | ------: | ------: | ----: | -----: | ----: | ----: |
+| MR       | 125  |   0.333 |  0.000 |   0.000 |   0.000 | 0.632 |  0.000 | 1.000 | 0.000 |
+| CR       | 125  |   0.333 |  0.000 |   0.000 |   0.000 | 0.624 |  0.000 | 1.000 | 0.000 |
+| Micro    | 125  |   0.333 |  0.000 |   0.000 |   0.000 | 0.624 |  0.000 | 1.000 | 0.000 |
+| BARO     | 125  |   0.333 |  0.000 |   0.000 |   0.000 | 0.536 |  0.000 | 1.000 | 0.000 |
+| DejaVu   | 125  |   0.333 |  0.000 |   0.000 |   0.000 | 0.696 |  0.000 | 1.000 | 0.000 |
+| yRCA     | 125  |   0.333 |  0.000 |   0.267 |   0.000 | 0.328 |  0.000 | 1.000 | 0.000 |
+| FODA-FCP | 125  |   **0.824** |  0.289 |   1.000 |   0.266 | 0.448 | 0.752 | 1.000 | 0.720 |
+
+(3) ALARM GATES + FCP-AT-0.824 DIAGNOSTIC
+
+```
+⚠ FCP EC mean 0.824 < 0.9         (tripped)
+✓ MR EC mean 0.333 ≤ 0.4          (component-only as expected)
+✓ CR EC mean 0.333 ≤ 0.4
+✓ Micro EC mean 0.333 ≤ 0.4
+✓ BARO EC mean 0.333 ≤ 0.4
+✓ yRCA EC mean 0.333 < 1.0        (no mitigation atoms — correct)
+```
+
+The FCP alarm trips. We inspected the 31 / 125 cases where FCP
+scored 0.333 (component-only). All 31 share the same Phase-1
+property:
+
+* The injected workload (delay, loss, disk) does not produce a
+  large enough post-vs-pre z-score in CPU, memory, latency, error,
+  or throughput features to fire any Mamdani rule. All services'
+  ``dominant_category`` is ``UNKNOWN``. All ``H`` and ``C`` values
+  are 0.0.
+* The fuzzy-fallback helper :func:`_infer_fault_prototype_from_fuzzy`
+  (Week-2 v2) returns ``None`` because no fuzzy term clears the
+  0.20 membership floor.
+* FCP emits 3 atoms tagged with the abstract
+  ``ContributingFactor`` class and **no Recommendation atom**
+  (the Recommendation atom is only emitted when the root
+  service's Mamdani fires).
+* AC@1 = 1.0 in many of these cases is incidental: when all
+  services tie at C = 0.0, FCP's deterministic name-order
+  tiebreaker can still pick the correct service.
+
+Per-fault breakdown of the 31 low-EC FCP cases:
+
+| fault | count | reason |
+| ----- | ----: | --- |
+| delay | 12 | latency_CRITICAL not reached on these injections |
+| loss  | 12 | errorRate_HIGH not reached |
+| disk  |  7 | disk anomalies don't surface in cpu/mem/lat/err/traffic features |
+
+No cpu or mem cases in the low-EC bucket — cpu/mem injections
+fire Mamdani reliably and produce full EC = 1.0 chains
+(82/125 of FCP's 1.0 scores are cpu + mem cases).
+
+**Interpretation.** The 0.824 score is honest: EC is correctly
+detecting that FCP can't surface cause/mitigation content when
+its rule engine doesn't fire. The brief's 0.9 alarm was
+calibrated for cpu/mem-dominated cases (the dissertation's
+Phase 1 case-study) and overshoots for delay/loss/disk where
+FCP's fuzzification regime is too conservative. Improving FCP's
+fault-type inference on these cases (extending the fuzzy term
+vocabulary, lowering the membership floor, or adding a
+last-resort "best-guess" prototype) would lift EC; that's a
+Phase-1 design choice, not a metric defect.
+
+**Link to Phase 1 cpu-vs-mem asymmetry.** This 0.824 mean
+reflects the same Phase 1 limitation that produced FCP's
+cpu-vs-mem AC@1 asymmetry: when canonical feature signatures
+don't trigger Mamdani rule antecedents (delay/loss/disk
+faults), FCP emits abstract ``ContributingFactor`` atoms but
+no Recommendation. The 31 low-EC cases (12 delay + 12 loss +
+7 disk) overlap with the cases where FCP's fuzzification is
+conservative. EC correctly detects this as a missing
+mitigation-category signal, complementing the AC@1 view of
+the same underlying property — Phase 1's accuracy lens saw
+the lost rank precision on these faults; Phase 2 Week 3's
+completeness lens sees the lost diagnostic content. Both
+trace back to the same z-score-driven fuzzification choice
+documented in DEVIATIONS.md → "FODA-FCP adapter / Deviation
+1: z-score-driven fuzzy memberships".
+
+**Recommendation.** We accept 0.824 as the honest Week-3
+baseline and note the structural cause in this section. The
+gap from 0.9 corresponds 1:1 with FCP's silent-rule-engine
+failure mode, which is already documented in the Week-2 v3
+findings (the "Issue C — sparse fuzzy signal" diagnostic).
+Paper 6 can either report 0.824 with this caveat or pursue an
+FCP-side fix in a future revision.
+
+(4) PER-CATEGORY PRESENCE FRACTIONS
+
+The per-method per-category breakdown reveals which information
+axes each method covers and which it skips. Reading the
+fraction column tells the reader: across the 125 cases, on what
+fraction of cases did this method emit at least one atom of
+the given category.
+
+| Method   | cause%  | comp%   | mit%    | EC mean |
+| -------- | ------: | ------: | ------: | ------: |
+| MR       |  0.000  |  1.000  |  0.000  |  0.333  |
+| CR       |  0.000  |  1.000  |  0.000  |  0.333  |
+| Micro    |  0.000  |  1.000  |  0.000  |  0.333  |
+| BARO     |  0.000  |  1.000  |  0.000  |  0.333  |
+| DejaVu   |  0.000  |  1.000  |  0.000  |  0.333  |
+| yRCA     |  0.000  |  1.000  |  0.000  |  0.333  |
+| FODA-FCP |  0.752  |  1.000  |  0.720  |  0.824  |
+
+* **Component (where)**: every method surfaces a service name
+  via atom text on every case — the service-name text rule
+  fires across the board. The component category is the
+  baseline every method achieves.
+
+* **Cause (what)**: only FCP fires (75.2%). The other six fail
+  because (a) their atoms don't carry DiagnosticKB fault URIs,
+  and (b) their atom text doesn't whole-token-cover any Fault
+  prototype label at 0.7 coverage. DejaVu's
+  ``"predicted failure type: cpu (p=...)"`` text covers only
+  ``cpu`` against the ``"CPU Saturation"`` label (coverage
+  1/2 = 0.5 < 0.7). yRCA's
+  ``"... derived_by_rules=['cpu_high']"`` text similarly tokens
+  to ``{cpu, high}`` against ``{cpu, saturation}`` — 0.5 coverage.
+  The metric is correctly enforcing DiagnosticKB-vocabulary
+  conformance, not generic fault-naming.
+
+* **Mitigation (what to do)**: only FCP fires (72.0%). The
+  ``Rec_*`` ontology individual is unique to FCP's chain. yRCA,
+  DejaVu, and the four MR-family methods have no concept of a
+  mitigation atom.
+
+The 75.2% / 72.0% mismatch on FCP comes from the
+silent-Mamdani failure mode (§3): when no fault prototype is
+inferred for the root, FCP emits no Recommendation atom, so
+both ``cause%`` and ``mit%`` drop together. The small gap
+(75.2 - 72.0 = 3.2pp) corresponds to the 4 cases where FCP
+inferred a non-root fault prototype via fuzzy fallback but no
+Recommendation atom — these score 0.667 (cause + component, no
+mitigation).
+
+(5) CORRELATIONS
+
+Spearman rank correlations over all 875 (method, case) pairs:
+
+```
+ρ(AC@1, EC) = -0.015     # essentially zero — EC is rank-independent
+ρ(SG,   EC) = +0.648     # strong-moderate — both gate on atom grounding
+ρ(SC,   EC) = +0.723     # strong — both reward FCP's full chain shape
+```
+
+* **ρ(AC@1, EC) ≈ 0** confirms EC is **not a rank-quality
+  proxy**. Methods can be rank-accurate (DejaVu AC@1 = 0.696)
+  while producing minimum-completeness chains (EC = 0.333), or
+  rank-mediocre (yRCA AC@1 = 0.328) with the same minimum-
+  completeness chain. EC measures explanation **structure**,
+  not accuracy.
+
+* **ρ(SG, EC) = 0.648** is the shared-atom-grounding
+  dependency. A method that grounds zero atoms in DiagnosticKB
+  (SG = 0) can satisfy at most the component category via the
+  service-name text rule (EC ≤ 0.333). The correlation isn't
+  higher because (a) six methods all sit at SG = 0 and EC =
+  0.333 in lockstep (which contributes maximally to rank
+  agreement) and (b) FCP's SG is uniformly 1.0 across cases,
+  so all variation on the FCP side comes from EC alone — there
+  is no within-FCP SG signal to correlate with within-FCP EC
+  variation. The 0.648 is a "between-methods" agreement; within
+  any single method, the metrics carry independent information.
+
+* **ρ(SC, EC) = 0.723** is the highest pairwise correlation
+  among the four Phase-2 metrics so far. Both metrics reward
+  FCP's full chain (FCP scores positive on both; everyone else
+  scores zero on SC and 0.333 on EC). The correlation reflects
+  the binary "is this method FCP or not" partition more than
+  intra-FCP variation. Inside FCP, ρ(SC, EC) is weaker because
+  SC depends on per-case propagation density while EC depends
+  on whether any fault prototype + recommendation atom is
+  present.
+
+The three correlations together support Paper 6's claim that
+the four metrics measure **distinct but related** aspects of
+explanation quality. The strongest correlation (SC↔EC at 0.72)
+is still well below the redundancy bar (ρ ≥ 0.85 would suggest
+one metric is a proxy for the other).
+
+**Methodological note on the SG-EC and SC-EC magnitudes.** The
+high ρ(SG, EC) = 0.648 and ρ(SC, EC) = 0.723 reflect a
+methodological observation about current RCA methods rather than
+metric redundancy. On RE1-OB with canonical preprocessing, only
+FODA-FCP produces atoms grounded in the diagnostic ontology;
+other methods' explanation chains consist of service names and
+anomaly scores with no fault-class or recommendation content.
+The metrics correctly characterize this asymmetry: methods that
+fail to ground atoms cluster at the floor (SG = 0, SC = 0, EC =
+0.333), while the one ontology-native method varies across all
+three. The high correlations would diminish on a benchmark
+suite that includes more semantically-grounded baseline methods,
+which is itself a research opportunity. For the current
+evaluation suite, the four metrics provide complementary
+characterization axes; we do not claim they are statistically
+independent, but each measures a distinguishable property of
+explanation content.
+
+(6) EC SCORE DISTRIBUTION
+
+EC takes one of four discrete values per case. The distribution
+table shows how many of each method's 125 cases land in each
+bucket.
+
+| Method   | n@0.0 | n@0.333 | n@0.667 | n@1.0 |
+| -------- | ----: | ------: | ------: | ----: |
+| MR       |     0 |     125 |       0 |     0 |
+| CR       |     0 |     125 |       0 |     0 |
+| Micro    |     0 |     125 |       0 |     0 |
+| BARO     |     0 |     125 |       0 |     0 |
+| DejaVu   |     0 |     125 |       0 |     0 |
+| yRCA     |     0 |     125 |       0 |     0 |
+| FODA-FCP |     0 |      31 |       4 |    90 |
+
+FODA-FCP is the **only method with within-method variance**.
+The other six are deterministic at 0.333 — every case satisfies
+the component category and nothing else. FCP partitions into:
+
+* **90 cases at 1.0** — all three categories present. Mamdani
+  fires on the root; Recommendation atom emitted.
+* **4 cases at 0.667** — cause + component (no mitigation).
+  Mamdani fires on a non-root via fuzzy fallback but root's
+  ``dominant_category`` is ``UNKNOWN`` so no Rec_* atom
+  attached.
+* **31 cases at 0.333** — component only. Mamdani fires on no
+  service; fuzzy fallback returns None. See §3 for the
+  diagnostic.
+
+No FCP case scores 0.0 because the component category fires
+on every case (FCP's atoms always mention service names).
+
+(7) RELATION TO SG AND SC
+
+EC is the operator-side reading of the same DiagnosticKB
+vocabulary SG measures at the atom level. A method that
+grounds zero atoms (SG = 0) cannot satisfy any category-set
+membership rule, so its EC depends entirely on the text-level
+fallbacks — which is why MR/CR/Micro/BARO/DejaVu collapse to
+``has_component = 1, has_cause = 0, has_mitigation = 0`` (the
+service-name text rule fires; the strict-vocabulary cause and
+mitigation rules don't). FCP, with full DiagnosticKB tagging
+on every atom, hits all three categories. yRCA's foreign
+``yrca:Role/*`` URIs fail the URI-membership tests, and its
+text doesn't whole-token-cover any Fault or Recommendation
+label at 0.7 coverage — yRCA scores 0.333 on the service-name
+path alone.
+
+This is the **operator-actionability** axis. SG measures "can
+the operator look up any individual atom in the ontology"; EC
+measures "does the chain answer the three operator questions
+in DiagnosticKB's vocabulary". FCP is the only method that
+does both; yRCA grounds some atoms (SG 0.267) but emits no
+ontology-vocabulary cause/mitigation atoms (EC 0.333); DejaVu
+predicts a fault type and a service but in non-DiagnosticKB
+vocabulary (EC 0.333); the four MR-family methods don't
+emit any DiagnosticKB content at all (EC 0.333 via service-
+name text match only).
+
+(8) LIMITATIONS
+
+* **Strict vocabulary**. The detector requires DiagnosticKB
+  fault / recommendation labels at the text level. Methods
+  whose atoms name a fault in **a different vocabulary**
+  (DejaVu's RCAEval category names ``"cpu"``, ``"mem"`` …,
+  yRCA's rule_id strings ``"cpu_high"``) don't clear the 0.7
+  coverage bar against the longer DiagnosticKB labels
+  (``"CPU Saturation"``, etc.). The metric measures vocabulary-
+  conformance, not semantic-content equivalence. A future
+  variant could add a cross-vocabulary alias table; out of
+  scope for the dissertation.
+
+* **Strict cause-detection threshold (DejaVu)**. DejaVu's
+  ``failure_type`` prediction (raw text ``"cpu"``) doesn't pass
+  the 0.7 coverage threshold against the ``"CPU Saturation"``
+  label (single-token coverage 1/2 = 0.5). We adopt the strict
+  reading: a method that emits a fault label as a bare
+  service-type token without naming the fault class (e.g.,
+  ``"cpu"`` instead of ``"CpuSaturation"`` or
+  ``"CPU Saturation"``) is undercommunicating diagnostic
+  content. DejaVu therefore scores 0.333 on EC despite
+  producing a failure-type prediction internally. This is a
+  vocabulary-conformance design choice, not a generic
+  fault-naming detector. A more lenient detection rule that
+  accepts single tokens would raise DejaVu's EC to 0.667; we
+  document the alternative in DEVIATIONS.md →
+  ``ExplanationCompleteness metric`` and ship the strict
+  version.
+
+* **Service-name whole-token rule is RE1-OB-aware**. Reads
+  ``case_services`` from the normalised case at evaluation
+  time. Methods evaluated on a different benchmark with a
+  different naming scheme would need their service list
+  threaded through accordingly. This is part of the
+  ``score(explanation, ontology, case_services)`` contract;
+  passing an empty list disables the text rule and falls back
+  to the URI-only :class:`MicroService` check.
+
+* **Binary detectors hide intensity**. EC = 0.333 is the same
+  number whether a method emits one component atom or twenty.
+  Variants that count atoms per category would surface
+  intensity but lose the comparability against the
+  four-valued scale. Left as a Week-4 design knob.
+
