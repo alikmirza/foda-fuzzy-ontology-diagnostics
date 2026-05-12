@@ -127,6 +127,58 @@ CATEGORY_TO_FAULT: dict[str, str] = {
     "CASCADING_FAILURE":  "ResourceContention",
 }
 
+#: Highest-membership fuzzy term → DiagnosticKB fault-prototype local
+#: name. Used as a soft fallback for atoms whose Mamdani dominant
+#: category is ``UNKNOWN`` (no rule fired, but the service still has
+#: appreciable fuzzy signal): instead of tagging them with the abstract
+#: ``ContributingFactor`` class — which the propagation table has no
+#: opinion about and which therefore drags SemanticCoherence down —
+#: we map the strongest term to the fault prototype it points at.
+#: This keeps the semantic intent (a service whose memory term is
+#: elevated **looks like** a MemoryLeak contributor, even though it
+#: didn't fire enough corroborating signal for a full rule) while
+#: preserving the fault-prototype contract that SC scores against.
+_TERM_TO_FAULT_PROTOTYPE: dict[str, str] = {
+    "cpu_HIGH":          "CpuSaturation",
+    "cpu_MEDIUM":        "CpuSaturation",
+    "memory_HIGH":       "MemoryLeak",
+    "memory_MEDIUM":     "MemoryLeak",
+    "latency_CRITICAL":  "LatencySpike",
+    "latency_ELEVATED":  "LatencySpike",
+    "errorRate_HIGH":    "HighErrorRate",
+    "errorRate_ELEVATED": "HighErrorRate",
+    "throughput_LOW":    "ThroughputDegradation",
+}
+
+#: Membership floor below which we don't infer a fault prototype.
+#: Anything weaker is genuine noise and stays unmapped (atoms get the
+#: abstract ContributingFactor class and SC counts them as out-of-scope
+#: links rather than incoherent ones).
+_FALLBACK_MEMBERSHIP_FLOOR: float = 0.20
+
+
+def _infer_fault_prototype_from_fuzzy(
+    fv: _ServiceFuzzyVector,
+) -> str | None:
+    """Pick the highest-membership term among
+    :data:`_TERM_TO_FAULT_PROTOTYPE`'s keys, and return its fault
+    prototype local name (e.g. ``"CpuSaturation"``). Returns ``None``
+    if no term clears :data:`_FALLBACK_MEMBERSHIP_FLOOR` — in that
+    case the service has nothing to say about which fault prototype
+    it contributes to.
+    """
+    best_term: str | None = None
+    best_mu = _FALLBACK_MEMBERSHIP_FLOOR
+    for term, _fault in _TERM_TO_FAULT_PROTOTYPE.items():
+        mu = fv.memberships.get(term, 0.0)
+        if mu > best_mu:
+            best_mu = mu
+            best_term = term
+    if best_term is None:
+        return None
+    return _TERM_TO_FAULT_PROTOTYPE[best_term]
+
+
 #: Fault prototype → its ``Rec_*`` Recommendation individual in
 #: ``DiagnosticKB.owl``. Lifted from the ``hasRecommendation`` object
 #: properties on each fault prototype individual.
@@ -682,10 +734,18 @@ def _build_explanation(
         hyp = hypotheses[svc]
         fault_local = CATEGORY_TO_FAULT.get(hyp.dominant_category)
         if fault_local is None:
-            # Unknown category — surface as the ContributingFactor class
-            # itself so the atom still links into the ontology graph.
-            ontology_class = _ontology_uri("ContributingFactor")
-            fault_local_for_text = "ContributingFactor (unmapped category)"
+            # No Mamdani rule fired — try a soft fallback that maps the
+            # service's strongest fuzzy term onto a fault prototype.
+            # Atoms that still can't be mapped fall back to the abstract
+            # ContributingFactor class (out-of-scope for SC, but still
+            # in the ontology graph so SG can ground them).
+            inferred = _infer_fault_prototype_from_fuzzy(fuzzy_vectors[svc])
+            if inferred is not None:
+                ontology_class = _ontology_uri(inferred)
+                fault_local_for_text = f"{inferred} (fuzzy-inferred)"
+            else:
+                ontology_class = _ontology_uri("ContributingFactor")
+                fault_local_for_text = "ContributingFactor (unmapped category)"
         else:
             ontology_class = _ontology_uri(fault_local)
             fault_local_for_text = fault_local

@@ -352,6 +352,90 @@ class TestTokenAlignmentRegressions:
         assert adapter.find_class_by_label("anomalies in cpu metrics") is None
 
 
+# ---- 4d. propagation lookups (Phase 2 Week 2 — SemanticCoherence) ---------
+
+
+class TestPropagationStrength:
+    """``get_propagation_strength`` and ``list_propagations`` expose
+    the 22 typical fault-propagation patterns added to DiagnosticKB
+    in Week 2. The metric SemanticCoherence consumes these to score
+    whether causal links in method explanations respect known
+    propagation directions."""
+
+    @pytest.fixture(scope="class")
+    def adapter(self) -> OntologyAdapter:
+        return OntologyAdapter()
+
+    def test_typical_propagation_returns_one(self, adapter):
+        """``CpuSaturation → LatencySpike`` is one of the 12 strength-1.0
+        patterns; cpu saturation almost always manifests as latency."""
+        assert adapter.get_propagation_strength(
+            f"{_NS}CpuSaturation", f"{_NS}LatencySpike",
+        ) == 1.0
+
+    def test_conditional_propagation_returns_half(self, adapter):
+        """``MemoryLeak → CpuSaturation`` is one of the 10 strength-0.5
+        patterns; GC pressure under a memory leak can pin a core."""
+        assert adapter.get_propagation_strength(
+            f"{_NS}MemoryLeak", f"{_NS}CpuSaturation",
+        ) == 0.5
+
+    def test_undeclared_pair_returns_zero(self, adapter):
+        """``HighErrorRate → MemoryLeak`` is not a declared
+        propagation; errors don't typically leak memory. Returns 0.0
+        per the ontology's "only explicit propagations are typical"
+        convention."""
+        assert adapter.get_propagation_strength(
+            f"{_NS}HighErrorRate", f"{_NS}MemoryLeak",
+        ) == 0.0
+
+    def test_self_loop_returns_zero(self, adapter):
+        """No Propagation individual declares a self-loop; queries
+        return 0.0."""
+        assert adapter.get_propagation_strength(
+            f"{_NS}CpuSaturation", f"{_NS}CpuSaturation",
+        ) == 0.0
+
+    def test_reverse_pair_is_asymmetric(self, adapter):
+        """``CpuSaturation → LatencySpike`` is 1.0; the reverse
+        ``LatencySpike → CpuSaturation`` is 0.0. Direction matters
+        because fault propagation is causal."""
+        assert adapter.get_propagation_strength(
+            f"{_NS}CpuSaturation", f"{_NS}LatencySpike",
+        ) == 1.0
+        assert adapter.get_propagation_strength(
+            f"{_NS}LatencySpike", f"{_NS}CpuSaturation",
+        ) == 0.0
+
+    def test_unknown_class_uri_returns_zero(self, adapter):
+        """Malformed or non-DiagnosticKB URIs return 0.0 — never
+        raise. The metric should treat unmapped atoms as 0.0
+        coherence, not as errors."""
+        assert adapter.get_propagation_strength(
+            "http://example.com/foo#Bar", f"{_NS}LatencySpike",
+        ) == 0.0
+        assert adapter.get_propagation_strength(
+            "", "",
+        ) == 0.0
+
+    def test_list_propagations_has_22_entries(self, adapter):
+        """Spec: 12 strength-1.0 + 10 strength-0.5 = 22 typical
+        propagation patterns."""
+        propagations = adapter.list_propagations()
+        assert len(propagations) == 22
+        strengths = [s for _, _, s in propagations]
+        assert sum(1 for s in strengths if s == 1.0) == 12
+        assert sum(1 for s in strengths if s == 0.5) == 10
+
+    def test_list_propagations_is_sorted_and_well_formed(self, adapter):
+        propagations = adapter.list_propagations()
+        assert propagations == sorted(propagations)
+        for src, tgt, strength in propagations:
+            assert src.startswith(_NS)
+            assert tgt.startswith(_NS)
+            assert 0.0 < strength <= 1.0
+
+
 # ---- 5. introspection ------------------------------------------------------
 
 

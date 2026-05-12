@@ -46,8 +46,10 @@ from evaluation.methods.foda_fcp import (
     FAULT_TO_RECOMMENDATION,
     ONTOLOGY_NS,
     FodaFCPMethod,
+    _ServiceFuzzyVector,
     _fuzzify_service,
     _has_cycle,
+    _infer_fault_prototype_from_fuzzy,
     _infer_hypothesis,
     _ontology_uri,
     _propagate_damped,
@@ -472,6 +474,66 @@ class TestOntologyGroundedExplanation:
         links = list(out.explanation_chain.links())
         assert len(atoms) >= 2
         assert len(links) >= 1
+
+
+# ---- 5b. fuzzy-fallback fault prototype inference --------------------------
+
+
+class TestInferFaultPrototypeFromFuzzy:
+    """Phase 2 Week 2 v2: when no Mamdani rule fires, fall back to the
+    highest-membership fuzzy term and map it to a fault prototype so the
+    non-root atom gets a specific ontology class rather than the abstract
+    ``ContributingFactor``. SemanticCoherence scores against fault
+    prototypes; this fallback makes FCP's contributes_to edges fall in
+    SC's scope when the service has appreciable fuzzy signal."""
+
+    def _vector(self, memberships: dict[str, float]) -> _ServiceFuzzyVector:
+        base = {
+            "cpu_LOW": 0.0, "cpu_MEDIUM": 0.0, "cpu_HIGH": 0.0,
+            "memory_LOW": 0.0, "memory_MEDIUM": 0.0, "memory_HIGH": 0.0,
+            "latency_NORMAL": 0.0, "latency_ELEVATED": 0.0, "latency_CRITICAL": 0.0,
+            "errorRate_NONE": 0.0, "errorRate_LOW": 0.0,
+            "errorRate_ELEVATED": 0.0, "errorRate_HIGH": 0.0,
+            "throughput_LOW": 0.0, "throughput_NORMAL": 0.0,
+        }
+        base.update(memberships)
+        return _ServiceFuzzyVector(service="x", memberships=base, z_signed={})
+
+    def test_cpu_high_term_infers_cpu_saturation(self):
+        fv = self._vector({"cpu_HIGH": 0.9})
+        assert _infer_fault_prototype_from_fuzzy(fv) == "CpuSaturation"
+
+    def test_memory_high_term_infers_memory_leak(self):
+        fv = self._vector({"memory_HIGH": 0.7})
+        assert _infer_fault_prototype_from_fuzzy(fv) == "MemoryLeak"
+
+    def test_latency_critical_infers_latency_spike(self):
+        fv = self._vector({"latency_CRITICAL": 0.5})
+        assert _infer_fault_prototype_from_fuzzy(fv) == "LatencySpike"
+
+    def test_throughput_low_infers_throughput_degradation(self):
+        fv = self._vector({"throughput_LOW": 0.4})
+        assert _infer_fault_prototype_from_fuzzy(fv) == "ThroughputDegradation"
+
+    def test_below_floor_returns_none(self):
+        """Services whose strongest anomaly term is below the 0.20 floor
+        produce no inference — the fallback should stay quiet rather
+        than reach for a prototype it has no basis to claim."""
+        fv = self._vector({"cpu_HIGH": 0.1, "memory_HIGH": 0.05})
+        assert _infer_fault_prototype_from_fuzzy(fv) is None
+
+    def test_all_terms_normal_returns_none(self):
+        """A service with only non-anomalous terms (``cpu_LOW``,
+        ``throughput_NORMAL``, …) doesn't get inferred. This is the
+        right semantic on FCP top-K entries that only appear via
+        Noisy-OR back-flow from anomalous callees: their own metrics
+        are flat, so the link's source has no fault prototype."""
+        fv = self._vector({"cpu_LOW": 1.0, "memory_LOW": 1.0, "throughput_NORMAL": 1.0})
+        assert _infer_fault_prototype_from_fuzzy(fv) is None
+
+    def test_strongest_term_wins_over_secondary(self):
+        fv = self._vector({"cpu_MEDIUM": 0.3, "memory_HIGH": 0.8})
+        assert _infer_fault_prototype_from_fuzzy(fv) == "MemoryLeak"
 
 
 # ---- 6. protocol + shift ---------------------------------------------------

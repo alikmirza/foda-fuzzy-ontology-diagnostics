@@ -130,6 +130,11 @@ class OntologyAdapter:
     _labels: dict[str, str] = field(init=False, repr=False)
     _fuzzy_labels: dict[str, str] = field(init=False, repr=False)
     _base_iri: str = field(init=False, repr=False)
+    #: ``(source_uri, target_uri) → strength`` materialised from every
+    #: :class:`Propagation` individual. Missing keys → strength 0.0
+    #: per the ontology's "only explicit propagations are typical"
+    #: convention.
+    _propagations: dict[tuple[str, str], float] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         path = Path(self.ontology_path).expanduser().resolve()
@@ -174,6 +179,24 @@ class OntologyAdapter:
             uri: label for uri, label in labels.items()
             if uri not in blacklisted_uris
         }
+
+        # Propagation patterns: walk every individual that's an instance
+        # of the Propagation class and read its (source, target, strength)
+        # via the three propagation properties defined in DiagnosticKB.
+        # Stored as ``{(source_uri, target_uri): strength}`` for O(1)
+        # lookup in :meth:`get_propagation_strength`. Ordered pairs not
+        # present in the dict have implicit strength 0.0.
+        propagations: dict[tuple[str, str], float] = {}
+        prop_class = onto.search_one(iri=f"{self._base_iri}Propagation")
+        if prop_class is not None:
+            for inst in onto.search(type=prop_class):
+                src = list(getattr(inst, "propagationSource", []) or [])
+                tgt = list(getattr(inst, "propagationTarget", []) or [])
+                strength = list(getattr(inst, "propagationStrength", []) or [])
+                if not src or not tgt or not strength:
+                    continue
+                propagations[(src[0].iri, tgt[0].iri)] = float(strength[0])
+        self._propagations = propagations
 
     # ---- public API ----
 
@@ -318,6 +341,39 @@ class OntologyAdapter:
                 best_uri = uri
                 best_label_len = label_len
         return best_uri
+
+    # ---- propagation lookups (Phase 2 Week 2 — SemanticCoherence) ----
+
+    def get_propagation_strength(
+        self, source_class: str, target_class: str,
+    ) -> float:
+        """Typical propagation strength of ``source_class →
+        target_class``.
+
+        Returns the strength encoded on the matching
+        :class:`Propagation` individual in DiagnosticKB
+        (``1.0`` = typical, ``0.5`` = conditional). Returns ``0.0``
+        when no Propagation individual reifies that ordered pair —
+        the ontology's convention is "only explicit propagations are
+        typical; everything else is atypical".
+
+        Direction matters: ``CpuSaturation → LatencySpike`` is a
+        typical propagation (strength 1.0); the reverse
+        ``LatencySpike → CpuSaturation`` has no Propagation
+        individual and returns 0.0. Self-loops (e.g.
+        ``CpuSaturation → CpuSaturation``) are not declared and
+        likewise return 0.0.
+        """
+        return self._propagations.get((source_class, target_class), 0.0)
+
+    def list_propagations(self) -> list[tuple[str, str, float]]:
+        """Every declared Propagation as a
+        ``(source_uri, target_uri, strength)`` tuple, sorted by
+        source then target for determinism."""
+        return sorted(
+            (src, tgt, strength)
+            for (src, tgt), strength in self._propagations.items()
+        )
 
     # ---- introspection helpers ----
 

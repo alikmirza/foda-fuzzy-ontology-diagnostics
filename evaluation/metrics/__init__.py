@@ -14,12 +14,14 @@ Two metric families:
 from .base import Metric, SemanticMetric
 from .ontology_adapter import OntologyAdapter
 from .ranking_metrics import accuracy_at_k, mean_reciprocal_rank
+from .semantic_coherence import SemanticCoherence
 from .semantic_groundedness import SemanticGroundedness
 
 __all__ = [
     "Metric",
     "SemanticMetric",
     "OntologyAdapter",
+    "SemanticCoherence",
     "SemanticGroundedness",
     "accuracy_at_k",
     "mean_reciprocal_rank",

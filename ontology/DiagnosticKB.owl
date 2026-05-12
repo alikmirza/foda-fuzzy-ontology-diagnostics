@@ -116,6 +116,24 @@
     </owl:ObjectProperty>
 
 
+    <!-- http://foda.com/ontology/diagnostic#propagationSource -->
+    <owl:ObjectProperty rdf:about="http://foda.com/ontology/diagnostic#propagationSource">
+        <rdfs:domain rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <rdfs:range rdf:resource="http://foda.com/ontology/diagnostic#Fault"/>
+        <rdfs:label>propagation source</rdfs:label>
+        <rdfs:comment>The fault type from which a typical propagation pattern originates.</rdfs:comment>
+    </owl:ObjectProperty>
+
+
+    <!-- http://foda.com/ontology/diagnostic#propagationTarget -->
+    <owl:ObjectProperty rdf:about="http://foda.com/ontology/diagnostic#propagationTarget">
+        <rdfs:domain rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <rdfs:range rdf:resource="http://foda.com/ontology/diagnostic#Fault"/>
+        <rdfs:label>propagation target</rdfs:label>
+        <rdfs:comment>The fault type that a typical propagation pattern manifests as downstream.</rdfs:comment>
+    </owl:ObjectProperty>
+
+
 
     <!--
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -222,6 +240,15 @@
     </owl:DatatypeProperty>
 
 
+    <!-- http://foda.com/ontology/diagnostic#propagationStrength -->
+    <owl:DatatypeProperty rdf:about="http://foda.com/ontology/diagnostic#propagationStrength">
+        <rdfs:domain rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#double"/>
+        <rdfs:label>propagation strength</rdfs:label>
+        <rdfs:comment>Typical strength with which the source fault propagates to the target fault. 1.0 = typical, 0.5 = sometimes/conditional, 0.0 = atypical. Values outside [0, 1] are not expected.</rdfs:comment>
+    </owl:DatatypeProperty>
+
+
 
     <!--
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -306,6 +333,13 @@
     <owl:Class rdf:about="http://foda.com/ontology/diagnostic#Symptom">
         <rdfs:label>Symptom</rdfs:label>
         <rdfs:comment>Observable symptom of a fault</rdfs:comment>
+    </owl:Class>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Propagation -->
+    <owl:Class rdf:about="http://foda.com/ontology/diagnostic#Propagation">
+        <rdfs:label>Propagation</rdfs:label>
+        <rdfs:comment>A typical propagation pattern from one fault type to another. Reified as a class because OWL annotation properties on object-property relations are awkward; each instance pins down a (source, target, strength) triple.</rdfs:comment>
     </owl:Class>
 
 
@@ -622,6 +656,248 @@
         <metricValue rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</metricValue>
         <importance rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.65</importance>
         <description>Block-device queue depth growing beyond its provisioned IOPS budget.</description>
+    </owl:NamedIndividual>
+
+
+    <!--
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Propagation patterns (22 typical fault-to-fault propagations)
+    //
+    // Each Propagation individual reifies the triple
+    //   (propagationSource, propagationTarget, propagationStrength)
+    // for a typical fault-propagation pattern. Strength 1.0 = a
+    // pattern that almost always co-occurs with the source fault;
+    // 0.5 = a pattern that conditionally co-occurs. Ordered pairs
+    // not listed have implicit strength 0.0.
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+
+    <!-- Strength 1.0 — typical propagation patterns -->
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_CpuSaturation_to_LatencySpike -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_CpuSaturation_to_LatencySpike">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#CpuSaturation"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#LatencySpike"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</propagationStrength>
+        <rdfs:label>CpuSaturation → LatencySpike</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_CpuSaturation_to_ThroughputDegradation -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_CpuSaturation_to_ThroughputDegradation">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#CpuSaturation"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#ThroughputDegradation"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</propagationStrength>
+        <rdfs:label>CpuSaturation → ThroughputDegradation</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_MemoryLeak_to_LatencySpike -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_MemoryLeak_to_LatencySpike">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#MemoryLeak"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#LatencySpike"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</propagationStrength>
+        <rdfs:label>MemoryLeak → LatencySpike</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_MemoryLeak_to_ThroughputDegradation -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_MemoryLeak_to_ThroughputDegradation">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#MemoryLeak"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#ThroughputDegradation"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</propagationStrength>
+        <rdfs:label>MemoryLeak → ThroughputDegradation</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_DiskIoBottleneck_to_LatencySpike -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_DiskIoBottleneck_to_LatencySpike">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#DiskIoBottleneck"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#LatencySpike"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</propagationStrength>
+        <rdfs:label>DiskIoBottleneck → LatencySpike</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_DiskIoBottleneck_to_ThroughputDegradation -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_DiskIoBottleneck_to_ThroughputDegradation">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#DiskIoBottleneck"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#ThroughputDegradation"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</propagationStrength>
+        <rdfs:label>DiskIoBottleneck → ThroughputDegradation</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_NetworkCongestion_to_LatencySpike -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_NetworkCongestion_to_LatencySpike">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#NetworkCongestion"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#LatencySpike"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</propagationStrength>
+        <rdfs:label>NetworkCongestion → LatencySpike</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_NetworkCongestion_to_ThroughputDegradation -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_NetworkCongestion_to_ThroughputDegradation">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#NetworkCongestion"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#ThroughputDegradation"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</propagationStrength>
+        <rdfs:label>NetworkCongestion → ThroughputDegradation</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_LatencySpike_to_ThroughputDegradation -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_LatencySpike_to_ThroughputDegradation">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#LatencySpike"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#ThroughputDegradation"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</propagationStrength>
+        <rdfs:label>LatencySpike → ThroughputDegradation</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_ResourceContention_to_CpuSaturation -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_ResourceContention_to_CpuSaturation">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#ResourceContention"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#CpuSaturation"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</propagationStrength>
+        <rdfs:label>ResourceContention → CpuSaturation</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_ResourceContention_to_LatencySpike -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_ResourceContention_to_LatencySpike">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#ResourceContention"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#LatencySpike"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</propagationStrength>
+        <rdfs:label>ResourceContention → LatencySpike</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_ResourceContention_to_ThroughputDegradation -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_ResourceContention_to_ThroughputDegradation">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#ResourceContention"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#ThroughputDegradation"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</propagationStrength>
+        <rdfs:label>ResourceContention → ThroughputDegradation</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- Strength 0.5 — conditional propagation patterns -->
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_MemoryLeak_to_CpuSaturation -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_MemoryLeak_to_CpuSaturation">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#MemoryLeak"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#CpuSaturation"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</propagationStrength>
+        <rdfs:label>MemoryLeak → CpuSaturation</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_CpuSaturation_to_HighErrorRate -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_CpuSaturation_to_HighErrorRate">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#CpuSaturation"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#HighErrorRate"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</propagationStrength>
+        <rdfs:label>CpuSaturation → HighErrorRate</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_NetworkCongestion_to_HighErrorRate -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_NetworkCongestion_to_HighErrorRate">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#NetworkCongestion"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#HighErrorRate"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</propagationStrength>
+        <rdfs:label>NetworkCongestion → HighErrorRate</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_LatencySpike_to_HighErrorRate -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_LatencySpike_to_HighErrorRate">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#LatencySpike"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#HighErrorRate"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</propagationStrength>
+        <rdfs:label>LatencySpike → HighErrorRate</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_HighErrorRate_to_ThroughputDegradation -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_HighErrorRate_to_ThroughputDegradation">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#HighErrorRate"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#ThroughputDegradation"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</propagationStrength>
+        <rdfs:label>HighErrorRate → ThroughputDegradation</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_HighErrorRate_to_LatencySpike -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_HighErrorRate_to_LatencySpike">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#HighErrorRate"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#LatencySpike"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</propagationStrength>
+        <rdfs:label>HighErrorRate → LatencySpike</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_DiskIoBottleneck_to_HighErrorRate -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_DiskIoBottleneck_to_HighErrorRate">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#DiskIoBottleneck"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#HighErrorRate"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</propagationStrength>
+        <rdfs:label>DiskIoBottleneck → HighErrorRate</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_ResourceContention_to_MemoryLeak -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_ResourceContention_to_MemoryLeak">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#ResourceContention"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#MemoryLeak"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</propagationStrength>
+        <rdfs:label>ResourceContention → MemoryLeak</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_HighErrorRate_to_ResourceContention -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_HighErrorRate_to_ResourceContention">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#HighErrorRate"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#ResourceContention"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</propagationStrength>
+        <rdfs:label>HighErrorRate → ResourceContention</rdfs:label>
+    </owl:NamedIndividual>
+
+
+    <!-- http://foda.com/ontology/diagnostic#Prop_DiskIoBottleneck_to_CpuSaturation -->
+    <owl:NamedIndividual rdf:about="http://foda.com/ontology/diagnostic#Prop_DiskIoBottleneck_to_CpuSaturation">
+        <rdf:type rdf:resource="http://foda.com/ontology/diagnostic#Propagation"/>
+        <propagationSource rdf:resource="http://foda.com/ontology/diagnostic#DiskIoBottleneck"/>
+        <propagationTarget rdf:resource="http://foda.com/ontology/diagnostic#CpuSaturation"/>
+        <propagationStrength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</propagationStrength>
+        <rdfs:label>DiskIoBottleneck → CpuSaturation</rdfs:label>
     </owl:NamedIndividual>
 
 </rdf:RDF>
