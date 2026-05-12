@@ -1252,3 +1252,139 @@ suggests_mitigation links, full DiagnosticKB URIs) that Paper 6
 Phase 2's SemanticGroundedness metrics will measure against the
 other six methods' chains.
 
+
+## SemanticCoherence metric (Paper 6 Phase 2 Week 2)
+
+### Design history: v1 → v2 → variant 4
+
+SemanticCoherence (SC) scores each :class:`CausalLink` in an
+explanation against the propagation patterns encoded in
+``ontology/DiagnosticKB.owl``'s ``Propagation`` table (22
+typical-propagation individuals; strengths ``ω ∈ {0.5, 1.0}``).
+The metric went through two redesigns before reaching its final
+form; both prior versions are documented here as deviations from
+the brief's initial specification because the v2 / variant-4
+choice materially changes what SC measures.
+
+**v1 (initial brief).** Lookup ``(source_class, target_class)``
+literal; coherent ⇒ subscore ``1 − |ω − link.weight|``;
+incoherent (ω == 0) ⇒ subscore 0.0; unmapped (endpoint URI
+unknown) ⇒ subscore 0.0. The brief proposed an alarm at FCP
+SC ≥ 0.50.
+
+* Observed v1 result on RE1-OB: FCP SC = 0.006 (alarm tripped).
+* Diagnosed three issues:
+  1. Direction mismatch — FCP's ``contributes_to`` runs
+     effect→cause (Noisy-OR back-flow); v1 looked up the literal
+     pair and counted every contributes_to link as incoherent.
+  2. Non-Fault endpoints — ``suggests_mitigation`` links target
+     ``Rec_*`` individuals and FCP's no-rule-fired non-roots
+     target the abstract ``ContributingFactor`` class; v1
+     counted these as incoherent rather than out-of-scope.
+  3. Weight-vs-strength mismatch — FCP's link ``weight`` is the
+     Noisy-OR contribution ``μ × Pearson × δ`` (mean ≈ 0.05,
+     median 0.000), not a propagation typicality (≈ 0.8). The
+     formula ``1 − |ω − w|`` punished every direction-correct
+     link by ~0.74 on average.
+
+**v2 (intermediate).** Added back-flow direction swap for
+``contributes_to`` / ``explained_by``; introduced fault-prototype
+filtering (non-Fault endpoints ⇒ ``unmapped`` not incoherent);
+kept the weight-consistency formula. Lifted FCP SC from 0.006 to
+0.037 — still below the 0.50 alarm.
+
+A diagnostic counter (see ``paper/notes/findings.md`` §
+"Phase 2 Week 2 v3 — SC alarm investigation") then quantified
+the residual issues:
+
+* 31.7 % of FCP links ARE Fault → Fault (165 / 520) — well
+  above the 10 % structural bar; FCP is generating the right
+  link shape.
+* 51 % of those Fault→Fault links are direction-coherent against
+  the ontology (84 / 165).
+* But coherent-link weight distribution: mean 0.053, median
+  0.000, max 0.277. Ontology strengths: mean 0.792.
+  Mean ``|ω − w|`` = 0.738.
+
+The weight-consistency formula was the dominant penalty. It
+asked FCP's noisy-OR-attenuated contribution magnitudes to match
+ontology typicalities — two quantities that aren't commensurable.
+
+**Variant 4 (final).** Three changes from v2:
+
+1. **Drop the weight-consistency penalty entirely.** A coherent
+   link's subscore is simply ``ω`` — the ontology's typicality
+   strength. Direction-correct, typicality-aware: a typical
+   propagation (1.0) outscores a conditional one (0.5), and the
+   link weight is informational only.
+
+2. **Restrict scoring to propagation-relation links.** Only
+   links whose ``relation_type`` starts with a prefix in
+   :data:`PROPAGATION_RELATIONS` (``contributes_to``,
+   ``explained_by``, ``caused_by``, ``causes``, ``propagates_to``,
+   ``leads_to``) are scored. Mitigation links (relation_type
+   contains ``"mitigation"``, ``"recommend"``, or
+   ``"suggests"``) are **excluded from the denominator** —
+   classification ``"excluded_mitigation"``. Other relation
+   types (``None``, ``"anomaly-correlates-with"``,
+   ``"rule_derived_explanation"``) are ``unmapped``.
+
+3. **Add the ``excluded_mitigation_links`` and
+   ``scored_link_count`` fields** to
+   :meth:`SemanticCoherence.score_with_breakdown` so callers
+   can see what was excluded and the denominator that produced
+   the overall score.
+
+The v1 weight-consistency formula and v2 mixed scoring/filtering
+are no longer reachable — variant 4 is the metric's canonical
+implementation.
+
+### Rationale for the variant-4 design choice
+
+The diagnostic in §"Phase 2 Week 2 v3" of findings.md confirmed
+two structural facts:
+
+* FCP's link weight ``μ × Pearson × δ`` is a **damped Noisy-OR
+  contribution magnitude**, NOT a propagation typicality
+  estimate. The two quantities measure different things;
+  forcing them to match was the v2 design's error.
+* FCP's ``suggests_mitigation`` links account for 48.1 % of
+  all emitted links and are structurally never coherent
+  (Recommendation isn't a fault prototype). Including them in
+  SC's denominator was punishing FCP for surfacing operator-
+  actionable mitigation suggestions — the opposite of the
+  desired incentive.
+
+The variant-4 choice is the smallest defensible change that
+preserves SC's intent ("does the explanation respect the
+ontology's propagation patterns?") while removing the two
+non-features that were dragging the score.
+
+### Cross-method properties under variant 4
+
+* FCP SC ≈ 0.27 (was 0.037 under v2). Per-fault: cpu 0.380,
+  mem 0.460, disk 0.280, loss 0.160, delay 0.050.
+* yRCA SC ≈ 0.000 — yRCA's atoms carry ``yrca:Role/*``
+  foreign-namespace URIs, so every link is unmapped regardless
+  of relation type.
+* MR / CR / Micro / BARO / DejaVu SC = 0.000 — atoms lack
+  DiagnosticKB ontology classes; every link unmapped.
+* ρ(AC@1, SC) and ρ(SG, SC) under variant 4 — see findings.md
+  for the numbers and the ≤ 0.5 orthogonality property.
+
+### Knobs exposed for future use
+
+* :data:`PROPAGATION_RELATIONS` — extend if a future adapter
+  emits a custom propagation shape (e.g. ``"derived_from"``).
+* :data:`_BACK_FLOW_RELATIONS` — the subset whose direction is
+  reversed before the ontology lookup.
+* :data:`_MITIGATION_TOKENS` — substrings whose presence in a
+  ``relation_type`` triggers mitigation exclusion. ``"suggests"``
+  and ``"recommend"`` and ``"mitigation"`` cover all current
+  adapters.
+
+The propagation strengths themselves live in the ontology, not in
+the metric module. Calibrating SC to a different deployment's
+fault-propagation regime means editing
+``ontology/DiagnosticKB.owl``, not the metric.
+
