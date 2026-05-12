@@ -12,12 +12,14 @@ Two metric families:
 """
 
 from .base import Metric, SemanticMetric
+from .explanation_completeness import ExplanationCompleteness
 from .ontology_adapter import OntologyAdapter
 from .ranking_metrics import accuracy_at_k, mean_reciprocal_rank
 from .semantic_coherence import SemanticCoherence
 from .semantic_groundedness import SemanticGroundedness
 
 __all__ = [
+    "ExplanationCompleteness",
     "Metric",
     "SemanticMetric",
     "OntologyAdapter",

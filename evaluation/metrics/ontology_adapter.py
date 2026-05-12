@@ -135,6 +135,19 @@ class OntologyAdapter:
     #: per the ontology's "only explicit propagations are typical"
     #: convention.
     _propagations: dict[tuple[str, str], float] = field(init=False, repr=False)
+    #: URIs of every individual ``rdf:type Fault`` — the fault
+    #: prototypes (``CpuSaturation``, ``MemoryLeak``, …) that Paper 6
+    #: metrics treat as the canonical root-cause vocabulary.
+    _fault_prototypes: frozenset[str] = field(init=False, repr=False)
+    #: URIs of every individual ``rdf:type Recommendation`` — the
+    #: ``Rec_*`` individuals that name operator-actionable mitigations.
+    _recommendations: frozenset[str] = field(init=False, repr=False)
+    #: URIs in the MicroService partition: the ``MicroService`` class
+    #: itself plus any declared individuals. Currently the class only
+    #: (DiagnosticKB doesn't enumerate specific services; the runtime
+    #: discovers them per case), but the partition stays open for
+    #: future extension.
+    _microservices: frozenset[str] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         path = Path(self.ontology_path).expanduser().resolve()
@@ -197,6 +210,45 @@ class OntologyAdapter:
                     continue
                 propagations[(src[0].iri, tgt[0].iri)] = float(strength[0])
         self._propagations = propagations
+
+        # Phase 2 Week 3 (ExplanationCompleteness): materialise the
+        # three ontological category sets EC's per-atom detectors
+        # check membership against. Each set holds the URIs of
+        # individuals declared ``rdf:type <Class>`` plus the class
+        # URI itself, so atoms tagged with either the class or an
+        # individual are recognised. owlready2's ``search(type=cls)``
+        # walks ``rdf:type`` assertions; subclasses of the named
+        # class would also surface but DiagnosticKB doesn't declare
+        # any (Fault / Recommendation / MicroService have no
+        # subclasses today).
+        self._fault_prototypes = self._materialise_category(
+            onto, "Fault",
+        )
+        self._recommendations = self._materialise_category(
+            onto, "Recommendation",
+        )
+        self._microservices = self._materialise_category(
+            onto, "MicroService",
+        )
+
+    def _materialise_category(
+        self, onto: "owlready2.Ontology", local_name: str,
+    ) -> frozenset[str]:
+        """Return the URIs of the named class plus every individual
+        declared ``rdf:type <Class>``. Returns the singleton
+        ``{class_uri}`` if the class exists but has no individuals.
+        Returns an empty set if the class itself isn't declared
+        (defensive — every category EC checks is declared in
+        DiagnosticKB but a future ontology swap might drop one).
+        """
+        class_uri = f"{self._base_iri}{local_name}"
+        cls = onto.search_one(iri=class_uri)
+        if cls is None:
+            return frozenset()
+        uris: set[str] = {class_uri}
+        for inst in onto.search(type=cls):
+            uris.add(inst.iri)
+        return frozenset(uris)
 
     # ---- public API ----
 
@@ -374,6 +426,46 @@ class OntologyAdapter:
             (src, tgt, strength)
             for (src, tgt), strength in self._propagations.items()
         )
+
+    # ---- category-set accessors (Phase 2 Week 3 — EC) ----
+
+    def list_fault_prototypes(self) -> set[str]:
+        """Return every URI in the **fault** category: the ``Fault``
+        class and every individual declared ``rdf:type Fault``
+        (``CpuSaturation``, ``MemoryLeak``, ``LatencySpike``, …).
+
+        Used by :class:`ExplanationCompleteness` to decide whether
+        an atom names a root-cause type. The set is materialised
+        at construction time, so this returns an O(1) copy of the
+        underlying frozen set.
+        """
+        return set(self._fault_prototypes)
+
+    def list_recommendations(self) -> set[str]:
+        """Return every URI in the **recommendation** category: the
+        ``Recommendation`` class and every individual declared
+        ``rdf:type Recommendation`` (``Rec_CpuSaturation``,
+        ``Rec_MemoryLeak``, …).
+
+        Used by :class:`ExplanationCompleteness` to decide whether
+        an atom suggests a mitigation.
+        """
+        return set(self._recommendations)
+
+    def list_microservices(self) -> set[str]:
+        """Return every URI in the **microservice** category: the
+        ``MicroService`` class and every individual declared
+        ``rdf:type MicroService`` (currently empty — DiagnosticKB
+        doesn't enumerate specific RE1-OB services; they're
+        discovered at runtime per case).
+
+        Used by :class:`ExplanationCompleteness` to decide whether
+        an atom carries a microservice-class ontology tag. The
+        **text-level** detector that matches a case's service-name
+        list lives in the EC module; this method returns only the
+        ontology-side membership test.
+        """
+        return set(self._microservices)
 
     # ---- introspection helpers ----
 

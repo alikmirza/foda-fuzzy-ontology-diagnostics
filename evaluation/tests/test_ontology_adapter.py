@@ -436,7 +436,97 @@ class TestPropagationStrength:
             assert 0.0 < strength <= 1.0
 
 
-# ---- 5. introspection ------------------------------------------------------
+# ---- 5. category-set accessors (Phase 2 Week 3 — EC) -----------------------
+
+
+class TestCategoryAccessors:
+    """The three Week-3 helpers expose the URI sets EC's per-atom
+    detectors check membership against. Each set contains the named
+    class URI plus every individual declared ``rdf:type <Class>``."""
+
+    @pytest.fixture(scope="class")
+    def adapter(self) -> OntologyAdapter:
+        return OntologyAdapter()
+
+    def test_list_fault_prototypes_contains_class_and_individuals(
+        self, adapter,
+    ):
+        protos = adapter.list_fault_prototypes()
+        assert isinstance(protos, set)
+        assert f"{_NS}Fault" in protos
+        for local in (
+            "CpuSaturation", "MemoryLeak", "LatencySpike",
+            "HighErrorRate", "ResourceContention", "DiskIoBottleneck",
+            "NetworkCongestion", "ThroughputDegradation",
+        ):
+            assert f"{_NS}{local}" in protos, (
+                f"expected {local!r} to be a Fault prototype"
+            )
+
+    def test_list_fault_prototypes_size_class_plus_eight_individuals(
+        self, adapter,
+    ):
+        """DiagnosticKB declares 8 Fault individuals; including the
+        class itself gives 9 URIs."""
+        protos = adapter.list_fault_prototypes()
+        assert len(protos) == 9
+
+    def test_list_fault_prototypes_excludes_unrelated_classes(
+        self, adapter,
+    ):
+        protos = adapter.list_fault_prototypes()
+        # Recommendation and ContributingFactor are siblings, not
+        # subclasses or individuals of Fault.
+        assert f"{_NS}Recommendation" not in protos
+        assert f"{_NS}ContributingFactor" not in protos
+        assert f"{_NS}MicroService" not in protos
+        assert f"{_NS}Rec_CpuSaturation" not in protos
+
+    def test_list_recommendations_contains_class_and_rec_individuals(
+        self, adapter,
+    ):
+        recs = adapter.list_recommendations()
+        assert isinstance(recs, set)
+        assert f"{_NS}Recommendation" in recs
+        for local in (
+            "Rec_CpuSaturation", "Rec_MemoryLeak", "Rec_LatencySpike",
+            "Rec_HighErrorRate", "Rec_ResourceContention",
+            "Rec_NetworkCongestion", "Rec_DiskIoBottleneck",
+            "Rec_ThroughputDegradation",
+        ):
+            assert f"{_NS}{local}" in recs
+
+    def test_list_recommendations_size_class_plus_eight_individuals(
+        self, adapter,
+    ):
+        recs = adapter.list_recommendations()
+        assert len(recs) == 9
+
+    def test_list_recommendations_excludes_faults(self, adapter):
+        recs = adapter.list_recommendations()
+        assert f"{_NS}CpuSaturation" not in recs
+        assert f"{_NS}Fault" not in recs
+
+    def test_list_microservices_contains_class_uri(self, adapter):
+        services = adapter.list_microservices()
+        assert isinstance(services, set)
+        assert f"{_NS}MicroService" in services
+        # DiagnosticKB doesn't enumerate specific microservices; the
+        # runtime discovers them per case. Membership is the class
+        # only.
+        assert len(services) >= 1
+
+    def test_category_accessors_return_independent_copies(self, adapter):
+        """Mutating the returned set must NOT affect subsequent
+        calls — the adapter materialises a frozen set internally
+        and hands out a fresh set each time."""
+        protos1 = adapter.list_fault_prototypes()
+        protos1.add("http://example.com/fake")
+        protos2 = adapter.list_fault_prototypes()
+        assert "http://example.com/fake" not in protos2
+
+
+# ---- 6. introspection ------------------------------------------------------
 
 
 class TestIntrospection:
