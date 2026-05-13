@@ -49,8 +49,20 @@ DEFAULT_DATA_PATH = "~/research/rcaeval-tools/RCAEval/data/RE1/"
 DATA_PATH_ENV_VAR = "RCAEVAL_DATA_PATH"
 
 
+#: Filenames the loader probes for each case directory, in priority
+#: order. ``simple_metrics.csv`` / ``simple_data.csv`` use the
+#: ``{service}_{canonical_feature}`` schema the rest of the evaluation
+#: pipeline (schema_normalizer, methods, metrics) expects. ``data.csv``
+#: on RE1-OB is *already* in that schema, but on RE1-SS / RE1-TT it
+#: holds the raw Prometheus-verbose dump (e.g.
+#: ``carts_container-cpu-system-seconds-total``) which the normalizer
+#: cannot parse. Those systems ship a companion ``simple_data.csv``
+#: re-projected onto the simple schema; the priority order below
+#: makes the loader prefer that companion when present and fall back
+#: to ``data.csv`` on RE1-OB (which has only the one file).
 _METRICS_FILENAMES = (
     "simple_metrics.csv",
+    "simple_data.csv",
     "data.csv",
     "metrics.csv",
     "metrics.json",

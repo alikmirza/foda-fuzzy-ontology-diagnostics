@@ -52,7 +52,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass, field
-from typing import Iterable
+from typing import Any, Iterable
 
 import numpy as np
 import pandas as pd
@@ -120,7 +120,7 @@ class NormalizedCase:
     window_end:   float
     sampling_dt:  float
     services: list[str]
-    schema_summary: dict[str, list[str]]
+    schema_summary: dict[str, Any]
     ground_truth: CaseGroundTruth
 
     # The two attribute names below were on the previous flat
@@ -303,20 +303,68 @@ def _metrics_df(case_or_df: BenchmarkCase | pd.DataFrame) -> pd.DataFrame:
     )
 
 
+#: Latency-source labels recorded in ``schema_summary["latency_source"]``.
+#: ``mean_latency`` is the original RE1-OB behaviour (a direct
+#: ``{svc}_latency`` column was present). ``p50`` / ``p90`` proxies
+#: are the RE1-SS / RE1-TT fallbacks documented in DEVIATIONS.md →
+#: "RE1-SS / RE1-TT latency alias (Paper 6 Phase 2 extension)".
+#: ``missing`` is reported when a service has no usable latency column.
+_LATENCY_SOURCE_MEAN: str = "mean_latency"
+_LATENCY_SOURCE_P50:  str = "p50_latency_proxy"
+_LATENCY_SOURCE_P90:  str = "p90_latency_proxy"
+_LATENCY_SOURCE_NONE: str = "missing"
+
+#: Probe order for the latency column. The first column that exists in
+#: the raw frame wins and determines the ``latency_source`` tag for
+#: that service.
+_LATENCY_PROBE_ORDER: tuple[tuple[str, str], ...] = (
+    ("latency",    _LATENCY_SOURCE_MEAN),
+    ("latency-50", _LATENCY_SOURCE_P50),
+    ("latency-90", _LATENCY_SOURCE_P90),
+)
+
+
 def _build_canonical_frame(
     df: pd.DataFrame, services: Iterable[str]
-) -> tuple[pd.DataFrame, dict[str, list[str]]]:
+) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Project the raw frame onto the canonical
+    ``{service}_{canonical_feature}`` schema.
+
+    Latency handling: per-service, probe for ``{svc}_latency`` first
+    (mean), then ``{svc}_latency-50`` (median, p50), then
+    ``{svc}_latency-90`` (p90). Whichever column is found first is
+    stored in the output as the canonical ``{svc}_latency`` column,
+    and the picked source is recorded in
+    ``schema_summary["latency_source"][svc]``. RE1-OB has direct
+    mean-latency columns; RE1-SS / RE1-TT only expose ``_latency-50``
+    / ``_latency-90`` and fall through to the proxy paths. See
+    DEVIATIONS.md → "RE1-SS / RE1-TT latency alias" for the
+    benchmark-adaptation rationale.
+
+    Returns a (DataFrame, schema_summary) pair. The summary's
+    canonical-feature keys (``latency``, ``traffic``, …) carry the
+    sorted list of services contributing each feature; the new
+    ``latency_source`` key carries a per-service dict whose value is
+    one of :data:`_LATENCY_SOURCE_MEAN`, :data:`_LATENCY_SOURCE_P50`,
+    :data:`_LATENCY_SOURCE_P90`, or :data:`_LATENCY_SOURCE_NONE`.
+    """
     out: dict[str, pd.Series] = {"time": df["time"]}
-    summary: dict[str, list[str]] = {feat: [] for feat in _CANONICAL_FEATURES}
+    summary: dict[str, Any] = {feat: [] for feat in _CANONICAL_FEATURES}
+    latency_source: dict[str, str] = {}
 
     for svc in services:
-        latency_src = _pick_first_present(
-            df,
-            [f"{svc}_latency", f"{svc}_latency-50", f"{svc}_latency-90"],
-        )
-        if latency_src is not None:
-            out[f"{svc}_latency"] = df[latency_src]
-            summary["latency"].append(svc)
+        # Latency: probe mean → p50 → p90; tag the source per service.
+        picked: str | None = None
+        for suffix, label in _LATENCY_PROBE_ORDER:
+            col = f"{svc}_{suffix}"
+            if col in df.columns:
+                out[f"{svc}_latency"] = df[col]
+                summary["latency"].append(svc)
+                latency_source[svc] = label
+                picked = label
+                break
+        if picked is None:
+            latency_source[svc] = _LATENCY_SOURCE_NONE
 
         traffic_src = _pick_first_present(
             df,
@@ -332,8 +380,9 @@ def _build_canonical_frame(
                 out[col] = df[col]
                 summary[resource].append(svc)
 
-    for feat in summary:
+    for feat in _CANONICAL_FEATURES:
         summary[feat].sort()
+    summary["latency_source"] = latency_source
     return pd.DataFrame(out), summary
 
 

@@ -136,6 +136,35 @@ def test_metrics_json_columnar_format(tmp_path: Path):
     assert df["frontend_err"].tolist() == [0.0, 0.5]
 
 
+def test_simple_data_csv_preferred_over_data_csv(tmp_path: Path):
+    """RE1-SS / RE1-TT cases ship two CSVs: ``data.csv`` is the raw
+    Prometheus dump with verbose column names that the schema
+    normalizer can't parse; ``simple_data.csv`` is the same telemetry
+    re-projected onto the canonical ``{service}_{feature}`` schema.
+
+    The loader's filename priority list must prefer ``simple_data.csv``
+    so cases on those systems flow through the normalizer correctly.
+    RE1-OB has only ``data.csv`` (already in the simple schema), so
+    the priority change doesn't affect it.
+    """
+    case_dir = tmp_path / "SS_carts_cpu_1"
+    # Verbose / "wrong" schema in data.csv — would not parse downstream.
+    _write_csv(case_dir / "data.csv", [
+        {"time": 0, "carts_container-cpu-system-seconds-total": 0.9},
+    ])
+    # Simple / "right" schema in simple_data.csv — what we want.
+    _write_csv(case_dir / "simple_data.csv", [
+        {"time": 0, "carts_cpu": 0.1},
+    ])
+    loader = RCAEvalLoader(tmp_path)
+    case = loader.get_case("SS_carts_cpu_1")
+    df = case.telemetry["metrics"]
+    assert "carts_cpu" in df.columns, (
+        "loader should prefer simple_data.csv over data.csv"
+    )
+    assert "carts_container-cpu-system-seconds-total" not in df.columns
+
+
 def test_directories_without_metrics_file_are_ignored(tmp_path: Path):
     # A real folder with metrics.
     good = tmp_path / "OB_currency_CPU_1"

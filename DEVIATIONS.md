@@ -1714,3 +1714,82 @@ unreliable. The four Phase-2 metrics together characterise:
   explanation's stated certainty matches its empirical
   accuracy).
 
+
+## RE1-SS / RE1-TT latency alias (Paper 6 Phase 2 extension)
+
+RCAEval RE1-SS and RE1-TT do not expose mean per-service latency.
+Their canonical schema includes ``_latency-50`` (median) and
+``_latency-90`` (90th percentile). For cross-system method
+comparability without confounding feature-set asymmetry, the
+schema normalizer aliases ``_latency-50`` to the canonical
+``_latency`` slot when mean latency is unavailable. The
+substitution is recorded per-service in
+``NormalizedCase.schema_summary["latency_source"]`` so downstream
+methods are aware. Median latency is a defensible qualitative
+proxy for the question "is this service's response time
+anomalous," though it differs statistically from mean. This is a
+documented benchmark adaptation, not a method modification.
+
+### Per-service tag values
+
+``schema_summary["latency_source"]`` is a ``dict[str, str]``
+mapping each service to one of:
+
+* ``mean_latency`` — direct ``{svc}_latency`` column was present
+  in the raw frame (RE1-OB).
+* ``p50_latency_proxy`` — fallback to ``{svc}_latency-50``
+  (RE1-SS, RE1-TT).
+* ``p90_latency_proxy`` — fallback to ``{svc}_latency-90`` when
+  neither mean nor p50 is available.
+* ``missing`` — no latency signal for this service (the
+  canonical ``{svc}_latency`` column is absent from
+  ``case_window``).
+
+The probe order is fixed in
+``schema_normalizer._LATENCY_PROBE_ORDER`` and matches the
+"prefer the most-faithful proxy first" rule above.
+
+### Loader-side companion fix
+
+RE1-SS and RE1-TT cases ship two CSVs side-by-side:
+``data.csv`` is the raw Prometheus dump (verbose column names
+like ``carts_container-cpu-system-seconds-total``), and
+``simple_data.csv`` is the same telemetry re-projected onto the
+``{service}_{canonical_feature}`` schema the rest of the
+pipeline consumes. The loader's filename priority order
+(:data:`evaluation.benchmarks.rcaeval_loader._METRICS_FILENAMES`)
+now prefers ``simple_data.csv`` over ``data.csv``, so SS / TT
+cases flow through the schema normalizer correctly. RE1-OB is
+unaffected: it ships only ``data.csv``, and that file is already
+in the simple schema.
+
+### Why this is a benchmark adaptation, not a method change
+
+* No method's ``diagnose`` reads ``schema_summary`` — methods
+  see the canonical ``{svc}_latency`` column whether it was
+  sourced from mean, p50, or p90. The aliasing is invisible at
+  the method-API boundary.
+* AC@1 / SG / SC / EC / ECE measurements on RE1-OB are
+  unchanged after the fix (no ``_latency-50`` /
+  ``_latency-90`` columns on OB → no aliasing happens → no
+  numerical drift).
+* The alias is one-way: ``_latency`` is preferred whenever
+  present; the median is consulted only when mean is absent.
+  Methods cannot be "tricked" into thinking a median signal is
+  a mean signal because the tag is exposed per-service for any
+  downstream consumer that cares (analysis notebooks, paper §4
+  discussion).
+
+### Limitations on cross-system comparability
+
+Methods relying primarily on the **distribution shape** of
+latency (e.g. tail-quantile signal vs. central tendency) may
+behave differently on RE1-SS / RE1-TT than on RE1-OB even
+under aliasing, because p50 is statistically distinct from
+mean. The cross-system findings note flags any method whose
+RE1-OB → RE1-SS / RE1-TT AC@1 drop coincides with services
+tagged ``p50_latency_proxy`` — this disentangles "method is
+system-sensitive" from "p50 isn't a good mean substitute for
+this method."
+
+

@@ -207,6 +207,108 @@ class TestColumnDerivation:
         assert "frontend_error" in norm.case_window.columns
 
 
+# ---- latency_source tagging (Phase 2 multi-system extension) ----
+
+
+class TestLatencySource:
+    """The ``schema_summary["latency_source"]`` per-service tag records
+    which raw column the canonical ``{svc}_latency`` slot was sourced
+    from. RE1-OB ships mean-latency columns directly; RE1-SS / RE1-TT
+    only expose Istio-percentile columns (``_latency-50`` / ``_latency-90``)
+    that we alias under DEVIATIONS.md → "RE1-SS / RE1-TT latency alias".
+    The tag lets downstream consumers (analysis notebooks, paper §4
+    discussion) report when median-latency substitution is in effect.
+    """
+
+    def test_mean_latency_recorded_when_only_mean_present(self):
+        df = pd.DataFrame({
+            "time":          np.arange(1300, dtype=float),
+            "svc-a_latency": np.full(1300, 0.07),
+            "svc-a_cpu":     np.full(1300, 0.5),
+        })
+        case = _make_case(df, inject_time=650.0)
+        norm = normalize_case(case)
+        assert norm.schema_summary["latency_source"] == {
+            "svc-a": "mean_latency",
+        }
+
+    def test_p50_proxy_recorded_when_only_p50_present(self):
+        df = pd.DataFrame({
+            "time":             np.arange(1300, dtype=float),
+            "svc-a_latency-50": np.full(1300, 0.05),
+            "svc-a_cpu":        np.full(1300, 0.5),
+        })
+        case = _make_case(df, inject_time=650.0)
+        norm = normalize_case(case)
+        assert norm.schema_summary["latency_source"] == {
+            "svc-a": "p50_latency_proxy",
+        }
+        # The canonical {svc}_latency column carries the p50 values.
+        assert np.allclose(
+            norm.case_window["svc-a_latency"].to_numpy(), 0.05,
+        )
+
+    def test_mean_preferred_when_both_mean_and_p50_present(self):
+        df = pd.DataFrame({
+            "time":             np.arange(1300, dtype=float),
+            "svc-a_latency":    np.full(1300, 0.42),
+            "svc-a_latency-50": np.full(1300, 0.05),
+            "svc-a_cpu":        np.full(1300, 0.5),
+        })
+        case = _make_case(df, inject_time=650.0)
+        norm = normalize_case(case)
+        assert norm.schema_summary["latency_source"] == {
+            "svc-a": "mean_latency",
+        }
+        assert np.allclose(
+            norm.case_window["svc-a_latency"].to_numpy(), 0.42,
+        )
+
+    def test_p90_proxy_recorded_when_only_p90_present(self):
+        df = pd.DataFrame({
+            "time":             np.arange(1300, dtype=float),
+            "svc-a_latency-90": np.full(1300, 0.99),
+            "svc-a_cpu":        np.full(1300, 0.5),
+        })
+        case = _make_case(df, inject_time=650.0)
+        norm = normalize_case(case)
+        assert norm.schema_summary["latency_source"] == {
+            "svc-a": "p90_latency_proxy",
+        }
+        assert np.allclose(
+            norm.case_window["svc-a_latency"].to_numpy(), 0.99,
+        )
+
+    def test_missing_recorded_when_no_latency_column_present(self):
+        df = pd.DataFrame({
+            "time":        np.arange(1300, dtype=float),
+            "svc-a_cpu":   np.full(1300, 0.5),
+        })
+        case = _make_case(df, inject_time=650.0)
+        norm = normalize_case(case)
+        assert norm.schema_summary["latency_source"] == {
+            "svc-a": "missing",
+        }
+        assert "svc-a_latency" not in norm.case_window.columns
+
+    def test_per_service_tagging_across_mixed_services(self):
+        """Two services in the same frame, each backed by a different
+        raw column. The tag must reflect each service independently."""
+        df = pd.DataFrame({
+            "time":             np.arange(1300, dtype=float),
+            "svc-a_latency":    np.full(1300, 0.07),
+            "svc-b_latency-50": np.full(1300, 0.05),
+            "svc-a_cpu":        np.full(1300, 0.5),
+            "svc-b_cpu":        np.full(1300, 0.5),
+        })
+        case = _make_case(df, inject_time=650.0)
+        norm = normalize_case(case)
+        assert norm.schema_summary["latency_source"] == {
+            "svc-a": "mean_latency",
+            "svc-b": "p50_latency_proxy",
+        }
+
+
 # ---- schema_summary (unchanged) ----
 
 

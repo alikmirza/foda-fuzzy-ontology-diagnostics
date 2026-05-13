@@ -2805,3 +2805,271 @@ produce non-zero semantic quality. The two optimisation targets
 are not interchangeable on RE1-OB.
 
 Phase 2 is complete; Phase 3 (paper writing) begins next.
+
+
+## 2026-05 — Phase 2 multi-system extension: RE1-SS and RE1-TT results
+
+End-of-Phase-2 extension: re-run the existing 7-method × 4-metric
+pipeline on RE1-SS (Sock Shop, 15 services) and RE1-TT (Train
+Ticket, 64 services) alongside the existing RE1-OB results.
+**2,625 case-method pairs** total across 3 RCAEval systems × 7
+methods × 125 cases. The harness extension required two small
+pipeline fixes documented in DEVIATIONS.md:
+
+* **Loader filename priority**: prefer ``simple_data.csv`` over
+  ``data.csv`` (SS / TT ship a raw Prometheus dump in
+  ``data.csv`` and the canonical-schema projection in
+  ``simple_data.csv``).
+* **Schema normalizer latency alias**: SS / TT expose
+  ``_latency-50`` (median) and ``_latency-90`` instead of mean
+  ``_latency``; the normalizer probes mean → p50 → p90 and
+  records the source in
+  ``schema_summary["latency_source"]``. Median latency is
+  documented as a benchmark adaptation, not a method change.
+
+Per-system headline tables live in
+``results/phase2_integration_headline_re1-{ob,ss,tt}.csv``;
+cross-system variance in
+``results/phase2_cross_system_comparison.csv``.
+
+### (1) Per-system headline tables
+
+**RE1-OB (Online Boutique, 12 services, original — for reference).**
+
+| method   | AC@1 ↑ | SG ↑  | SC ↑  | EC ↑  | ECE ↓ |
+| -------- | ----: | ----: | ----: | ----: | ----: |
+| DejaVu   | 0.696 | 0.000 | 0.000 | 0.333 | 0.099 |
+| BARO     | 0.536 | 0.000 | 0.000 | 0.333 | 0.534 |
+| CR       | 0.624 | 0.000 | 0.000 | 0.333 | 0.300 |
+| MR       | 0.632 | 0.000 | 0.000 | 0.333 | 0.335 |
+| Micro    | 0.624 | 0.000 | 0.000 | 0.333 | 0.131 |
+| yRCA     | 0.328 | 0.267 | 0.000 | 0.333 | 0.349 |
+| FODA-FCP | 0.400 | 1.000 | 0.266 | 0.824 | 0.167 |
+
+**RE1-SS (Sock Shop, 15 services).**
+
+| method   | AC@1 ↑ | SG ↑  | SC ↑  | EC ↑  | ECE ↓ |
+| -------- | ----: | ----: | ----: | ----: | ----: |
+| DejaVu   | 0.848 | 0.000 | 0.000 | 0.333 | 0.111 |
+| BARO     | 0.584 | 0.000 | 0.000 | 0.333 | 0.582 |
+| CR       | 0.656 | 0.000 | 0.000 | 0.333 | 0.266 |
+| MR       | 0.656 | 0.000 | 0.000 | 0.333 | 0.352 |
+| Micro    | 0.648 | 0.000 | 0.000 | 0.333 | 0.190 |
+| yRCA     | 0.256 | 0.149 | 0.000 | 0.333 | 0.380 |
+| FODA-FCP | 0.160 | 1.000 | 0.158 | 0.749 | 0.123 |
+
+**RE1-TT (Train Ticket, 64 services).**
+
+| method   | AC@1 ↑ | SG ↑  | SC ↑  | EC ↑  | ECE ↓ |
+| -------- | ----: | ----: | ----: | ----: | ----: |
+| DejaVu   | 0.744 | 0.000 | 0.000 | 0.333 | 0.171 |
+| BARO     | 0.392 | 0.000 | 0.000 | 0.333 | 0.390 |
+| CR       | 0.472 | 0.000 | 0.000 | 0.333 | 0.442 |
+| MR       | 0.480 | 0.000 | 0.000 | 0.333 | 0.182 |
+| Micro    | 0.456 | 0.000 | 0.000 | 0.333 | 0.174 |
+| yRCA     | 0.104 | 0.109 | 0.000 | 0.333 | 0.279 |
+| FODA-FCP | 0.008 | 1.000 | 0.086 | 0.789 | 0.219 |
+
+### (2) Cross-system stability (per-method range across 3 systems)
+
+| method   | AC@1 range | EC range | ECE range | comment |
+| -------- | -----:    | -----:   | -----:    | --- |
+| DejaVu   | 0.152 | 0.000 | 0.073 | most stable across systems |
+| Micro    | 0.192 | 0.000 | 0.059 | head-ratio behaviour consistent |
+| BARO     | 0.192 | 0.000 | 0.192 | BARO flat-posterior pattern repeats on all 3 |
+| MR       | 0.176 | 0.000 | 0.170 | sensitive to system size |
+| CR       | 0.184 | 0.000 | 0.177 | similar to MR |
+| yRCA     | 0.224 | 0.000 | 0.101 | AC@1 collapses on TT |
+| FODA-FCP | **0.392** | 0.075 | 0.096 | **AC@1 collapse on SS/TT**, but SG / EC stable |
+
+**AC@1 vs chance baseline.** The system service count sets the
+chance baseline for AC@1 under a uniform random pick:
+
+| method   | OB AC@1 | SS AC@1 | TT AC@1 | TT chance | comment |
+| -------- | ------: | ------: | ------: | --------: | --- |
+| DejaVu   | 0.696 | 0.848 | 0.744 | 0.016 | well above chance on every system |
+| BARO     | 0.536 | 0.584 | 0.392 | 0.016 | above chance on every system |
+| CR       | 0.624 | 0.656 | 0.472 | 0.016 | above chance on every system |
+| MR       | 0.632 | 0.656 | 0.480 | 0.016 | above chance on every system |
+| Micro    | 0.624 | 0.648 | 0.456 | 0.016 | above chance on every system |
+| yRCA     | 0.328 | 0.256 | 0.104 | 0.016 | above chance on every system |
+| **FODA-FCP** | 0.400 | 0.160 | **0.008** | **0.016** | **Below chance on TT (Noisy-OR saturation; see §3)** |
+
+Chance is ``1 / |services|``: 1/12 ≈ 0.083 (OB), 1/15 ≈ 0.067 (SS),
+1/64 ≈ 0.016 (TT). FCP on TT is the only (method, system) pair in
+the entire 21-cell grid that falls below its system's chance
+baseline.
+
+### (3) FODA-FCP on RE1-TT — Noisy-OR saturation diagnostic
+
+**SG = 1.000 holds on every system** (confirming the brief's
+hypothesis). EC also stays high across systems (0.824 OB / 0.749
+SS / 0.789 TT). FCP's ontology coverage is robust: every emitted
+atom continues to ground in DiagnosticKB regardless of system.
+
+**AC@1 collapses**: 0.400 (OB) → 0.160 (SS) → **0.008 (TT)**.
+TT's chance baseline is 1/64 ≈ 0.016; FCP's TT AC@1 sits **below
+chance**, making this the single most extreme cross-system
+finding in the extension. The cause is a specific algorithmic
+mechanism (Noisy-OR saturation on dense graphs), diagnosed below.
+**This is an FCP algorithmic limitation, not a framework
+generalisation failure** — the evaluation framework correctly
+characterises FCP as high-SG / high-EC / zero-AC@1 on TT, which
+is exactly the information an operator needs to know about FCP's
+deployability on a 64-service system.
+
+**Mechanism (Diagnostic C).** On RE1-TT's 64-service graph, FCP's
+Noisy-OR back-flow saturates confidence values for 30–64 services
+into a single tied band (C ≈ 1.0 on cpu/mem cases, C ≈ 0.0 on
+delay/loss cases). Local fuzzy detection finds the ground-truth
+service correctly (H = 0.88–0.95), but propagation washes out
+this signal. Ranking within the tied band defaults to FCP's
+alphabetical tiebreaker, which is uncorrelated with ground truth.
+Result: AC@1 collapses to 0.008, below chance baseline
+(1/64 ≈ 0.016).
+
+**Math.** Noisy-OR back-flow at a candidate service ``s`` is
+approximately::
+
+    C(s) = 1 − ∏_{n ∈ neighbors(s)} (1 − H(n) × edge_weight(n, s)).
+
+On RE1-OB's 12-service graph, each service has ~3 active
+neighbors; the product stays well below 1, and confidence
+distinguishes top candidates. On RE1-TT's 64-service graph, each
+service has ~10–20 active neighbors with non-trivial
+correlation-induced edge weights. With per-neighbor H ≥ 0.5
+across many neighbors, the product approaches 0 and C(s)
+saturates at 1.0 for many services simultaneously. Empirically
+on TT cpu/mem cases: 30–40 of 64 services tied at C = 1.0.
+
+**Connection to Phase 1.** This is the same Noisy-OR
+confidence-inflation mechanism documented in Phase 1 for FCP's
+cpu-vs-mem asymmetry on RE1-OB (memory injections triggering
+R14 cascading-failure rules compress top-of-ranking confidence
+to C ≈ 0.99 across multiple candidates; see DEVIATIONS.md →
+"FODA-FCP / Deviation 4"). The TT collapse is the same
+mechanism amplified by graph scale: 12 services → tractable
+amplification (a few candidates compressed); 64 services →
+near-total saturation (most candidates compressed).
+
+**Hypotheses ruled out by Diagnostics A and B.**
+
+* **Diagnostic A** ruled out systematic wrong-service bias.
+  Across 124 FCP=0 cases on TT, 43 distinct top-1 services are
+  selected; the most-frequent (``ts-admin-basic-info-service``,
+  32 cases) accounts for only 26 % of fails. The remaining 92 fails
+  distribute across 42 other services — the appearance of
+  ``ts-admin-basic-info-service`` is the alphabetical-tiebreaker
+  effect within the saturated tied band, not a structural pull
+  toward one wrong service.
+
+* **Diagnostic B** ruled out threshold mismatch (and reversed the
+  hypothesised direction). TT z-score magnitudes are 10× larger
+  than OB (mean max |z| of 798 vs 74 across 10-case samples).
+  TT's many low-activity services (databases, message queues)
+  have tiny pre-window standard deviations, so any post-onset
+  change produces enormous z's. The fuzzifier saturates **too
+  readily** on TT, not under-fires. Rule firing is not the
+  bottleneck; Noisy-OR propagation is.
+
+**The Paper 6 thesis in extremis.** Despite AC@1 = 0.008 on TT,
+FCP retains SG = 1.000 (every emitted atom is in DiagnosticKB),
+EC = 0.789 (cause + component + mitigation atoms still emitted),
+and ECE = 0.219 (calibration within reasonable bounds). This is
+the Paper 6 thesis in its strongest form: a method can be
+ontology-grounded, structurally complete, and reasonably
+calibrated while having essentially zero ranking accuracy. The
+four semantic-quality metrics measure four independent axes of
+explanation quality. On RE1-TT, FCP separates them maximally:
+the explanation is impeccable, but points at the wrong service.
+**This finding constitutes the single strongest empirical evidence
+that aggregate ranking accuracy is insufficient to characterise
+an RCA method's value to operators.**
+
+The framework's behaviour here is the *correct* behaviour: each
+of the four metrics independently reports what it measures. A
+single-axis (AC@1) report would mark FCP as a complete failure
+on TT; the four-axis report identifies *which* property fails
+(ranking) and which properties hold (grounding, completeness,
+calibration), letting an operator make a deployment-relevant
+judgement. FCP-on-TT is a case study for the four-axis
+evaluation, not a counter-example to it.
+
+**Implication for future work (Paper 7 scope).** The Noisy-OR
+saturation on large graphs is an algorithmic limitation of the
+current FCP propagation scheme, not a benchmark anomaly.
+Mitigations include: (a) damping-aware propagation that scales
+with graph density, (b) explicit tie-breaking based on local H
+instead of alphabetical ordering, (c) replacing Noisy-OR with a
+confidence-conserving aggregator (e.g. log-pool with bounded
+contribution per neighbor). These are Paper 7 (FODA system
+paper) directions, not Paper 6 scope. Paper 6 reports the
+observation; Paper 7 redesigns the propagation.
+
+### (4) DejaVu cross-system finding
+
+DejaVu's per-fault binary calibration regime (cpu/disk/mem
+well-calibrated, delay/loss poorly) **holds** across systems
+qualitatively: every system shows DejaVu's softmax sharp on
+fault-types its supervised head separates cleanly and flat on
+the harder ones. The aggregate ECE moves between systems
+(0.099 / 0.111 / 0.171) — TT's larger 64-class output head
+adds residual softmax flattening across all faults — but the
+direction is the same. DejaVu remains the best-calibrated
+method on every system.
+
+### (5) Universal patterns across systems
+
+* **Six-method semantic-floor cluster** holds. MR / CR / Micro
+  / BARO / DejaVu all sit at SG = 0.000, SC = 0.000, EC =
+  0.333 on every system. yRCA grounds a small fraction of
+  atoms (SG 0.27 / 0.15 / 0.11) but no structural propagation
+  (SC = 0). FCP is the only method that grounds the full
+  ontology vocabulary on every system.
+* **BARO's flat-posterior failure repeats.** Mean BARO
+  peak_confidence is ≤ 0.005 on every system — BOCPD's
+  log-prob distribution is flat on RE1-* under the adapter's
+  default hyperparameters, regardless of system size. The
+  empirical-inertness finding from Week 4 generalises to all
+  three RCAEval-RE1 systems.
+* **DejaVu wins or ties AC@1 on every system** (0.696 OB,
+  0.848 SS, 0.744 TT). The supervised head transfers well
+  across system topologies given enough per-fault training
+  cases.
+
+### (6) System-dependent patterns
+
+* **FODA-FCP's AC@1 is system-dependent** (the rule-engine
+  calibration is OB-specific).
+* **yRCA's AC@1 degrades on larger systems** — the
+  forward-chainer's coverage was tuned for OB's vocabulary.
+  RE1-TT's 64 services overflow yRCA's rule template.
+* **CR's loss-fault ECE explodes on TT** (per-fault ECE
+  0.744 → CR top1/top2 ratio assigns near-1 confidence even
+  when accuracy is low; the larger TT graph aggravates this).
+
+### (7) Limitations and notes
+
+* **Latency feature asymmetry.** RE1-OB has mean latency
+  columns; RE1-SS / RE1-TT have only p50 / p90 (Istio
+  percentiles). schema_normalizer aliases p50 → canonical
+  ``_latency`` slot. Methods relying on latency-distribution
+  *shape* (rather than central tendency) may behave slightly
+  differently on SS/TT. The per-service ``latency_source``
+  tag in ``schema_summary`` lets future analysis disentangle
+  this.
+* **Service-count scaling.** TT's 64-service feature matrix
+  is ~4× SS / ~5× OB. Methods with super-linear complexity
+  in service count (CR's PC algorithm, BARO's BOCPD per-
+  feature predictive) take 5×–50× longer on TT. CC-TT alone
+  ran ~3.5 hours wall clock.
+* **DejaVu CV stratification** on TT is *(fault, system)*
+  stratified across 64 service candidates with only 5
+  recurring GT services — the supervised head has the
+  capacity but the training-set support per non-GT class is
+  zero. AC@1 stays high (0.744) but the per-fault delay /
+  loss confusions remain.
+
+Phase 2 extension complete. Paper 6 Section 4 now has 3-system
+cross-validation results to draw on.
+
