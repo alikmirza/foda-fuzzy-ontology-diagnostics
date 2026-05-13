@@ -382,6 +382,16 @@ _SUMMARY_FIELDNAMES = (
 )
 
 
+#: Per-case CSV columns. Persisted so the Week 5 integration loader
+#: can compute ``ece_proxy = |confidence − correct|`` per case without
+#: re-running the CC harness. ``confidence`` is the routed field
+#: (BARO ``peak_confidence``; others ``confidence``) — same scale ECE
+#: bucketing uses.
+_PER_CASE_FIELDNAMES = (
+    "method", "case_id", "fault", "confidence", "correct", "cal_error",
+)
+
+
 def write_csv(summary_rows: list[dict[str, Any]], path: Path) -> None:
     """Write the (method, fault) summary table to ``path``.
 
@@ -397,6 +407,26 @@ def write_csv(summary_rows: list[dict[str, Any]], path: Path) -> None:
         )
         w.writeheader()
         w.writerows(summary_rows)
+
+
+def write_per_case_csv(
+    per_case_rows: list[dict[str, Any]], path: Path,
+) -> None:
+    """Write the per-(method, case) calibration columns to ``path``.
+
+    Companion CSV to the aggregate summary. Week 5's integration
+    loader joins this on (method, case_id) with
+    ``phase2_explanation_completeness.csv`` to recover per-case AC@1
+    / SG / SC / EC alongside per-case confidence / ece_proxy.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="") as fh:
+        w = csv.DictWriter(
+            fh, fieldnames=list(_PER_CASE_FIELDNAMES),
+            extrasaction="ignore",
+        )
+        w.writeheader()
+        w.writerows(per_case_rows)
 
 
 def _fmt_float(x: float, width: int = 6, precision: int = 3) -> str:
@@ -546,6 +576,14 @@ def main(argv: list[str] | None = None) -> int:
         default=Path("results/phase2_confidence_calibration.csv"),
     )
     parser.add_argument(
+        "--per-case-out", type=Path,
+        default=Path("results/phase2_confidence_calibration_per_case.csv"),
+        help=(
+            "per-(method, case) CSV with confidence + correct + cal_error. "
+            "Consumed by the Week 5 integration loader."
+        ),
+    )
+    parser.add_argument(
         "--n-bins", type=int, default=_DEFAULT_N_BINS,
         help="number of ECE bins (default: 10, matches Guo et al. 2017)",
     )
@@ -556,10 +594,11 @@ def main(argv: list[str] | None = None) -> int:
         args.data.expanduser(), cc=cc,
     )
     write_csv(summary_rows, args.out)
+    write_per_case_csv(per_case_rows, args.per_case_out)
     correlations = _compute_correlations(per_case_rows)
     print_summary(per_method, correlations)
     print(f"\nWrote {len(summary_rows)} (method, fault) summary rows to {args.out}")
-    print(f"In-memory: {len(per_case_rows)} per-case rows.")
+    print(f"Wrote {len(per_case_rows)} per-case rows to {args.per_case_out}")
     return 0
 
 
