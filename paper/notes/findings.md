@@ -2703,3 +2703,105 @@ different for structure.
   than the method-level Bayesian machinery — note this when
   citing BARO's calibration on RE1-OB.
 
+
+## 2026-05 — Phase 2 Week 5: Integration
+
+End-of-Phase-2 stitching note. The four metric harnesses (Weeks
+1-4) each emit their own CSV; Week 5 joins them into a single
+per-(method, case) view and surfaces three integration artefacts
+Paper 6 Section 4 will quote directly. No new measurement; all
+numbers below derive from the already-committed Week 1-4 data.
+
+**Artefacts.**
+
+* `results/phase2_integration_headline.csv` — 7-method × 5-metric
+  headline table (AC@1, SG, SC, EC, ECE).
+* `paper/artifacts/scatter_ac1_vs_{sg,sc,ec,ece_proxy}.png` — four
+  6"×6" scatter plots, all 875 (method, case) points coloured by
+  method, per-method centroids as labelled diamonds.
+* `results/phase2_correlation_matrices.csv` — 5×5 Spearman overall
+  plus per-method conditional matrices (long form: scope, method,
+  x, y, ρ).
+* New code: `evaluation/analysis/{load_phase2_results,
+  headline_table,scatter_plots,correlation_matrix}.py` + tests.
+
+**Headline table.** 7 methods × 5 metrics; rows ordered by
+methodological family (supervised, probabilistic, causal,
+graph-walk, rule-based). Per-case means for AC@1 / SG / SC / EC;
+aggregate ECE from the Week 4 CC harness.
+
+| Method (family)       | AC@1 ↑ | SG ↑ | SC ↑ | EC ↑ | ECE ↓ |
+| --------------------- | ----: | ----: | ----: | ----: | ----: |
+| DejaVu (supervised)   | **0.696** | 0.000 | 0.000 | 0.333 | **0.099** |
+| BARO (probabilistic)  | 0.536 | 0.000 | 0.000 | 0.333 | 0.534 |
+| CR (causal)           | 0.624 | 0.000 | 0.000 | 0.333 | 0.300 |
+| MR (graph-walk)       | 0.632 | 0.000 | 0.000 | 0.333 | 0.335 |
+| Micro (graph-walk)    | 0.624 | 0.000 | 0.000 | 0.333 | 0.131 |
+| yRCA (rule-based)     | 0.328 | 0.267 | 0.000 | 0.333 | 0.349 |
+| FODA-FCP (rule-based) | 0.448 | **1.000** | **0.266** | **0.824** | 0.167 |
+
+DejaVu wins AC@1 and ECE; FODA-FCP wins the three structural
+metrics (SG, SC, EC).
+
+**Overall Spearman matrix (n = 875).** Per-case correlations
+across all method-case pairs.
+
+| | AC@1 | SG | SC | EC | ECE_proxy |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| **AC@1**       | 1.000 | −0.190 | +0.107 | −0.015 | +0.134 |
+| **SG**         | −0.190 | 1.000 | +0.470 | +0.648 | −0.028 |
+| **SC**         | +0.107 | +0.470 | 1.000 | +0.723 | −0.014 |
+| **EC**         | −0.015 | +0.648 | +0.723 | 1.000 | −0.032 |
+| **ECE_proxy**  | +0.134 | −0.028 | −0.014 | −0.032 | 1.000 |
+
+**Per-method matrices** carry mostly NaN cells because six of
+seven methods have **zero variance** on SG / SC / EC across their
+125 cases — the methods collapse to fixed values on those metrics
+(per Week 1-3 reports). Where variance does exist, the AC@1 ↔
+ECE_proxy diagonal is the only consistently-populated cell:
+DejaVu −0.71, CR −0.84 (calibration aligns with correctness),
+BARO +0.97, MR +0.83 (the underconfident-uniform-correctness
+flip discussed in Week 4 §5). FODA-FCP is the only method with
+non-NaN entries across the full matrix and the only one where
+SC / EC vary case-to-case alongside AC@1. See
+`results/phase2_correlation_matrices.csv` for all 200 cells.
+
+**Cross-metric pattern (what the data says, in four bullets):**
+
+* **AC@1 is weakly correlated with each semantic metric overall**:
+  ρ ∈ {−0.190, +0.107, −0.015, +0.134} — all four are below the
+  ρ ≥ 0.30 threshold typical for "moderate correlation". Ranking
+  accuracy and explanation structure are independent axes on
+  RE1-OB.
+* **SG, SC, EC cluster as a "structural-quality triple"** with
+  pairwise correlations 0.47–0.72 — substantial but not
+  redundant. The shared atom-grounding dependency is most of the
+  signal: a method that grounds zero atoms in DiagnosticKB
+  (SG = 0) cannot satisfy SC's per-link checks nor EC's
+  three-category detector, so the six non-FCP methods cluster
+  near zero on all three.
+* **ECE_proxy is essentially uncorrelated with everything** at
+  the overall level: ρ with SG / SC / EC all in [−0.04, +0.00].
+  Calibration is mathematically distinct from explanation
+  structure — a method can produce well-structured chains with
+  poorly-calibrated confidence (FCP at 0.17 ECE) or vice versa
+  (DejaVu at 0.099 ECE but EC=0.333 by the strict reading).
+* **FODA-FCP is the only method positioned away from the
+  six-method floor cluster** on the SG / SC / EC scatter plots,
+  sitting at (AC@1=0.45, SG=1.0), (AC@1=0.45, SC=0.27), and
+  (AC@1=0.45, EC=0.82). It is **not** in the upper-right of any
+  AC@1-vs-semantic-metric scatter — its AC@1 (0.448) sits below
+  DejaVu / MR / CR / Micro — but it is the only point above the
+  semantic-metric floor. On the ECE_proxy plot, DejaVu (0.20
+  mean proxy) is the most-calibrated centroid; FCP is second-most
+  (0.47); BARO / MR are the least-calibrated (~0.53).
+
+The headline table reveals a structural division: methods
+optimising for ranking accuracy (DejaVu, MR, CR, Micro, BARO)
+cluster tightly on AC@1 ∈ [0.54, 0.70] but populate the
+semantic-metric floor; methods optimising for explanation
+structure (FODA-FCP, yRCA) score lower on AC@1 (0.33–0.45) but
+produce non-zero semantic quality. The two optimisation targets
+are not interchangeable on RE1-OB.
+
+Phase 2 is complete; Phase 3 (paper writing) begins next.
