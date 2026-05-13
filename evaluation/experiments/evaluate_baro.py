@@ -154,6 +154,13 @@ def _evaluate_one_case(
         method, norm_true, gt,  shift_seconds, band_low, band_high
     )
 
+    # ``confidence`` is the BOCPD marginal posterior P(r_t=0 | x_{1:t})
+    # at the detected change-point timestep (bounded by ~1/T under the
+    # default hazard prior). ``peak_confidence`` is the band-normalised
+    # peak — directly comparable to head-ratio / softmax confidences
+    # other methods emit. The Phase 2 Week 4 calibration harness reads
+    # peak_confidence for BARO; this CSV exposes both so downstream
+    # consumers can pick whichever scale they need.
     row: dict[str, Any] = {
         "case_id": case.id,
         "fault": fault,
@@ -161,6 +168,14 @@ def _evaluate_one_case(
         "top1_true": out_true.ranked_list[0][0] if out_true.ranked_list else "",
         **ac_true,
         "MRR": mrr_true,
+        "confidence": (
+            float("nan") if out_true.confidence is None
+            else float(out_true.confidence)
+        ),
+        "peak_confidence": (
+            float("nan") if out_true.peak_confidence is None
+            else float(out_true.peak_confidence)
+        ),
         "AC@1_shift_minus": ac1_minus,
         "AC@1_shift_plus":  ac1_plus,
     }
@@ -331,7 +346,8 @@ def write_per_case_csv(per_case: list[dict[str, Any]], path: Path,
     base_fields = (
         ["case_id", "fault", "ground_truth", "top1_true"]
         + [f"AC@{k}" for k in top_ks]
-        + ["MRR", "AC@1_shift_minus", "AC@1_shift_plus"]
+        + ["MRR", "confidence", "peak_confidence",
+           "AC@1_shift_minus", "AC@1_shift_plus"]
     )
     has_random = any("AC@1_random" in r for r in per_case)
     has_zscore = any("AC@1_zscore_onset" in r for r in per_case)

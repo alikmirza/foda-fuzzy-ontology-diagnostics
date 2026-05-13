@@ -12,6 +12,12 @@ Two metric families:
 """
 
 from .base import Metric, SemanticMetric
+from .confidence_calibration import (
+    ConfidenceCalibration,
+    compute_ece,
+    compute_reliability_diagram,
+    per_case_calibration_error,
+)
 from .explanation_completeness import ExplanationCompleteness
 from .ontology_adapter import OntologyAdapter
 from .ranking_metrics import accuracy_at_k, mean_reciprocal_rank
@@ -19,6 +25,7 @@ from .semantic_coherence import SemanticCoherence
 from .semantic_groundedness import SemanticGroundedness
 
 __all__ = [
+    "ConfidenceCalibration",
     "ExplanationCompleteness",
     "Metric",
     "SemanticMetric",
@@ -26,5 +33,8 @@ __all__ = [
     "SemanticCoherence",
     "SemanticGroundedness",
     "accuracy_at_k",
+    "compute_ece",
+    "compute_reliability_diagram",
     "mean_reciprocal_rank",
+    "per_case_calibration_error",
 ]

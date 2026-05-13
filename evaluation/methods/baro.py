@@ -203,6 +203,24 @@ class BAROMethod(RCAMethod):
             obs_var_floor=self.obs_var_floor,
             max_run_length=self.max_run_length,
         )
+        # Secondary, [0, 1]-scaled confidence for cross-method
+        # calibration. Computed from the BOCPD log-prob band; only
+        # well-defined when the native detector ran (i.e. cp_posterior
+        # is finite and positive). Under diagnostic-variant monkey-
+        # patches that return cp_posterior=NaN, peak_confidence is
+        # None and the Phase 2 Week 4 harness falls back to the
+        # primary confidence field for those runs.
+        if np.isfinite(cp_posterior) and cp_posterior > 0.0:
+            peak_confidence: float | None = _compute_peak_confidence(
+                case_window=norm.case_window,
+                services=norm.services,
+                hazard_lambda=self.hazard_lambda,
+                prior_var=self.prior_var,
+                obs_var_floor=self.obs_var_floor,
+                max_run_length=self.max_run_length,
+            )
+        else:
+            peak_confidence = None
 
         shifts = _score_services(
             case_window=norm.case_window,
@@ -228,6 +246,7 @@ class BAROMethod(RCAMethod):
         raw = {
             "change_point_time": cp_time,
             "change_point_posterior": cp_posterior,
+            "peak_confidence": peak_confidence,
             "shift_scores": {s: shifts[s].score for s in norm.services},
             "dominant_features": {
                 s: shifts[s].dominant_feature for s in norm.services
@@ -242,6 +261,7 @@ class BAROMethod(RCAMethod):
             raw_output=raw,
             method_name=self.name,
             wall_time_ms=(time.perf_counter() - t0) * 1000.0,
+            peak_confidence=peak_confidence,
         )
 
 
@@ -301,6 +321,70 @@ def _detect_change_point(
         return float(times[T // 2]), 0.0
     posterior = float(np.clip(np.exp(masked[idx]), 0.0, 1.0))
     return float(times[idx]), posterior
+
+
+def _compute_peak_confidence(
+    case_window: pd.DataFrame,
+    services: list[str],
+    hazard_lambda: float = 250.0,
+    prior_var: float = 100.0,
+    obs_var_floor: float = 1e-6,
+    max_run_length: int = 250,
+) -> float:
+    """Band-normalised BOCPD peak confidence in [0, 1].
+
+    The native :func:`_detect_change_point` returns the BOCPD marginal
+    posterior ``P(r_t = 0 | x_{1:t})`` at the argmax timestep. That
+    posterior is bounded by roughly ``1 / T_band`` under BOCPD's
+    hazard prior — a sharp peak in the change-point posterior shows
+    up as ~0.004 on a 250-sample window, not as ~1.0. This makes it
+    unsuitable for cross-method calibration: comparing BARO's 0.004
+    against MR/CR/Micro head-ratios in [0, 1] is uninformative.
+
+    This helper renormalises the same posterior **over the search
+    band**, returning::
+
+        exp(max(log_band) − logsumexp(log_band))
+
+    i.e., "probability mass at the peak moment **given** the change
+    point is somewhere in the central 25–75 % band." A sharp peak
+    (where one timestep dominates) gives a value near 1; a flat
+    distribution (where mass is spread evenly across the band) gives
+    a value near ``1 / T_band``. The output is directly comparable
+    to head-ratio / softmax confidences other methods emit.
+
+    Returns 0.0 when BOCPD has no signal to work with — same fallback
+    condition as :func:`_detect_change_point`.
+
+    Independent of the :func:`_detect_change_point` monkey-patch
+    surface — this helper always runs the native BOCPD; the caller is
+    responsible for routing it correctly under diagnostic variants.
+    """
+    if "time" not in case_window.columns:
+        return 0.0
+    X = _stack_signal_matrix(case_window, services)
+    if X.size == 0:
+        return 0.0
+    X = _standardize(X)
+    cp_log_probs = _bocpd_multivariate(
+        X=X,
+        hazard_lambda=hazard_lambda,
+        prior_var=prior_var,
+        obs_var_floor=obs_var_floor,
+        max_run_length=max_run_length,
+    )
+    T = cp_log_probs.size
+    low, high = T // 4, max(T // 4 + 2, (3 * T) // 4)
+    band = cp_log_probs[low:high]
+    if band.size == 0:
+        return 0.0
+    finite_mask = np.isfinite(band)
+    if not finite_mask.any():
+        return 0.0
+    finite = band[finite_mask]
+    max_log = float(np.max(finite))
+    total_log = _logsumexp(finite)
+    return float(np.clip(np.exp(max_log - total_log), 0.0, 1.0))
 
 
 def _stack_signal_matrix(

@@ -146,7 +146,21 @@ class BenchmarkCase:
 
 @dataclass
 class DiagnosticOutput:
-    """The output of a single RCA method on a single case."""
+    """The output of a single RCA method on a single case.
+
+    ``peak_confidence`` is an optional **secondary** confidence summary
+    intended for cross-method calibration analysis. It is currently set
+    only by BARO, whose primary ``confidence`` is the BOCPD marginal
+    posterior — a value mathematically bounded by ~1/T under BOCPD's
+    hazard prior and therefore not directly comparable to head-ratio
+    or softmax confidences emitted by the other methods. BARO's
+    ``peak_confidence`` is the band-normalised peak of the same
+    posterior — "probability mass at the peak moment, given the
+    change point is in the search band" — which lies in [0, 1] and is
+    directly comparable to other methods' confidences. See
+    DEVIATIONS.md → "ConfidenceCalibration metric" for the routing
+    rule the Phase 2 Week 4 harness applies.
+    """
 
     ranked_list: list[tuple[str, float]]
     explanation_chain: CanonicalExplanation
@@ -154,9 +168,17 @@ class DiagnosticOutput:
     raw_output: Any
     method_name: str
     wall_time_ms: float
+    peak_confidence: float | None = None
 
     def __post_init__(self) -> None:
         if self.confidence is not None and not (0.0 <= self.confidence <= 1.0):
             raise ValueError(
                 f"confidence must be in [0, 1] or None, got {self.confidence}"
+            )
+        if self.peak_confidence is not None and not (
+            0.0 <= self.peak_confidence <= 1.0
+        ):
+            raise ValueError(
+                f"peak_confidence must be in [0, 1] or None, "
+                f"got {self.peak_confidence}"
             )
