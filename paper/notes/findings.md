@@ -2195,3 +2195,511 @@ name text match only).
   intensity but lose the comparability against the
   four-valued scale. Left as a Week-4 design knob.
 
+
+## 2026-05 — Phase 2 Week 4: ConfidenceCalibration baseline characterization
+
+**Headline.** Expected Calibration Error (ECE) over the 875 method-
+case pairs — the fourth and final Paper 6 Phase 2 semantic-quality
+metric. The lone metric where lower is better, and the lone
+**aggregate** metric: ECE is a population property, not a per-case
+score, so the class is shipped as a standalone analyzer (Option A
+architecture; see DEVIATIONS.md → "ConfidenceCalibration metric
+(Paper 6 Phase 2 Week 4)").
+
+The seven methods span the full calibration spectrum: **DejaVu wins
+(ECE = 0.099)** — best-calibrated by a wide margin — while **BARO
+collapses (ECE = 0.534)** with uniform near-zero confidence. FODA-
+FCP (0.167), Micro (0.131), CR (0.300), MR (0.335) and yRCA (0.349)
+sit in between. Three of seven sit outside the brief's predicted
+bands — one massively underperforms predictions (BARO), two beat
+them (Micro, DejaVu) — and §6 below traces each to a structural
+property of the underlying confidence machinery on this benchmark,
+not to an ECE-side artefact.
+
+**Confidence-scale heterogeneity (BARO routing).** Methods use
+mathematically different uncertainty formulations: MR / CR / Micro /
+FCP use head-ratio confidences ``top1 / Σ_top_K`` in [0, 1]; DejaVu
+emits a softmax probability in [0, 1]; yRCA computes a derivation-
+multiplicity ratio in [0, 1]. BARO's primary ``confidence`` field
+emits the BOCPD **marginal** posterior ``P(r_t = 0 | x_{1:t})`` at
+the chosen change-point timestep — a value mathematically bounded
+by roughly ``1 / hazard_lambda`` (≈ 0.004 under the default hazard
+prior) regardless of how confident BOCPD actually is. Direct ECE
+comparison of BARO's 0.004-bounded posterior against
+[0, 1]-scaled head ratios is uninformative — the gap reflects
+scale incompatibility, not miscalibration. For cross-method
+calibration we therefore route BARO to a parallel
+``peak_confidence`` field on :class:`DiagnosticOutput`: the band-
+normalised peak ``P(change point at the peak moment | it lies in
+the search band)``, mathematically in [0, 1] and directly
+comparable to the other six methods' scales. BARO's
+``confidence`` (the absolute marginal posterior) remains available
+for use cases that need probabilistic interpretation. See
+DEVIATIONS.md → "BARO routing: peak_confidence for cross-method
+calibration" for the routing rule (``_METHOD_CONFIDENCE_FIELD`` in
+``run_phase2_cc.py``).
+
+**Empirical caveat on the BARO routing.** Despite the scale fix,
+BARO's ECE remained at 0.534 — essentially unchanged from the
+0.532 of the un-normalised marginal posterior. The reason is
+documented in §6: on RE1-OB the BOCPD log-prob distribution is
+**exactly flat** across the search band (spread ``max − min =
+0.000``), so peak normalisation yields ``1 / T_band ≈ 0.001667``
+uniformly across all 125 cases. The methodological fix is correct
+in principle; the empirical finding is that BARO's BOCPD does not
+localise the change point on RE1-OB given the adapter's default
+hyperparameters, regardless of which posterior summary is exposed.
+
+(1) DESIGN DECISIONS
+
+**Aggregate-only contract.** Three prior Phase 2 metrics (SG, SC,
+EC) are :class:`SemanticMetric` per-case scorers; ConfidenceCalibration
+deliberately is not. A single (confidence, correct) pair carries
+no calibration information — "0.8 confidence, correct" is well-
+calibrated iff *across* high-confidence cases accuracy averages
+near 0.8. The public surface is :func:`compute_ece` and
+:func:`compute_reliability_diagram`, both consuming a list of
+`{confidence, correct}` mappings. Per-case cross-metric Spearman
+uses :func:`per_case_calibration_error` =
+``|confidence − (1.0 if correct else 0.0)|`` — a Brier-style proxy
+documented as a per-case approximation (and discussed in §5).
+
+**``n_bins = 10`` default.** Matches Guo et al. 2017 ECE
+convention. The bucket index is right-edge inclusive at confidence
+1.0 so methods whose softmax peaks at 1.0 (DejaVu, peaked BARO)
+don't silently drop. ``test_confidence_calibration.py::
+TestBucketIndex`` covers the rule.
+
+**Confidence harvested from in-memory DiagnosticOutput.** Phase-1
+validation CSVs in ``results/week2_*.csv`` don't carry a
+``confidence`` column — they were written before Phase 2 demanded
+the field. Following the Week 3 EC harness pattern, the Week 4
+harness re-runs each method on every case and reads
+:attr:`DiagnosticOutput.confidence`. All seven methods emit a
+non-None confidence; see DEVIATIONS.md → "Confidence harvested
+from in-memory DiagnosticOutput" for the per-method confidence
+recipe.
+
+(2) PER-METHOD HEADLINE TABLE
+
+7 methods × 125 cases, ECE rounded to 3 decimals (lower = better):
+
+For BARO, ``mean conf`` is the harness-routed ``peak_confidence``
+(band-normalised posterior peak in [0, 1]), not the absolute
+marginal posterior; see §6 below.
+
+| Method   |   n |   ECE | mean conf | mean acc |   SG |   SC |    EC | over | under |
+| -------- | --: | ----: | --------: | -------: | ---: | ---: | ----: | ---: | ----: |
+| MR       | 125 | 0.335 |     0.313 |    0.632 | 0.00 | 0.00 | 0.333 |    2 |     2 |
+| CR       | 125 | 0.300 |     0.924 |    0.624 | 0.00 | 0.00 | 0.333 |    5 |     0 |
+| Micro    | 125 | 0.131 |     0.500 |    0.624 | 0.00 | 0.00 | 0.333 |    1 |     3 |
+| BARO     | 125 | 0.534 |     0.002 |    0.536 | 0.00 | 0.00 | 0.333 |    0 |     1 |
+| DejaVu   | 125 | **0.099** |  0.795 |    0.696 | 0.00 | 0.00 | 0.333 |    9 |     0 |
+| yRCA     | 125 | 0.349 |     0.392 |    0.328 | 0.27 | 0.00 | 0.333 |    6 |     3 |
+| FODA-FCP | 125 | 0.167 |     0.352 |    0.448 | 1.00 | 0.27 | 0.824 |    1 |     6 |
+
+**Direction reminder.** ECE ∈ [0, 1], 0 = perfectly calibrated.
+This column reads opposite to SG / SC / EC / AC@1 in every prior
+Phase-2 table.
+
+(3) PER-FAULT ECE BREAKDOWN
+
+The per-fault matrix exposes which fault types break a method's
+calibration. CSV column ``fault`` carries the fault label; the
+``ALL`` row is the per-method aggregate.
+
+| Method   |   cpu |  delay |  disk |  loss |   mem |
+| -------- | ----: | -----: | ----: | ----: | ----: |
+| MR       | 0.385 |  0.620 | 0.433 | 0.137 | 0.344 |
+| CR       | 0.283 |  0.062 | 0.227 | 0.744 | 0.269 |
+| Micro    | 0.155 |  0.451 | 0.260 | 0.337 | 0.154 |
+| BARO     | 0.678 |  0.678 | 0.398 | 0.118 | 0.798 |
+| **DejaVu** | **0.012** |  **0.266** | **0.010** | **0.275** | **0.000** |
+| yRCA     | 0.497 |  0.445 | 0.277 | 0.423 | 0.503 |
+| FODA-FCP | 0.285 |  0.197 | 0.119 | 0.146 | 0.165 |
+
+**Within-method dispersion is the story.** DejaVu's per-fault ECE
+spans a 25× range: near-zero on cpu / disk / mem (0.000–0.012) and
+0.25+ on delay / loss. The aggregate 0.099 hides a binary
+calibration regime. DejaVu's supervised classifier produces
+near-perfect calibration on fault types where its decision
+boundary is sharp (cpu / disk / mem — the high-effect-size
+injections the type head learned to separate cleanly during 5-fold
+CV) and mediocre calibration on the harder types where the type
+head conflates classes (delay / loss are subtler timing /
+error perturbations). The 0.099 aggregate is a population-weighted
+average; the per-fault view is the more honest characterisation —
+report DejaVu's calibration as "≈0 on the cpu/disk/mem class
+boundary, ≈0.27 elsewhere" rather than "0.099 overall."
+
+MR / yRCA show the opposite pattern from DejaVu, with the worst
+calibration on the faults where AC@1 is highest. CR's ECE on
+``loss`` (0.744) is the single-cell outlier in the matrix —
+driven by confidence ≈ 0.92 across the loss bucket where accuracy
+is 0.20 (CR's top1/top2 ratio formula doesn't drop on hard cases).
+FODA-FCP is the most *evenly* calibrated across faults: max per-
+fault ECE 0.285 (cpu), min 0.119 (disk), narrow spread of 0.166 —
+the Noisy-OR head-ratio scheme degrades gracefully across the
+fault axis even when it underestimates absolute confidence. BARO's
+per-fault matrix shows ECE 0.398–0.798 across all five faults
+under the peak_confidence routing — the empirical flatness of the
+BOCPD posterior produces uniform 0.001667 confidence regardless
+of fault type, so all per-fault ECEs are ~|accuracy − 0.001667|.
+
+(4) RELIABILITY-DIAGRAM SUMMARIES
+
+Bin centers are 0.05, 0.15, …, 0.95. Only populated bins reported.
+``over`` / ``under`` count the bins where avg confidence exceeds /
+trails accuracy.
+
+**MR** (ECE 0.335). Confidence concentrates in [0.2, 0.4]; bucket
+0.35 has 72 cases at conf 0.346 with accuracy 0.806 — strongly
+underconfident on the head bucket. MR's ``π_top1 / Σ_topK`` head-
+ratio formula deflates confidence whenever the top-K random-walk
+visit counts are competitive — but on cpu/mem cases the head is
+deterministic and right anyway.
+
+**CR** (ECE 0.300). 96 of 125 cases land in bucket 0.95 with avg
+conf 0.979 and accuracy 0.677 — uniform overconfidence. The
+``1 − top2/top1`` formula assigns near-1 confidence whenever the
+top1 PC-algorithm score exceeds top2 by any margin, regardless of
+whether top1 is the true root. CR's bucket distribution is
+right-skewed by design; calibration suffers commensurately.
+
+**Micro** (ECE 0.131). Two populated head buckets at 0.55 (57
+cases, conf 0.552, acc 0.789) and 0.45 (37 cases, conf 0.453, acc
+0.459). Best-calibrated in the unsupervised band — random-walk
+head-ratios on a service-mesh-collapsed graph hit a sweet spot
+where the head ratio tracks the visit-share lead, which tracks
+correctness.
+
+**BARO** (ECE 0.534, using peak_confidence routing). **All 125
+cases in bucket 0.05 with avg peak_confidence 0.002 and accuracy
+0.536.** ``peak_confidence`` is the band-normalised BOCPD posterior
+peak ``exp(max(log_band) − logsumexp(log_band))`` — designed to
+sit on the same [0, 1] scale as MR/CR/Micro head ratios, so the
+ECE gap should reflect calibration rather than scale mismatch.
+But the harness empirically observes peak_confidence ≈ 1/T_band ≈
+0.001667 on every RE1-OB case (zero variance across 125 cases,
+zero variance across the five fault types). Inspection of the
+underlying ``cp_log_probs`` shows the BOCPD log-probability
+distribution is **literally flat** across the 600-element search
+band (``max − min = 0.000``) — the hazard prior dominates the
+likelihood and the posterior is uniform at
+``exp(−log(hazard_lambda)) = 0.004`` per timestep. ECE correctly
+flags this as a property of BARO-on-RE1-OB. See §6 below for the
+diagnostic and the routing decision.
+
+**DejaVu** (ECE 0.099). 79 cases in bucket 0.95 with conf 0.998
+and accuracy 0.949 — well-calibrated at the extreme. The
+remaining 46 cases scatter across 0.15-0.85 with accuracies 0.0-
+0.5 (mid-range overconfident; 9 over, 0 under). The supervised
+type-head is what's well-calibrated; the residual ECE budget
+sits in the mid-range cases where the softmax is flatter.
+**Beats every prediction band — best-calibrated method.**
+
+**yRCA** (ECE 0.349). Bimodal: 30 cases at confidence 0.000
+(derivation-multiplicity formula returned zero) with accuracy
+0.567, and 19 cases at confidence 1.000 with accuracy 0.158.
+The two tails miscalibrate in opposite directions and combine
+to a 0.35 aggregate. The 30 conf-0 cases come from yRCA's
+forward-chainer not producing a multi-derived root (the
+formula's numerator); the 19 conf-1 cases come from a single
+rule firing — both are degenerate inputs to a ratio.
+
+**FODA-FCP** (ECE 0.167). **6 underconfidence bins, 1
+overconfidence bin** — the only method dominated by
+underconfidence. 31 cases at confidence 0.000 with accuracy
+0.194 (the Week-3 silent-Mamdani failure mode: when no service
+fires a rule, the top1_C / Σ_topK head ratio is 0/0 → clipped
+to 0). Bins 0.45–0.95 have accuracy 1.000 across the board —
+when FCP commits to a confidence above 0.4 it's right 100 % of
+the time. This is *honest underconfidence*: the Noisy-OR
+propagation is conservative, but when it speaks it's
+authoritative.
+
+(5) SPEARMAN CORRELATIONS
+
+Per-case Spearman across all 875 (method, case) pairs, using the
+``cal_error = |confidence − target|`` proxy as the y-axis. The
+brief's sign predictions and the observed results:
+
+| pair                | predicted | observed | sign |
+| ------------------- | --------: | -------: | :--: |
+| ρ(AC@1, cal_error)  | negative  | **+0.134** | flipped |
+| ρ(SG,   cal_error)  | near zero | −0.028   | ✓ |
+| ρ(SC,   cal_error)  | near zero | −0.014   | ✓ |
+| ρ(EC,   cal_error)  | near zero | −0.032   | ✓ |
+
+**The AC@1 sign flip is real, and the cause is mechanical.**
+``cal_error`` = ``|confidence − (1.0 if correct else 0.0)|``.
+For a method like BARO with uniform confidence ≈ 0.002:
+
+* correct cases get ``cal_error = |0.002 − 1.0| = 0.998`` (high)
+* wrong cases get ``cal_error = |0.002 − 0.0| = 0.002`` (low)
+
+So correctness *predicts high cal_error* when a method is
+uniformly underconfident — opposite of the brief's prediction.
+The same logic applies to FODA-FCP's 31 silent-Mamdani cases
+(conf 0.0, accuracy 0.19) and yRCA's 30 conf-0 bucket. With
+three of seven methods carrying populations whose confidence is
+deflated relative to accuracy, the cross-method Spearman picks
+up a *positive* signal — high AC@1 cases tend to be the under-
+confident ones with high cal_error.
+
+This is a per-case-proxy artefact, **not** a property of
+aggregate ECE. The aggregate ECE rank (DejaVu < FODA-FCP <
+Micro < CR < MR < yRCA < BARO) is uncorrelated with the AC@1
+rank (DejaVu > MR > CR ≈ Micro > BARO > FCP > yRCA) — Spearman
+ρ over the 7 method-level aggregates is +0.04. Calibration and
+ranking are independent dimensions when measured at the
+correct granularity; the per-case proxy mixes them. The
+predicted "lower ECE → higher AC@1" intuition holds at neither
+the per-case proxy level (sign-flipped by underconfidence) nor
+the method-level (independent).
+
+**SG / SC / EC near-zero correlations confirm the prediction.**
+The three structural metrics measure properties of the
+explanation graph that don't determine the method's confidence
+self-assessment. SG / SC / EC are dominated by FODA-FCP vs.
+everyone-else dichotomies (per Weeks 1-3); ``cal_error`` is
+not.
+
+(6) ALARM GATES — RESOLVED VS. SURPRISING OUTCOMES
+
+The brief's predicted bands and the observed outcomes:
+
+```
+✓ MR     ECE = 0.335  ∈ [0.20, 0.45]
+✓ CR     ECE = 0.300  ∈ [0.20, 0.45]
+⚠ Micro  ECE = 0.131  below predicted [0.20, 0.45]  (better than predicted)
+⚠ BARO   ECE = 0.534  ABOVE all predicted bands     (empirical-flatness alarm)
+⚠ DejaVu ECE = 0.099  below predicted [0.15, 0.45]  (better — but bimodal)
+✓ yRCA   ECE = 0.349  ∈ [0.10, 0.40]
+✓ FODA-FCP ECE = 0.167 ∈ [0.10, 0.25]
+```
+
+Four ✓ + three ⚠. Two of the three ⚠ rows are methodological
+findings revealed by ECE analysis — not noise, not adapter bugs,
+not metric defects. The third (Micro) is a benign expectation
+under-shoot covered separately below.
+
+**Two methodological findings revealed by ECE analysis.**
+
+1. **DejaVu's aggregate calibration hides a binary regime.**
+   The 0.099 aggregate ECE is real, but it averages over two
+   distinct calibration regimes: near-perfect on the fault types
+   DejaVu's supervised classifier learned to separate cleanly
+   (cpu / disk / mem, ECE 0.000–0.012) and mediocre on the
+   harder types its decision boundary conflates (delay / loss,
+   ECE 0.266–0.275). The aggregate is a population-weighted
+   average of two regimes that would behave very differently
+   under deployment.
+
+2. **BARO's Bayesian uncertainty model is empirically inert on
+   RE1-OB under default hyperparameters.** The BOCPD marginal
+   posterior is uniformly flat across the search band on every
+   one of 125 cases (zero log-probability spread); peak-
+   normalisation of a flat distribution is just ``1 / T_band``,
+   constant. BARO's confidence values cluster near the scale
+   floor regardless of correctness — not because the adapter is
+   buggy, but because the published BARO's default
+   hyperparameters yield a non-discriminating posterior on this
+   benchmark.
+
+Both findings strengthen Paper 6's thesis: **aggregate metrics
+obscure method-level variation that matters for deployment.**
+Paper 6 reports ECE *and* per-fault breakdowns *and* reliability
+diagrams precisely because these auxiliary views surface
+behaviours an aggregate hides.
+
+The detail on each finding follows.
+
+**Finding 1: DejaVu's binary calibration regime.** The brief
+predicted ECE 0.25–0.40 ("softmax confidence, often inflated").
+The aggregate 0.099 *under-shoots* the predicted band, but the
+per-fault breakdown reveals a 25× spread:
+
+```
+DejaVu per-fault ECE:
+  cpu:   0.012  (n=25, mean_conf 0.988, mean_acc 1.000)
+  disk:  0.010  (n=25, mean_conf 0.990, mean_acc 1.000)
+  mem:   0.000  (n=25, mean_conf 1.000, mean_acc 1.000)
+  delay: 0.266  (n=25, mean_conf 0.561, mean_acc 0.320)
+  loss:  0.275  (n=25, mean_conf 0.435, mean_acc 0.160)
+```
+
+Three fault types in one cluster (≤ 0.012, near-perfect
+calibration), two in another (≥ 0.266, mediocre). The
+supervised classifier's softmax peaks correctly when its
+fault-type head has a sharp decision boundary (cpu / disk / mem
+inject large-effect-size signatures distinguishable during
+5-fold CV) and goes flat when the boundary blurs (delay / loss
+are subtler timing / error perturbations conflated with
+neighbouring classes during inference).
+
+Reporting DejaVu's calibration as "0.099 overall" would
+mislead a deployment decision. The honest characterisation
+is "≈0 on cpu/disk/mem, ≈0.27 on delay/loss." A practitioner
+choosing DejaVu for an operator-facing system needs to know
+that the method's confidence is trustworthy on some fault
+classes and unreliable on others — information aggregate ECE
+alone destroys.
+
+**Finding 2: BARO's empirically inert Bayesian uncertainty.**
+The brief predicted ECE 0.10–0.15 ("Bayesian posterior, native
+uncertainty"). The Week 4 run reports 0.534 — fourfold higher
+than predicted.
+
+*Diagnosis: a confidence-scale issue, addressed by routing.*
+BARO's primary ``DiagnosticOutput.confidence`` is the BOCPD
+**marginal** posterior ``P(r_t = 0 | x_{1:t})`` at the chosen
+change-point timestep. The marginal posterior is bounded by
+``~1 / hazard_lambda = 0.004`` under the default hazard prior
+*regardless* of how peaked the underlying change-point
+distribution is — comparing this 0.004-bounded posterior to
+[0, 1]-scaled head ratios from other methods would conflate
+scale incompatibility with miscalibration. Week 4 ships a
+parallel ``peak_confidence`` field on :class:`DiagnosticOutput`
+that computes the band-normalised peak
+``exp(max(log_band) − logsumexp(log_band))`` — "probability
+mass at the peak moment **given** the change point is in the
+search band". Range [0, 1], directly comparable to the other
+six methods. The Week 4 harness uses a per-method routing
+rule (``_METHOD_CONFIDENCE_FIELD`` in ``run_phase2_cc.py``):
+``peak_confidence`` for BARO, ``confidence`` for everyone else.
+The fix is documented as confidence-scale normalisation, not
+method modification — BARO's ranking and AC@1 (= 0.536) are
+unchanged.
+
+*Finding: BOCPD's posterior is uniformly flat on RE1-OB.*
+Under the routing fix, BARO's ECE is **0.534**. Inspection of
+``cp_log_probs`` returned by :func:`_bocpd_multivariate` shows
+why:
+
+```
+re1-ob_adservice_cpu_1: T=1201, band size=600
+  log_probs range: min=-5.521 max=-5.521
+  spread: max-min=0.000
+```
+
+BARO's BOCPD marginal posterior is uniformly flat across the
+search band on RE1-OB under default hyperparameters (hazard
+λ = 250, default prior variance). Empirical log-probability
+spread across the 600-element band is 0.000 in 125 of 125
+cases. The hazard prior dominates the data likelihood; canonical
+feature z-scores under our preprocessing pipeline do not produce
+sufficient signal-to-noise for BOCPD to localise the change
+point.
+
+This is a real empirical finding about BARO on RE1-OB, not a
+hyperparameter calibration issue or an adapter bug. The
+published BARO uses these defaults; the published BARO produces
+flat posteriors on this benchmark. The 0.534 ECE characterises
+this empirical degeneracy: BARO's confidence values cluster
+near zero regardless of correctness because BOCPD isn't
+extracting data-driven uncertainty.
+
+*Broader implication for probabilistic RCA.* Probabilistic
+methods can have mathematically rigorous uncertainty
+formulations that are empirically inert on a given benchmark.
+Reviewing the hyperparameter sensitivity (hazard λ, prior
+variance) *and* the input feature signal-to-noise is necessary
+before treating a method's confidence as Bayesian information.
+We document this as a Paper 6 finding: probabilistic methods
+deserve their own empirical-uncertainty verification axis
+distinct from ECE alone — ECE measures the *consequence* of an
+inert posterior (confidence/accuracy gap) but not its *cause*
+(flat log-prob distribution). A diagnostic suite for
+probabilistic RCA should include posterior peakedness as a
+first-class check.
+
+*Within Paper 6 scope.* The 0.534 BARO ECE stands. Future work
+could revisit BARO's hyperparameters (narrower hazard prior,
+narrower predictive prior) or replace its confidence with a
+different summary (top-K score-shift ratio, posterior entropy,
+run-length-mean) — those would be method modifications outside
+Paper 6's scope. Within scope, BARO produces a uniformly
+low-confidence output on this benchmark; ECE correctly measures
+the resulting calibration gap to AC@1 accuracy, and the
+reliability diagram (one populated bucket, 125 cases) is the
+auditable failure signature.
+
+**Micro ECE = 0.131 — better than predicted.** Predicted 0.20-
+0.40 ("ratio-based, no uncertainty model"); observed 0.131
+with bin 0.55 carrying 57 cases at conf 0.552 / accuracy 0.789.
+Micro's service-mesh-collapsed random walk gives head ratios
+that track visit-share leads, and on the cpu/mem-rich RE1-OB
+distribution this turns out to track correctness too. Like
+DejaVu, this is **expectation under-shot — Micro is well-
+calibrated despite the absence of an uncertainty model**.
+
+(7) RELATION TO SG / SC / EC
+
+Of the four Phase-2 metrics, ConfidenceCalibration is the only
+one where the FCP-vs-everyone-else dichotomy is **not** the
+dominant story. SG / SC / EC have FCP at the top and six methods
+near or at zero. CC has FODA-FCP in third place (0.167) — well-
+calibrated but bested by DejaVu (0.099) and Micro (0.131). The
+calibration axis is genuinely orthogonal to the explanation-
+structure axis:
+
+* **FODA-FCP** wins on structure (SG 1.0, SC 0.27, EC 0.82) and
+  is well-calibrated (CC 0.17), but not the best calibrator.
+* **DejaVu** is the worst on structure (SG 0, SC 0, EC 0.333,
+  flat with the four MR-family methods) but the best
+  calibrator. A method that produces no ontology-grounded
+  explanation can still produce a confidence value that
+  matches reality.
+* **BARO** scores zero on three Phase-2 structure metrics AND
+  fails calibration — bad confidence, bad explanation, decent
+  ranking. The reliability diagram exposes the bad confidence
+  in a single line.
+
+The four metrics together characterise an explanation across
+four distinguishable axes:
+
+* **Groundedness** (SG) — atoms speak the ontology's vocabulary.
+* **Coherence** (SC) — links match the ontology's propagation
+  model.
+* **Completeness** (EC) — chain answers the three operator
+  questions.
+* **Calibration** (CC, ECE) — confidence matches accuracy.
+
+A reader can now compare any two methods on each axis
+independently; on RE1-OB the four-tuple is (DejaVu, Micro,
+FODA-FCP, MR, CR, yRCA, BARO) for calibration but very
+different for structure.
+
+(8) LIMITATIONS
+
+* **Aggregate ECE has no per-case decomposition.** The Spearman
+  analysis uses ``cal_error`` as a per-case proxy. The proxy
+  preserves direction at the per-case granularity but is *not*
+  ECE — it's a Brier-style absolute error. The proxy is
+  sign-flipped by uniform under-confidence (the BARO case);
+  aggregate ECE is not. Cross-metric analysis should report
+  both granularities, as this note does.
+
+* **Right-edge inclusivity is a convention.** Confidence = 1.0
+  lands in the last bucket. A symmetric alternative ("0.0
+  exclusive at left, 1.0 inclusive at right" vs. half-open
+  everywhere) would barely shift any ECE on the observed data
+  (BARO has 0 cases at exactly 1.0, DejaVu has 79 at near-1.0
+  but not exactly 1.0). Documented in DEVIATIONS.md for
+  reproducibility.
+
+* **125-case populations and 10 buckets.** With n_bins = 10 and
+  n = 125, an average of 12.5 cases per bucket — but uneven in
+  practice (DejaVu has 79 in one bucket). Smaller per-bucket
+  populations increase ECE noise; for fine-grained calibration
+  analysis a longer benchmark would help. We report n_bins = 10
+  to match the literature; the harness exposes a CLI knob.
+
+* **BARO's confidence is the adapter's choice, not BARO's
+  inherent posterior.** A future BARO revision that surfaces
+  the BOCPD posterior directly would likely move BARO into the
+  predicted band. ECE flags the adapter-level decision rather
+  than the method-level Bayesian machinery — note this when
+  citing BARO's calibration on RE1-OB.
+

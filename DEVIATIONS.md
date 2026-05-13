@@ -1519,3 +1519,198 @@ infer "method X surfaces a fault type in some vocabulary"
 from AC@1 + the per-method explanation snippets, without
 needing EC to credit it implicitly.
 
+
+## ConfidenceCalibration metric (Paper 6 Phase 2 Week 4)
+
+### Aggregate-only contract (Option A architecture)
+
+Weeks 1–3 of Phase 2 shipped three **per-case** semantic-quality
+metrics (SG, SC, EC) that subclass :class:`SemanticMetric` and
+reduce a ``(CanonicalExplanation, OntologyAdapter)`` pair to a
+scalar score. ConfidenceCalibration deliberately breaks this
+contract: ECE is the average across buckets of
+``|mean(confidence) − mean(accuracy)|``, and a single
+(confidence, correct) pair carries **no** calibration information
+— "0.8 confidence, correct" is well-calibrated iff *across* high-
+confidence cases the empirical accuracy averages near 0.8.
+
+We considered two designs:
+
+* **Option A (shipped)** — :class:`ConfidenceCalibration` is a
+  standalone analyzer; the public surface is
+  ``compute_ece(case_results, n_bins) -> float`` and
+  ``compute_reliability_diagram(case_results, n_bins) -> dict``.
+  No :class:`SemanticMetric` subclass, no ``score(explanation,
+  ontology) -> float`` signature.
+
+* Option B — Force a fictional per-case "calibration
+  contribution" that sums to ECE in aggregate. Rejected: ECE is
+  not naturally decomposable, and a fabricated per-case score
+  would either misrepresent the metric or duplicate the Brier-
+  style ``|confidence − target|`` proxy.
+
+The Option-A asymmetry is the price of keeping ECE
+mathematically honest. Three of the four Phase-2 metrics share
+the per-case contract; the fourth complements them by reporting
+an explicitly aggregate property — *does the method know when
+it's right?* — that no per-case lens can answer.
+
+### Per-case proxy for cross-metric Spearman
+
+ECE itself can't enter the per-case Spearman analysis the Phase
+2 harnesses already report (ρ across all 875 method-case pairs).
+For the Week 4 correlations against AC@1 / SG / SC / EC we ship
+:func:`per_case_calibration_error`:
+
+    cal_error = |confidence − (1.0 if correct else 0.0)|
+
+Brier-style absolute error. Zero when confidence and correctness
+agree (high-conf + correct, or low-conf + wrong), large when
+they mismatch. **Not** identical to ECE — the bucketed averaging
+is what makes ECE a calibration metric rather than a scoring
+rule — but it preserves the directionally-relevant signal
+required for the per-case ρ. Both readings ship: aggregate ECE
+in the CSV, ``cal_error`` for the per-case correlations.
+
+### Default ``n_bins = 10``
+
+Ten equal-width buckets across [0, 1] is the convention in Guo
+et al. 2017 ("On Calibration of Modern Neural Networks") and
+matches the reliability-diagram resolution that lets us call out
+mid-range vs. tail miscalibration without overfitting to small-
+bucket noise on 125-case populations. The argument is exposed
+on :class:`ConfidenceCalibration` and the harness CLI for ablation.
+
+### Right-edge inclusivity at confidence 1.0
+
+A confidence of exactly 1.0 lands in the **last** bucket (index
+``n_bins - 1``), not in a non-existent ``n_bins``-th bucket.
+Without this, BARO and DejaVu cases at confidence 1.0 (top1
+posterior, peaked softmax) would silently drop from ECE. The
+matching ``_bucket_index`` helper documents the rule and is
+covered by ``test_confidence_calibration.py::TestBucketIndex``.
+
+### Confidence harvested from in-memory DiagnosticOutput, not CSV
+
+The Phase-1 per-method validation CSVs in ``results/week2_*.csv``
+**do not** contain a ``confidence`` column — they were written
+before Paper 6 Phase 2 needed the field. Rather than re-write
+seven CSVs (and risk drift between persisted and re-run values),
+the Week 4 harness reads :attr:`DiagnosticOutput.confidence` at
+runtime by calling ``method.diagnose_normalized`` over the 125
+RE1-OB cases, exactly as the Week 3 EC harness does. All seven
+methods emit a non-None confidence today:
+
+* **BARO** — BOCPD marginal posterior ``P(r_t = 0 | x_{1:t})`` at
+  the detected change-point timestep (``baro.py:_confidence``).
+  The head-ratio ``top1 / (top1 + top2)`` is the **fallback** path
+  used only when the posterior is non-finite (under diagnostic
+  monkey-patch variants such as ``--with-zscore-onset``). On RE1-OB
+  the BOCPD-posterior path always runs, and Week 4 reads
+  ``peak_confidence`` instead — see the BARO routing subsection
+  below.
+* **CausalRCA** — derived top1/top2 ratio: ``1 − top2/top1``,
+  clipped to [0, 1] (``causalrca.py:_derived_confidence``).
+* **MonitorRank / MicroRCA** — ``π_top1 / Σ_{i ∈ top_K} π_i``
+  head ratio (``{monitorrank,microrca}.py:_derived_confidence``).
+* **DejaVu** — softmax probability of the top-1 service after
+  the joint type-and-instance head (``dejavu.py:460``).
+* **yRCA** — derivation multiplicity:
+  ``#multi_derived / #total_final_root_cause`` over the rule
+  forward-chaining trace (``yrca.py:_derivation_multiplicity_
+  confidence``).
+* **FODA-FCP** — ``top1_C / Σ_{i ∈ top_K} C_i`` over the
+  Noisy-OR propagation values, matching the harness's convention
+  of head-normalised confidence (``foda_fcp.py:999``).
+
+If a future method emits ``DiagnosticOutput.confidence = None``,
+the harness raises immediately at row construction — a silent
+None would corrupt ECE without a visible failure.
+
+### BARO routing: peak_confidence for cross-method calibration
+
+Six of seven methods (CR, MR, Micro, DejaVu, yRCA, FCP) emit a
+confidence value on the [0, 1] head-ratio / softmax scale: a sharp
+top-1 lead yields a confidence near 1, a flat ranking yields a
+confidence near 0. BARO's primary ``DiagnosticOutput.confidence``
+emits something else — the BOCPD **marginal** posterior
+``P(r_t = 0 | x_{1:t})`` at the chosen change-point timestep —
+which is bounded by roughly ``1 / hazard_lambda`` (≈ 0.004 under
+the default hazard prior) regardless of how peaked the change-
+point distribution actually is. Comparing BARO's 0.004-bounded
+posterior to MR/CR/Micro's [0, 1] head ratios on the same
+calibration axis is uninformative; the gap between mean
+confidence and accuracy reflects scale incompatibility, not
+miscalibration.
+
+The Week 4 fix adds a parallel ``peak_confidence`` field on
+:class:`DiagnosticOutput`. For BARO, this is the band-normalised
+posterior peak::
+
+    peak_confidence = exp(max(log_band) − logsumexp(log_band))
+
+— i.e., "probability mass at the peak moment **given** the change
+point is in the central 25–75 % search band." Range [0, 1],
+directly comparable to other methods' head-ratio / softmax scales.
+Implemented as ``_compute_peak_confidence`` in ``baro.py``; the
+primary ``confidence`` field is unchanged so callers that depend
+on the absolute probabilistic interpretation are unaffected.
+
+The Week 4 harness applies a single routing rule
+(``_METHOD_CONFIDENCE_FIELD`` in ``run_phase2_cc.py``):
+
+* For BARO: read ``DiagnosticOutput.peak_confidence``.
+* For every other method: read ``DiagnosticOutput.confidence``.
+
+This is the only method-specific routing in the harness; the
+choice is a confidence-scale normalisation, not a method
+modification. BARO's ranking and AC@1 (= 0.536) are unaffected.
+
+**Empirical caveat (RE1-OB).** Despite the scale normalisation,
+BARO's ECE on RE1-OB remained at 0.534 after the routing change.
+The smoke-test inspection in Week 4's findings note (§6) revealed
+that the BOCPD log-prob distribution on RE1-OB is **exactly flat**
+across the search band: every timestep in the band has
+``log_prob ≈ log(1 / hazard_lambda) ≈ -5.521``, with spread
+``max − min = 0.000``. The hazard prior dominates the data
+likelihood, so no peak emerges. ``peak_confidence`` is therefore
+``1 / T_band ≈ 0.001667`` uniformly across all 125 cases. The
+methodological fix to expose a [0, 1]-scaled BOCPD confidence is
+correct in principle; the empirical observation on this benchmark
+is that BARO's BOCPD does not localise the change point given the
+adapter's default hyperparameters. ECE flags this as a property
+of BARO-on-RE1-OB, not as a metric defect. Future revisions
+(narrower hazard prior, narrower ``prior_var``, or a different
+posterior summary such as ``top1 / Σ_topK`` over the score
+shifts) could surface a discriminating confidence signal; that's
+a Phase-1 design decision left out of Paper 6.
+
+### Lower scores are better — the one direction-flipped metric
+
+ECE ∈ [0, 1], with 0 = perfect calibration. This is the only
+metric in the Phase 2 suite where the direction is **down**.
+Findings tables flag this explicitly so a reader scanning the
+SG/SC/EC/CC column row doesn't pattern-match "high = good"
+across the four metrics. The harness ``print_summary`` also
+flags it via the alarm-gate band labels.
+
+### Why CC is the right metric for explanation-quality
+
+A method's confidence is the diagnostic explanation's
+*self-assessment*. ECE measures whether that self-assessment
+tracks reality. A poorly-calibrated method that says "95 %
+confident" while being right 30 % of the time produces an
+explanation an operator cannot act on — the chain is structured
+(SG, SC, EC may all be high) but the confidence signal is
+unreliable. The four Phase-2 metrics together characterise:
+
+* **SG** — atom-level groundedness (the explanation's
+  vocabulary is the ontology's).
+* **SC** — link-level coherence (the chain's propagation
+  directions match the ontology's causal model).
+* **EC** — operator-actionability (the chain answers the three
+  operator questions).
+* **CC (ECE)** — confidence-accuracy alignment (the
+  explanation's stated certainty matches its empirical
+  accuracy).
+
