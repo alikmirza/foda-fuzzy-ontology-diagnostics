@@ -58,6 +58,7 @@ from ..metrics import (
     compute_ece,
     compute_reliability_diagram,
     per_case_calibration_error,
+    accuracy_at_k,
 )
 
 
@@ -169,9 +170,12 @@ def _score_row(
     sg_overall = sg.score(out.explanation_chain, ontology)
     sc_overall = sc.score(out.explanation_chain, ontology)
     ec_overall = ec.score(out.explanation_chain, ontology, case_services=norm.services)
+    # Pessimistic tie handling (worst rank in tie block) — the canonical
+    # AC@1 convention shared with the week2 harness and the patched
+    # run_phase2_ec scorer. Feeds the ECE correctness label.
     ac1 = (
         1.0
-        if out.ranked_list and out.ranked_list[0][0] == case.ground_truth_root_cause
+        if accuracy_at_k(out.ranked_list, case.ground_truth_root_cause, 1)
         else 0.0
     )
     correct = bool(ac1)

@@ -1793,3 +1793,41 @@ system-sensitive" from "p50 isn't a good mean substitute for
 this method."
 
 
+
+## Mamdani rule-base count (canonical: 16 rules, six fault categories)
+
+The evaluated configuration — `evaluation/methods/foda_fcp.py`, a faithful
+port of the Java default base `MamdaniFuzzyRuleEngine.buildDefaultRuleBase()`
+— uses **16 rules (R01–R16) over six fault categories**; every RCAEval result
+in `results/` was produced with this base. Historical drift across artifacts:
+the AICT 2026 conference paper reports 20 rules / 8 categories, which is the
+*extended* YAML configuration (`rca-rules.yaml`, adding R17–R18
+MEMORY_LEAK_TENDENCY and R19–R20 DOWNSTREAM_DEPENDENCY_SLOWDOWN) loaded via
+`FuzzyRuleLoader` only by the FODA-12 benchmark runner, never by the RCAEval
+harness; and the `MamdaniFuzzyRuleEngine` javadoc claims "18 expert rules,"
+which is a stale comment — the code beneath it constructs 16 (to be corrected
+at the artifact release).
+
+## AC@1 tie-handling convention (canonical, ruled 2026-08-10)
+
+AC@1 uses worst-rank-in-tie-block (pessimistic) scoring, as implemented by
+`evaluation/metrics/ranking_metrics.py::_ground_truth_rank` and consumed by
+the week2 validation harness; naive top-1 scoring on tied lists inflates
+FODA-FCP by +0.048 / +0.072 / +0.024 on RE1-OB / RE1-SS / RE1-TT via
+alphabetical accident on fully-tied rankings. Tied rankings arise from two
+distinct mechanisms: (a) Noisy-OR saturation ties at C = 1.0 on dense-graph
+strong-signal cases, and (b) zero-signal ties at C = 0.0 where no Mamdani
+rule fires. `run_phase2_ec._score_row` was patched (this convention) after
+the discrepancy was found; `run_phase2_cc._score_row` was patched
+identically (ruling 2026-08-10): one convention, everywhere, no mixed tables.
+
+The convention covers BOTH the AC@1 metric and the ECE correctness label.
+Because the ECE correctness label changes under pessimistic scoring, the
+canonical FODA-FCP ECE values move from the naive-convention values that
+appear in the Paper 6 manuscript to the pessimistic-convention values:
+0.167 → 0.119 (RE1-OB), 0.123 → 0.051 (RE1-SS), 0.219 → 0.243 (RE1-TT).
+Any Paper 6 value equal to the left-hand numbers is traceable to the naive
+convention and is superseded. The RE1-TT increase is genuine: the flipped
+cases there include Noisy-OR saturation ties at C = 1.0 (high reported
+confidence, pessimistically scored wrong) — calibration-side evidence that
+the method is confidently wrong at scale on dense graphs.

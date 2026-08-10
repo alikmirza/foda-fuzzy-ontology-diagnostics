@@ -47,6 +47,7 @@ from ..metrics import (
     OntologyAdapter,
     SemanticCoherence,
     SemanticGroundedness,
+    accuracy_at_k,
 )
 
 
@@ -116,9 +117,12 @@ def _score_row(
     ec_br = ec.score_with_breakdown(
         out.explanation_chain, ontology, case_services=norm.services,
     )
+    # Pessimistic tie handling (worst rank in tie block) — the canonical
+    # AC@1 convention shared with the week2 harness. Naive top-1 equality
+    # credited alphabetical accidents on fully-tied (zero-signal) rankings.
     ac1 = (
         1.0
-        if out.ranked_list and out.ranked_list[0][0] == case.ground_truth_root_cause
+        if accuracy_at_k(out.ranked_list, case.ground_truth_root_cause, 1)
         else 0.0
     )
     return {
