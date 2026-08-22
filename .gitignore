@@ -124,3 +124,4 @@ tdb-data/
 # RESULTS_PROVENANCE.md (generating commit, scoring convention, seed).
 !results/*.csv
 !paper/artifacts/*.md
+paper/notes/coldread_bundle_v1.md
