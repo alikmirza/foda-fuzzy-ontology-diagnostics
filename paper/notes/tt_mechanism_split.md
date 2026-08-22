@@ -34,8 +34,8 @@ pessimistic ranks.
 
 Measured headroom of H-based score refinement, mechanism (a) only:
 - ground truth inside the saturated tie block: 30 of 87
-- of those, gt H ≥ block-winner's H (refinement would rescue): **28 cases**
-- upper bound if all rescued: AC@1 0.008 → 0.232 on RE1-TT (29/125)
+- of those, gt H strictly greater than every other block member's H (STRICT rescue): **18 cases** (26 under loose ≥ counting; 8 lost to H-ties)
+- upper bound, STRICT (unique H-max; ruling 2a): 18 rescues → AC@1 0.008 → **0.152** on RE1-TT (19/125 = 1 baseline-correct + 18). Loose H-tie counting gives 26 rescues but is superseded.
 
 Mechanism (b) headroom: **zero** — H = 0 for every service; there is no
 signal to refine. Silence is Mamdani-rule-coverage territory (the injected
@@ -52,6 +52,8 @@ ground truth); these are propagation-topology errors.
 - Calibration cross-evidence: TT ECE worsens 0.219 → 0.243 under honest
   scoring because mechanism-(a) blocks carry C = 1.000 (maximal confidence,
   scored wrong) — the method is *confidently* wrong at scale.
-- The 31 silence cases are fault-type-concentrated (loss/delay-dominated;
-  see classified CSV) — connects to the OB finding that FCP's Mamdani base
-  fires no Recommendation on 31/125 OB cases (12 delay, 12 loss, 7 disk).
+- **CORRECTED 2026-08-11:** the 31 silence cases are *not* fault-type
+  concentrated. Measured distribution: memory 8, delay 7, disk 7, CPU 5,
+  packet loss 4 — spread across all five types. The earlier
+  "loss/delay-dominated" reading was an unverified guess and is superseded;
+  §5.6.2 states the measured distribution. The coverage gap is general.
