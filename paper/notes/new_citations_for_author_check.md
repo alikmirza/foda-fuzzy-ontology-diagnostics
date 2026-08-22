@@ -105,3 +105,73 @@ evidence of a real process, not a rubber stamp. **Before submission every entry
 should still be opened once by a human**, because the failure mode that matters
 here is not a wrong page range but a work that does not exist, and only a human
 opening the DOI can fully close that.
+
+---
+
+# §2 expansion — citations actually used (2026-08-23)
+
+§2 grew from 708 to 1,878 words. **Every `[REF:*]` key it uses was cross-checked
+against the verified entries above; all 31 resolve. No new work was cited that
+is not already verified in section A or B of this file.** The mapping below
+records what each is cited *for* in the expanded text.
+
+| Key used in §2 | Cited for |
+|---|---|
+| `MonitorRank`, `MicroRCA` | the graph-walk family |
+| `AutoMAP` | random walk extended with self-loop and backward edges |
+| `MS-Rank` | typed forward/selfward/backward propagation, adaptive metric weighting |
+| `CausalRCA`, `CIRCA` | causal-inference family; CIRCA specifically for intervention recognition over a causal Bayesian network |
+| `BARO` | probabilistic change-detection family |
+| `DejaVu` | supervised family; and in §2.3 as the clarifying case for private-namespace typing |
+| `yRCA` | rule-based derivation chains |
+| `TraceDiag` | interpretable graph pruning as a scale strategy |
+| `Nezha` | fine-grained analysis over multi-modal observability data |
+| `KGroot` | knowledge graph as *features for matching*, contrasted with our ontology as *vocabulary for expression* |
+| `RCLAgent` | multi-agent recursion-of-thought; the SRE-process study behind it |
+| `MicroRCA-Agent` | specialised per-modality agents with fused conclusions |
+| `mABC` | agent voting as a consensus mechanism |
+| `FlowOfAction` | SOP-constrained agent trajectories |
+| `SpecRCA` | hypothesise-then-verify with pathwise parallelism |
+| `Naakka` | multi-agent design space; self-assessed reflection criteria as internal reward — the closest relative of our external metrics |
+| `LiuOntology` | ontology-based fault diagnosis outside microservices: the decade review covering process plant, power apparatus and control systems |
+| `NoyMcGuinness` | ontology-engineering methodology |
+| `Chari` | Explanation Ontology as complementary upper-level structure |
+| `SoftNER` | mining diagnostic knowledge graphs from incident reports |
+| `Zadeh` | graded membership |
+| `Mamdani` | Mamdani-style inference; overlapping terms and certainty factors |
+| `Gardashova` | applications-oriented treatment of fuzzy inference in engineering diagnosis (**self-citation — author to decide whether to keep**) |
+| `Pearl1988` | Noisy-OR aggregation |
+| `RCAEval` | the benchmark, and the field's ranking-accuracy focus |
+| `Notaro` | AIOps systematic mapping — evidence that the evaluation pattern is discipline-wide |
+| `DoshiVelez` | application- / human- / functionally-grounded evaluation taxonomy |
+| `Lipton` | interpretability conflates distinct desiderata → motivates four separate dimensions |
+| `Jacovi` | plausibility vs faithfulness; our metrics are behavioural |
+
+## Gaps recorded rather than filled
+
+1. **Concrete instances of ontology-based fault diagnosis outside microservices.**
+   I searched for individual papers (power-transformer diagnosis, industrial
+   control ontologies, OWL+SWRL test-based diagnosis, and a DIAGONT-style
+   diagnostic ontology). Titles surfaced, but **not** a verifiable
+   title+authors+venue+year+DOI tuple for any of them from the search results, so
+   **none is cited**. §2.4 instead cites Liu's decade review (DOI confirmed) and
+   describes the domains it covers. If the author wants named instances rather
+   than a survey citation, they must be verified individually first.
+2. **RCA-specific evaluation work beyond RCAEval.** No second RCA benchmark is
+   cited, because none is verified in this file. §2.5 covers the evaluation
+   landscape with the AIOps mapping study plus the XAI evaluation trio, which is
+   honest about what it is: adjacent-field evaluation methodology, not a second
+   RCA benchmark. **Claim needs a citation, none verified** — if a second
+   benchmark exists and the author knows it, §2.5 is where it belongs.
+3. **`REF:Tbilisi`** — still AUTHOR-ONLY: volume, pages, year and DOI not in my
+   possession.
+
+## Softened claim
+
+§2.3's former "We are not aware of prior work in microservice RCA that both
+grounds explanations in a shared ontology and reports where that grounding
+fails" — an unprovable negative about the whole literature — is **removed**.
+§2.5 now closes with a positive statement of what this paper does: evaluates a
+complete ontology-grounded method on a public benchmark against six baselines,
+discloses the provenance of each ontology layer, and reports where the grounding
+fails to help.

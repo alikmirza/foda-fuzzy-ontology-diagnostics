@@ -6,8 +6,8 @@ Recorded 2026-08-23 so the build is reproducible.
 
 | item | value |
 |---|---|
-| pandoc used for this build | **3.10.2** (`/opt/homebrew/bin/pandoc`, installed via Homebrew 2026-08-22) |
-| target/compatibility floor | **2.9.2.1** — reported by the author to silently render `\Bigl`/`\Bigr`/`\bigl`/`\bigr` as raw TeX with no error |
+| toolchains available | **two**: pandoc **3.10.2** on the Mac (`/opt/homebrew/bin/pandoc`), and pandoc **2.9.2.1** in the Cowork desktop workspace VM |
+| conservative floor | **2.9.2.1** — build clean on it is portable anywhere; verify here when portability matters |
 | build command | `pandoc manuscript_assembled.md -o <out>.docx` (reference doc pending) |
 | source of truth | `~/research/papers/draft/section*.md`; `manuscript_assembled.md` is generated and must be regenerated before every build |
 
@@ -19,11 +19,13 @@ every pandoc version, where the `\big*` family fails on 2.9.2.1 — silently, wh
 is what makes it dangerous: Eq. (3), Eq. (4)'s aligned block and the Corollary's
 ceiling would have shipped as raw TeX with a clean build log.
 
-**Verification limit, stated plainly:** the fix was verified on pandoc 3.10.2,
-which is what is installed here. **2.9.2.1 is not installed on this machine, so
-the failure it fixes was not reproduced locally** — the change is made on the
-author's report plus the general portability argument, not on a local repro. If
-2.9.2.1 is the environment that matters, the counts below should be re-run there.
+**Verified across the version range (2026-08-23).** The fix was checked on both
+toolchains. On 2.9.2.1 the fixed source builds with **0 TeX-conversion warnings
+and 186 `m:oMath`**, identical to the 3.10.2 build; the *unfixed* source on
+2.9.2.1 gave **177 with three silent failures**. So `\left`/`\right` is
+established empirically, not argued for, and the three equations at risk —
+Eq. (3), Eq. (4)'s aligned block, and the Corollary's ceiling — are confirmed
+converting on the floor version.
 
 Balance was checked after the substitution: §4 has 19 `\left` (excluding one
 `\leftarrow`) against 19 `\right`; §5 has 5 against 5.
@@ -54,6 +56,13 @@ The check that does test it:
 
 - `m:m` = **3** — one per `cases` block (trap, tri, `g(a)`)
 - `m:mr` = **10** — branch rows, matching 4 + 3 + 3
+
+**Do not treat those raw counts as fixed targets across pandoc versions.** The
+two toolchains encode `aligned` differently: 3.10.2 emits `m:eqArr` (1 here,
+`m:m` = 3, `m:mr` = 10) while 2.9.2.1 encodes it as a matrix instead (`m:eqArr`
+= 0, `m:m` = 4, `m:mr` = 12) — same document, different valid encoding. The
+stable invariant is the semantic one: **three piecewise definitions, ten branch
+rows**, plus whatever the `aligned` block adds on that version.
 
 and the first block's rows extract as four distinct branches:
 
