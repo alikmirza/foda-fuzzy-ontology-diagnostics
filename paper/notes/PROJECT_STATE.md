@@ -15,7 +15,7 @@ plan. The plan exists because an earlier evaluation-framework manuscript
 ("Paper 6") was judged premature and circular by both the supervisor and a formal
 reviewer: it evaluated a method that had never been published. Paper 6 is
 therefore **held back** for later Q2 submission, reframed to cite this paper, and
-carries a **6-item correction ledger** plus a hard **submission-order
+carries a **7-item correction ledger** plus a hard **submission-order
 constraint** — the two manuscripts must never be in review concurrently, because
 this paper reverses two of Paper 6's published conclusions (its ECE values and
 its axis-independence claim) and withdraws a provenance claim both rely on.

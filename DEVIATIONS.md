@@ -1794,6 +1794,58 @@ this method."
 
 
 
+## Propagation equations: manuscript mis-transcription (found 2026-08-22)
+
+The method paper's §4.4 printed a propagation update that is not the one this
+repository implements. Found during a scheduled re-derivation of the §4.5 worked
+example (Fix 8c); the full trail is in
+`paper/notes/STOP_propagation_equation_finding.md`.
+
+**What the manuscript printed** (equations 2-4 as drafted):
+
+    P(s)       = 1 - prod_t (1 - w(s,t) * C(t))            # no delta
+    C_{k+1}(s) = (1 - delta)*C_k(s) + delta*[ ... ]        # convex mixing of iterates
+
+**What the implementation computes** (`WorkedExampleTest.java`, and its Python
+port `evaluation/methods/foda_fcp.py::_propagate_iterative`):
+
+    comp = prod_t (1 - C_prev(t) * w(s,t) * delta)         # delta inside the product
+    p    = 1 - comp
+    C(s) = clamp_[0,1]( 1 - (1 - H(s)) * (1 - p) )         # H re-applied each iteration
+
+Two structural differences: delta is a per-edge attenuator inside the Noisy-OR
+product rather than a convex mixing weight between iterates, and there is no
+`(1 - delta) * C_prev(s)` term at all - the local evidence H(s) is a fixed anchor
+re-applied every iteration.
+
+**How it surfaced.** The printed equations give C* = (0.7706, 0.6095, 0.6316) in
+19 iterations on the worked example; the implementation and its unit test assert
+(0.7255, 0.5271, 0.5453) in 14. Every digit disagreed, and no rounding or
+convention choice reconciles them.
+
+**Ruling: the source is canonical.** The implementation produced every empirical
+number in Section 5, and the Python adapter's own module docstring has always
+stated the correct form. The manuscript mis-transcribed it.
+
+**Artifacts affected** (manuscript only - no code changed, no result moved):
+equations (2)-(4); Theorem 1 and its Corollary; Theorem 2 and its Jacobian; the
+§4.5 worked example; §5.9's mechanism sentence. A previously ratified repair to
+Theorem 1's "W = 1 boundary case" was withdrawn rather than amended - that
+boundary case does not exist for the actual operator, where
+rho = delta * max_s(1 - H(s)) * W <= delta < 1 for every delta < 1. The sole
+degenerate case is delta = 1 with W = 1 and min_s H(s) = 0, which is the typical
+evidence profile rather than a corner; delta = 1.0 is a swept configuration and
+Section 5.9 discloses that convergence there is empirical.
+
+**Not affected.** All Section 5 empirical results, which were produced by the
+code: AC@1, SG, SC, EC, ECE, the damping sweep, the score refinement. The
+saturation mechanism argument also survives, since the implemented form is still
+one minus a product of complements over active neighbours.
+
+**Closure.** `paper/notes/fix8c_rederive_corrected.py` reproduces the asserted
+fixed point to ten decimals in 14 iterations from the corrected equations, along
+with rho(J) = 0.3614 and both bounds at 0.476; see `paper/notes/fix8c_closure.md`.
+
 ## Ontology provenance: propagation table authored during evaluation (2026-08-11)
 
 The DiagnosticKB layers have different provenance and the method paper discloses

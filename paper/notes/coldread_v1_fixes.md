@@ -10,9 +10,10 @@
 > (ρ ≤ δ·max(1−H)·W ≤ δ < 1 for all δ < 1, W ≤ 1, any H). δ = 1 is the sole
 > boundary case.
 >
-> **Disk state at this moment:** no draft file has been modified. The 2026-08-22
-> fix sequence (MF-8/S2 → S1 → MF-1/2/3 → MF-6 → MF-7 → S4 → S7 → Fix 8a → 8b →
-> 8c → 8d → SF-1..4 → §1/§2/§7) is HELD at item 10, items 1–9 not started.
+> **UNBLOCKED 2026-08-22 by ruling; Part 1 Tasks 1–3 executed.** Equations,
+> theorems and the re-derivation are now on the corrected operator; see the
+> R1/R2/R3 rows below. The rest of the 2026-08-22 fix sequence (MF-8/S2 → S1 →
+> MF-1/2/3 → MF-6 → MF-7 → S4 → S7 → SF-1..4 → §1/§2/§7) remains to be done.
 > Fix 8d marker 14 (confidence formula) IS resolved — verbatim extraction in the
 > STOP note. Marker 7 (correlation-graph parameters) remains open.
 >
@@ -71,10 +72,14 @@ Status as of 2026-08-11.
 | item | status | note |
 |---|---|---|
 | Fix 5 git verification | **COMPLETE — claim refuted, A executed** | see A-execution above; this was the STOP-condition item |
-| Fix 8a Theorem 1 W = 1 repair | **PENDING** | strict contraction (1−δ)+δ(1−H(s))·W_s < 1 where H > 0 or W_s < 1; H = 0 + full budget residual gets the damping-only argument, to be noted as *common* (system-silent services, 25–37 % of cases) rather than pathological; Corollary recomputed |
-| Fix 8b Theorem 2 Perron–Frobenius | **PENDING** | name the entrywise-nonnegativity → monotonicity-of-ρ → eigenvalue-shift steps, three lines |
-| Fix 8c worked example re-derivation | **PENDING** | fresh independent script; check against C\* = (0.7255, 0.5271, 0.5453) |
-| Fix 8d confidence formula + correlation-graph params | **PENDING** | extract verbatim from adapter source (markers 14 and 7) |
+| **R1** Eqs. (2)–(4) rewritten to the implemented operator | **DONE 2026-08-22** | §4.4 rewritten in `~/research/papers/draft/section4_fcp_algorithm.md`: δ is a per-edge attenuator *inside* the Noisy-OR product, no `(1−δ)·C_prev(s)` term, H(s) a per-iteration anchor, clamp made explicit; the "both formulations converge to the same fixed point on DAGs" sentence re-anchored to the shared formula and differing sweep order. Verified: 0 occurrences of `(1 − δ) · C` remain in §4.4. |
+| **Fix 8a** (former ratified repair) | **WITHDRAWN, NOT WRITTEN** | The W = 1 boundary case does not exist for the actual operator (ρ = δ·max(1−H)·W ≤ δ < 1 for all δ < 1, any W ≤ 1, any H). Verified absent from the draft: 0 matches for "W = 1 boundary", "damping-only argument", "25–37". |
+| **R2** Theorem 1 restated | **DONE 2026-08-22** | §4.5: ρ = δ·max(1−H)·W ≤ δ, strict contraction for every δ < 1 regardless of W and H, proof via ∂P/∂C(t) ≤ δ·w(s,t) plus non-expansive clamp. W = 1 written as the *ordinary* case; H = 0 services noted as common (a quarter to a third of the benchmark) but harmless. Sole degenerate case δ = 1 stated, with a pointer that §5.9 must disclose it. Corollary recomputed: worst case ρ = 0.85 → N = 85; the old "≈ 30 iterations" is not re-attributed. |
+| **R3 / Fix 8b** Theorem 2 on the corrected Jacobian | **DONE 2026-08-22** | §4.5: no `(1−δ)𝟙[s=t]` diagonal; four Perron–Frobenius steps named explicitly (entrywise non-negativity → entrywise domination → monotonicity of ρ on non-negative matrices → positive homogeneity). `[NEW-MATH]` marker retained and re-scoped to the corrected statement. Verified: 0 matches for the stale 0.626. |
+| **Fix 8c** worked-example re-derivation | **CLOSED — NO STOP** | Fresh script `paper/notes/fix8c_rederive_corrected.py` (does not reuse `fix8c_rederive.py`). Reproduces C\* = (0.7255, 0.5271, 0.5453) and the 10-dp values, 14 iterations at ε = 10⁻⁶, both bounds 0.476, true ρ(J) = 0.3614, and the geometric-mean identity 0.85 · 0.7 · 0.6073 = 0.3614 — **verified numerically before being written into §4.5**. Run recorded in `paper/notes/fix8c_closure.md`. |
+| **Narrative correction** (worked example) | **DONE 2026-08-22** | §4.5 no longer claims the local bound is much tighter than the global one: on a uniform cycle ρ(W̃) = W so the two coincide at 0.476. The example's value is restated as ρ(J) = 0.3614 predicting the observed 14 iterations (bound predicts 19), with the gap attributed to worst-case max(1−H) = 0.8 versus the geometric mean 0.6073. |
+| Fix 8d confidence formula (marker 14) | **RESOLVED** | verbatim extraction in `STOP_propagation_equation_finding.md` §5; still to be written into §4.6 and §5.3's deviation list |
+| Fix 8d correlation-graph params (marker 7) | **RESOLVED** | Not pending — the full extraction is in `CLAUDE_CODE_EXECUTION_PROMPT.md` Task 6 (R6): `_infer_topology`, `topology_threshold = 0.5`, `lag = 1`, directed edge u→v weighted \|lagged_corr(u,v)\| admitted at ≥ threshold with u leading v (`w_uv ≥ w_vu`), self-loops excluded, per-service signal = highest-\|z\| among cpu/mem/latency/error/traffic with the documented no-deviation fallback, docstring confirming the shared convention with MicroRCA and yRCA. Written into §4.1 by Task 6. |
 
 ## Marker fills (step 9)
 
@@ -95,3 +100,68 @@ Status as of 2026-08-11.
 3. Kosov validation run (Option B, two-week deadline, non-gating).
 4. Confirmation that the CASCADING_FAILURE surrogate stands in the evaluated
    configuration (marker 3) — repo-checkable but a design decision to own.
+
+
+---
+
+# Part 1 Tasks 4–7 — 2026-08-22
+
+Evidence paths are relative to `~/research/papers/draft/` for sections and to the
+repository root otherwise.
+
+## Review corrections C1–C3 (from `review_tasks1_3.md`)
+
+| item | resolution | evidence |
+|---|---|---|
+| C1 degenerate case too narrow | "H ≡ 0" replaced by **min_s H(s) = 0** throughout Theorem 1; stated as the *typical* profile, not a corner (system silence 25–37 % of cases, and outside silence most cases still contain a service the rule base does not fire on); δ = 1 disclosure given the extra clause that the non-expansive regime is the normal condition there | `section4_fcp_algorithm.md` §4.5 |
+| C2 ceiling off by one | verified numerically: log(10⁻⁶)/log(0.85) = 85.0086, 0.85⁸⁵ = 1.0014 × 10⁻⁶ > ε, so **N = 86**; other two (18.61 → 19, 13.57 → 14) confirmed correct and left | §4.5 Corollary |
+| C3 tightness condition backwards | replaced with "strictly tighter whenever the **row sums are unequal** — a uniform cycle … is precisely the case in which the two coincide" | §4.5, after Theorem 2 |
+
+## Task 4 (R4) — disclosure and errata
+
+| item | resolution | evidence |
+|---|---|---|
+| DEVIATIONS entry | full mis-transcription record: printed vs implemented form, how it surfaced (Fix 8c), the (0.7706…) vs (0.7255…) disagreement, ruling that source is canonical, artifacts affected, what is unaffected, closure pointer | `DEVIATIONS.md` § "Propagation equations: manuscript mis-transcription" |
+| AICT errata | placeholder created, marked **AUTHOR-ONLY — pending**; structured as claim-as-printed / corrected form / action required / decision; explicitly does not guess what AICT printed | `paper/notes/aict_errata.md` |
+| Paper 6 assessment | **it does restate them** — Eq. (13) prints `C(s) = 1 − ∏(1 − H(n)·edge_weight(n,s))`, which omits δ, uses the neighbour's *local* H where the code uses propagated C, and drops the (1 − H(s)) anchor. Different from the journal draft's error (Paper 6 has no (1−δ) term anywhere). No Paper 6 number moves. | ledger correction **#7**; #6 is the pre-existing no-Recommendation item, now written up properly and left open |
+
+## Task 5 (R5) — language sweep
+
+| item | resolution | evidence |
+|---|---|---|
+| §5.9 mechanism sentence | convex-mixing sentence replaced: δ multiplies the confidence each edge transmits; lowering δ attenuates edges uniformly | §5.9 damping paragraph |
+| δ = 1 disclosure | added in the sweep's setup: Theorem 1 gives only non-expansiveness at δ = 1, the profile that triggers it is typical, convergence there is **empirical**, implementation returns the last iterate after MAX_ITER, and it did close on every case here | §5.9 |
+| §4 framing note | propagation described as δ-attenuated transmission; MF-2 basin qualification added | §4 framing note |
+| §3.5 propagation row | "Damped Noisy-OR" → Noisy-OR over δ-attenuated edges; S4 forward clause to §5.9 added in the same edit | §3.5 table |
+| §5.7 untouched — **verified, not assumed** | both loads re-read: the impossibility claim rests on the scoring convention and makes no reference to how C was produced; the ceiling rests on code-produced C and H, independently re-derived 2026-08-22 with all values reproducing | `paper/notes/r5_sweep_verification.md` |
+| residual sweep | 0 occurrences of `(1 − δ)·C`, `convex`, `blend` remain in §3, §4, §5 | grep verified |
+
+## Task 6 (R6) — markers 14 and 7
+
+| item | resolution | evidence |
+|---|---|---|
+| marker 7 (correlation-graph parameters) | tracker corrected — was never pending; written into §4.1: threshold 0.5, lag 1, edge u→v weighted \|lagged_corr\|, stronger-lead disambiguation, self-loops excluded, highest-\|z\| representative signal with documented fallback, > lag+1 sample requirement, shared convention with MicroRCA/yRCA | §4.1; `[AUTHOR-VERIFY]` removed |
+| marker 14 (confidence formula) | resolved in the STOP note; **still to be written into §4.6 and §5.3's deviation list** | pending — carried to the next round |
+
+## Task 7 — held items
+
+| item | resolution | evidence |
+|---|---|---|
+| MF-8 / S2 | §5.5's independence claim narrowed to **across methods**, with the within-method coupling explicitly excluded and pointed to §5.10 | §5.5 |
+| S1 | placeholder replaced with ~1 page defining SG, SC, EC and ECE self-containedly, plus the system/head silence terms | §5.4 |
+| MF-1 | monotonicity framing replaced by **dominance**: interior optimum on OB, flat step on TT, plateau on SS all stated; δ ≤ 0.2 beats shipped on every axis on all three systems with the nine values quoted | §5.9 (i) |
+| MF-2 / MF-3 | two-sided basin δ ∈ [0.5, 0.85] written with the full TT step sequences; minima stated separately (SC 0.074 at δ = 0.75, EC 0.763 at δ = 0.65); "coherence rises with the same damping" and "completeness rises or holds" both removed | §5.9 (iii); §4 framing note |
+| MF-6 | both dangling pointers now land — new §5.9 (iv) covers system silence as inert under damping and evidence displacement with the `re1-ob_cartservice_mem_2` exemplar | §5.9 (iv) |
+| MF-7 | §6′.1 reference redirected to §7 | §5.5 |
+| S4 | §3.5 forward clause to §5.9 | §3.5 |
+| S7 | one canonical phrasing everywhere: 19/125 = 0.152 and 18/125 = 0.144; verified 3 occurrences of each, 0 of the old variants | §5.7 ×3 |
+| SF-1 | ceiling sentence scoped to δ = 0.85, with the higher-δ refined values (0.192, 0.208) named and pointed at Appendix D | §5.7 |
+| SF-2 | re-verified the parse (22 individuals, **0 self-pairs**) then edited: denominator 8 × 7 = **56**, remainder **34**, self-propagation stated as not represented | §3.4 |
+| SF-3 | **count is exactly 4 — no STOP.** Partition verified per case: 18 strict / 8 tied / 4 strictly below the block maximum, 18+8+4 = 30 and loose 26 = 18+8 both hold. Missing category written into §5.7 with its distinct consequence (promoting by H would select the wrong service) | `paper/notes/sf3_block_decomposition.md`; §5.7 |
+| SF-4 | the count does **not** surface in §5 — §5.5's completeness sentence is qualitative. Recorded here per spec: **Paper 6 correction #6 (no-Recommendation 35 vs 31) has no anchor in this manuscript's text**, and no contested number was imported to create one | §5.5 |
+| marker 18 (adapter table) | written from source. **Corrected two prose claims in the process:** links are emitted by **six** of seven methods (only MonitorRank emits none), not four; and an ontology-class string is written by **three** adapters — DejaVu mints `foda:Service/…` and `foda:FailureType/…` in its own namespace, which resolve to nothing in DiagnosticKB and so score zero, correctly | §5.3 |
+| markers 20–22 (Tables 1a–c) | typeset from `results/phase2_integration_headline_*.csv` with CIs from `paper/artifacts/bootstrap_ac1_cis.md`; locked values verified present (0.400 [0.320, 0.488], 0.160 [0.096, 0.232], 0.008 [0.000, 0.024]) | §5.5 |
+| marker 3 | resolved from source — `foda_fcp.py:127` maps CASCADING_FAILURE → ResourceContention, so the surrogate is in the evaluated configuration | §3.3 |
+| marker 2 | narrowed rather than closed: the CQ list is accurate as a description of the query surface; whether these were the *design-time* questions is author knowledge | §3.2 |
+| marker 16 (TT wall-clock) | **not done** — needs a timing run | pending |
+| marker 8 (SLO sources) | **AUTHOR-ONLY**, untouched, not invented | §4.2 |

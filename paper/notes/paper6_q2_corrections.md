@@ -6,7 +6,7 @@ paper. All are traceable to commit `d485957` of this repository.
 **Numbering note:** #1 and #2 were identified earlier in the same work stream
 and are recorded here for the first time; #3 was ruled in on 2026-08-10.
 
-**SUBMISSION-ORDER CONSTRAINT (S6).** Corrections #1 and #4 are substantive
+**SUBMISSION-ORDER CONSTRAINT (S6).** Corrections #1, #4 and #7 are substantive
 reversals of published Paper 6 numbers, and #5 withdraws a provenance claim both
 papers rely on. Paper 6 must therefore be revised *after* the method paper is
 submitted and must cite it; the two manuscripts must not be in review
@@ -83,3 +83,66 @@ including the two safeguards (no benchmark vocabulary in the ontology; no
 transitive closure) and the direction-of-result argument (measured SC is low and
 declining, so concurrent authorship did not tune it upward). Applies wherever
 Paper 6 discusses SC as an independent check.
+
+## #6 — no-Recommendation count: 31 published, 35 measured
+
+Paper 6 §4.5 states that FCP's RE1-OB completeness of 0.824 reflects "31 of 125
+cases (12 delay, 12 packet-loss, 7 disk)" in which the Mamdani rule engine fires
+no Recommendation. The measured count at current head is **35**, and the fault
+split does not match either.
+
+**Status: PENDING INVESTIGATION.** It is not yet established whether the
+published figure was measured under a different definition (for instance
+counting only cases where EC fell to exactly 1/3, rather than all cases lacking a
+Recommendation atom) or is simply stale. Until that is settled the discrepancy
+must be left visibly open and never presented as resolved.
+
+**No anchor in the method paper.** The method paper's §5.5 discusses the same
+behaviour qualitatively — "on the cases where its rule engine fires no
+recommendation, the mitigation category is unmet" — without quoting a count, so
+no contested number was imported there to create one. If a count is ever added to
+that sentence it must be 35, with the discrepancy flagged.
+
+**Action at revision:** re-measure under Paper 6's own definition, then either
+correct the figure to 35 with its fault split or record why the two definitions
+differ.
+
+## #7 — Eq. (13) is a different mis-transcription of the same operator
+
+Checked 2026-08-22 as part of the journal paper's Task 4.3, which asked whether
+Paper 6 restates the propagation equations. **It does.** §4.5 prints:
+
+> C(s) = 1 − ∏_{n ∈ neighbors(s)} (1 − H(n) · edge_weight(n, s))   (13)
+
+The implemented operator is
+
+> C(s) = clamp_[0,1]( 1 − (1 − H(s)) · ∏_t (1 − δ · w(s,t) · C(t)) )
+
+Paper 6's form differs in three ways, none of them the journal draft's error
+(Paper 6 has **no** `(1 − δ)` convex-mixing term anywhere — that mistake is the
+journal draft's alone):
+
+1. **δ is absent.** The damping factor does not appear, so the equation as
+   printed describes the δ = 1 case only.
+2. **It uses the neighbour's local H(n) where the code uses the neighbour's
+   propagated C(n).** As printed it is a single pass out of local evidence, not
+   an iterated fixed point.
+3. **The anchor factor (1 − H(s)) is missing**, so the service's own local
+   evidence does not enter its own confidence.
+
+**Does this move any Paper 6 number?** No. Every reported value came from the
+code, and the saturation argument the equation is introduced to support survives
+intact — the implemented form is still one minus a product of complements over
+active neighbours, so it still saturates as neighbour count and per-neighbour
+strength grow. What fails is the equation as a description of the algorithm, and
+the sentence immediately after it, which reasons about "per-neighbor H" as the
+quantity entering the product when in the implementation it is the propagated
+C attenuated by δ.
+
+**Action at revision:** replace Eq. (13) with the implemented form, and adjust
+the following sentence so the density argument is made in terms of δ·w·C rather
+than H·edge_weight. Cite the journal paper's §4.4 for the full statement. Note
+in passing that the ≈ 3 versus ≈ 10–20 active-neighbour contrast, which carries
+the argument, is unaffected.
+
+(The no-Recommendation discrepancy in the same passage is correction #6, above.)
