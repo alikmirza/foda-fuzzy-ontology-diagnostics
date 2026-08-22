@@ -22,7 +22,7 @@ block; see DEVIATIONS.md § AC@1 tie-handling convention).
 | results/delta_sweep_summary_{re1-ob,re1-ss,re1-tt}.csv (3) | as above, aggregated by `scripts/regenerate_delta_sweep.py` | pessimistic | none | canonical |
 | results/ablation_tau_{per_case,summary}.csv, results/ablation_bins_summary.csv (3) | 2d359bc (regenerated 2026-08-22, `scripts/regenerate_tau_bin_ablations.py`) | pessimistic AC@1 as the ECE correctness label | DejaVu fixed seed 0; otherwise deterministic | canonical; feeds §5.9's τ and B sweeps |
 | results/tt_mechanism_instrumentation.csv | 2d359bc (regenerated 2026-08-22, `scripts/regenerate_tt_instrumentation.py`) | pessimistic | none — deterministic | canonical; feeds §5.6 mechanism split and §5.7 ceiling |
-| results/runtime_tt_per_case.csv, results/runtime_tt_summary.{csv,json} (3) | 90e7f84 (measured 2026-08-23, `scripts/measure_runtime_tt.py`) | n/a — wall-clock, not a scoring convention | none; **not deterministic** (see note below) | canonical; feeds §4.8 |
+| results/runtime_tt_per_case.csv, results/runtime_tt_summary.{csv,json} (3) | bad1842 (measured 2026-08-23 against the tree at 90e7f84, `scripts/measure_runtime_tt.py`) | n/a — wall-clock, not a scoring convention | none; **not deterministic** (see note below) | canonical; feeds §4.8 |
  d485957 (resume chain, 2026-08-10) | pessimistic (consumes week2 CSVs) | bootstrap seed 42, n=10,000 | canonical (verified PASS 2026-08-10) |
 
 ## Regeneration note — δ sweep, 2026-08-22
