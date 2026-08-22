@@ -1794,6 +1794,100 @@ this method."
 
 
 
+## Ontology provenance: propagation table authored during evaluation (2026-08-11)
+
+The DiagnosticKB layers have different provenance and the method paper discloses
+it (§3.6, §5.8). Verified from git history:
+
+| date | commit | event |
+|---|---|---|
+| 2026-03-08 | fe58e61 | project foundation; DiagnosticKB created |
+| 2026-05-04 | 32358e8 | ontology-grounded explanations for the LNNS chapter; **0 Prop_* individuals present** |
+| 2026-05-08 | a470f9a, ffbc05e, af7aedc | RCAEval evaluation module, RCAEval loader, Online Boutique loader |
+| 2026-05-12 20:37 | ceebb25, f6bf9d3 | SemanticGroundedness metric + first SG run over 7 methods x 125 cases |
+| 2026-05-12 23:01 | **85cbb8d** | **all 22 Prop_* individuals added (+276 lines)**, same commit as semantic_coherence.py (+436) and a 68-line foda_fcp.py change |
+| after | - | no further ontology edits |
+
+Consequences. The class/property structure and the eight fault prototypes
+predate the benchmark work; the propagation table does not - it postdates the
+first full metric run by about 2.5 hours and was authored because the coherence
+metric required a fault-typicality reference that did not exist. Claims of
+independent prior curation for the propagation layer are therefore withdrawn.
+
+Not affected: SG, EC, AC@1, calibration, the failure-mechanism analysis, the
+score refinement, the damping sweep - none consume the propagation table.
+
+Safeguards on record: the ontology contains zero benchmark vocabulary (no
+evaluated service name appears in it); the table holds prototype-to-prototype
+claims only; transitive closure is not applied. Direction of result: measured SC
+is low (0.266 / 0.158 / 0.086) and declining with system size, so concurrent
+authorship did not tune coherence upward. An independent re-derivation protocol
+is specified in paper/notes/kosov_validation_protocol.md.
+
+## Damping dose-response (delta sweep, 2026-08-11)
+
+Eleven delta values x 3 systems x 125 cases, all four metrics per point
+(`scratchpad/delta_ext/`, promoted on quotation). Lower delta = heavier damping
+= less propagation influence; delta=0.001 approximates local-Mamdani-only.
+
+| delta | OB AC@1 | SS AC@1 | TT AC@1 | TT SC | TT EC |
+|---|---|---|---|---|---|
+| 0.001 | 0.552 | 0.408 | 0.464 | 0.372 | 0.835 |
+| 0.100 | 0.560 | 0.408 | 0.376 | 0.282 | 0.835 |
+| 0.500 | 0.480 | 0.256 | 0.064 | 0.084 | 0.784 |
+| 0.850 (shipped) | 0.400 | 0.160 | 0.008 | 0.086 | 0.789 |
+| 1.000 | 0.344 | 0.064 | 0.000 | 0.172 | 0.827 |
+
+Shipped-to-best improvement: 1.4x (OB), 2.6x (SS), 58x (TT). SG invariant at
+1.000 throughout; SC and EC improve alongside AC@1, so there is no
+accuracy-explanation trade-off: the propagation as formulated is dominated on
+RCAEval. delta remains 0.85 in all reported results — selecting delta on the
+evaluation benchmark would invalidate the evaluation; held-out selection is
+future work.
+
+## Atom membership channels (semantic correction, 2026-08-10)
+
+Until 2026-08-10 the FODA-FCP explanation builder wrote a single value into
+`ExplanationAtom.fuzzy_membership`: `clip(C(s) / sum_head C, 0, 1)`, the atom's
+share of the reported top-k propagated-confidence mass. That quantity is
+ranking-derived, not a Zadeh-style degree of truth, and it decouples completely
+from the Mamdani inference output. Evidence (RE1-OB, ten atoms from the 1/3
+plateau):
+
+| case | service | old membership | C | H (Mamdani) |
+|---|---|---|---|---|
+| adservice_delay_1 | productcatalogservice | 0.3341 | 0.9221 | **0.008** |
+| adservice_delay_2 | adservice | 0.3378 | 0.9668 | 0.880 |
+| adservice_delay_2 | currencyservice | 0.3353 | 0.9596 | 0.254 |
+| adservice_disk_1 | adservice | 0.3334 | 0.9999 | 0.950 |
+| adservice_disk_1 | recommendationservice | 0.3333 | 0.9998 | 0.880 |
+| adservice_disk_1 | emailservice | 0.3333 | 0.9997 | 0.880 |
+| adservice_disk_2 | cartservice | 0.3335 | 1.0000 | 0.880 |
+| adservice_disk_2 | adservice | 0.3335 | 1.0000 | 0.950 |
+| adservice_disk_2 | productcatalogservice | 0.3330 | 0.9986 | 0.686 |
+| adservice_disk_4 | productcatalogservice | 0.3347 | 0.9995 | 0.880 |
+
+The 1/3 plateau is the top-3 share under Noisy-OR saturation, not a rule
+artifact. The channels are now separate: `confidence_share` carries the old
+quantity, and `fuzzy_membership` carries H(s).
+
+**This is a semantic correction to atom construction, not a method change.**
+C(s), the ranking, and every AC@1 / SG / SC / EC number are untouched — both
+link-weight computations in the builder were pinned to `confidence_share`, and
+a post-change regression on RE1-OB reproduces AC@1 0.4000, SG 1.0000, SC 0.2660,
+EC 0.8240 exactly. Only the membership-weighted metric variants of the method
+paper's Section 5.4 are affected; all v1 (share-weighted) fuzzy-variant numbers
+are superseded.
+
+**Panel semantics (no silent mixing).** Two methods carry rule-derived
+memberships: FODA-FCP (Mamdani H) and yRCA (derivation multiplicity — more rule
+paths to a service means higher membership). The other five have no rule base
+and their `fuzzy_membership` remains their native graded confidence, normalised
+to [0, 1]: MonitorRank, MicroRCA and CausalRCA use an anomaly-score ratio
+(score / max score), BARO a change-point-derived membership, DejaVu a
+fault-type softmax. The method paper states this per method rather than
+implying a common semantics.
+
 ## Mamdani rule-base count (canonical: 16 rules, six fault categories)
 
 The evaluated configuration — `evaluation/methods/foda_fcp.py`, a faithful

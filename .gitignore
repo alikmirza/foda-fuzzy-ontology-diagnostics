@@ -122,6 +122,5 @@ tdb-data/
 # Result CSVs and paper artifacts are deliberately tracked despite the *.csv /
 # *.log ignores above — every tracked result file must be recorded in
 # RESULTS_PROVENANCE.md (generating commit, scoring convention, seed).
-!results/week2_*_validation*.csv
-!results/phase2_*.csv
+!results/*.csv
 !paper/artifacts/*.md
