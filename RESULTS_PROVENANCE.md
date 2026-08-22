@@ -20,6 +20,7 @@ block; see DEVIATIONS.md § AC@1 tie-handling convention).
 | results/phase2_integration_headline{,_re1-ob,_re1-ss,_re1-tt}.csv | d485957, rebuilt from patched EC+CC outputs via harness headline builder | pessimistic | — | canonical (verified PASS 2026-08-10) |
 | results/delta_sweep_per_case_{re1-ob,re1-ss,re1-tt}.csv (3) | 2d359bc (regenerated 2026-08-22) | pessimistic (both ac1_shipped over C-tie blocks and ac1_refined over (C,H)-tie blocks) | none — fully deterministic, no RNG on this path | canonical; feeds §5.9 and §5.7 |
 | results/delta_sweep_summary_{re1-ob,re1-ss,re1-tt}.csv (3) | as above, aggregated by `scripts/regenerate_delta_sweep.py` | pessimistic | none | canonical |
+| results/ablation_tau_{per_case,summary}.csv, results/ablation_bins_summary.csv (3) | 2d359bc (regenerated 2026-08-22, `scripts/regenerate_tau_bin_ablations.py`) | pessimistic AC@1 as the ECE correctness label | DejaVu fixed seed 0; otherwise deterministic | canonical; feeds §5.9's τ and B sweeps |
 | results/tt_mechanism_instrumentation.csv | 2d359bc (regenerated 2026-08-22, `scripts/regenerate_tt_instrumentation.py`) | pessimistic | none — deterministic | canonical; feeds §5.6 mechanism split and §5.7 ceiling |
  d485957 (resume chain, 2026-08-10) | pessimistic (consumes week2 CSVs) | bootstrap seed 42, n=10,000 | canonical (verified PASS 2026-08-10) |
 

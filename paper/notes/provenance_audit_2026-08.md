@@ -26,8 +26,12 @@ data.
 | **δ dose–response**, 11 δ × 3 systems × 125 cases | §5.9 table, 1.4×/2.6×/58× headline, dominance argument, MF-1/2/3 basins, SF-1's appendix reference, contribution (iii) | **no** | **REGENERATED** — `results/delta_sweep_per_case_{re1-ob,re1-ss,re1-tt}.csv` + `…_summary_….csv`, by `scripts/regenerate_delta_sweep.py`. **91 values diffed against the note: all match to three decimals. No STOP.** |
 | **§5.7 refined variant** (ac1_shipped vs ac1_refined) | §5.7 measured-effect table, 17-gained/0-lost | **no** | **REGENERATED** — falls out of the δ sweep at δ = 0.85; verified OB 0.400→0.400, SS 0.160→0.160, TT 0.008→0.144, 17 gained / 0 lost. No separate artifact needed. |
 | **§5.6 mechanism instrumentation** + §5.7 ceiling derivation | mechanism split 87/31/6, 43-distinct-top-1 / 25.8 %, gt_H median 0.950, ceiling 0.152, system-silence per fault | **no** | **REGENERATED** — `results/tt_mechanism_instrumentation.csv` by `scripts/regenerate_tt_instrumentation.py`. Every published figure reproduced exactly: 87/31/6; 43 and 0.258; 30 in-block / 26 loose / 18 strict / 8 lost to H-ties; median 0.950; ceiling (1+18)/125 = 0.1520; silence per fault cpu 5 / delay 7 / disk 7 / loss 4 / mem 8. |
-| **τ and B ablations** | §5.9's τ = 0.5 cliff and vocabulary-collision rule; B-robustness claim | **no** | **REGENERATION RUNNING** — `scripts/regenerate_tau_bin_ablations.py` → `results/ablation_tau_{per_case,summary}.csv`, `results/ablation_bins_summary.csv`. Diff against `ablation_results_2026-08-10.md` pending completion. |
+| **τ and B ablations** | §5.9's τ = 0.5 cliff and vocabulary-collision rule; B-robustness claim | **no** | **REGENERATED** — `results/ablation_tau_{per_case,summary}.csv`, `results/ablation_bins_summary.csv` by `scripts/regenerate_tau_bin_ablations.py`. **23 values diffed against the note: all match.** τ = 0.5 cliff exact (Micro 0.400, MR 0.387, CR 0.334, BARO 0.206, DejaVu 0.054, yRCA 0.267, FCP 1.000); floor exactly 0.000 for all five ungrounded methods at every τ ≥ 0.6; B × ECE grid exact. |
 | headline tables, per-case EC/CC, week2 validation, bootstrap CIs | §5.5, §5.10 | **yes** | unchanged; already in `results/` and recorded |
+
+## Status: all four measurements now durable
+
+No measurement quoted in the paper is scratchpad-backed any longer.
 
 ## Provenance recorded
 
