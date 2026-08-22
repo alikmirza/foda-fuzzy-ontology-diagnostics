@@ -749,12 +749,22 @@ def _build_explanation(
         else:
             ontology_class = _ontology_uri(fault_local)
             fault_local_for_text = fault_local
-        membership = float(np.clip(C / sum_head, 0.0, 1.0))
+        # Two distinct channels (semantic correction, 2026-08-10):
+        #   confidence_share — the atom's share of the reported head's
+        #     propagated-confidence mass (ranking-derived).
+        #   fuzzy_membership — the Mamdani local confidence H(s), i.e. the
+        #     degree to which the rule base backs this atom's claim.
+        # The former was previously written into fuzzy_membership; link
+        # weights below continue to use the share, so no downstream number
+        # changes. See DEVIATIONS.md "Atom membership channels".
+        share = float(np.clip(C / sum_head, 0.0, 1.0))
+        membership = float(np.clip(hyp.local_confidence, 0.0, 1.0))
         atom = ExplanationAtom(
             text=_atom_text(rank, svc, hyp, C, fault_local_for_text,
                             fuzzy_vectors[svc]),
             ontology_class=ontology_class,
             fuzzy_membership=membership,
+            confidence_share=share,
         )
         explanation.add_atom(atom)
         atom_by_service[svc] = atom
@@ -776,6 +786,7 @@ def _build_explanation(
                 ),
                 ontology_class=_ontology_uri(rec_local),
                 fuzzy_membership=atom_by_service[root_service].fuzzy_membership,
+                confidence_share=atom_by_service[root_service].confidence_share,
             )
             explanation.add_atom(rec_atom)
 
@@ -800,7 +811,7 @@ def _build_explanation(
         # weight" semantics.
         edge_w = edges.get((root_service, svc), 0.0)
         contrib = float(np.clip(
-            (atom.fuzzy_membership or 0.0) * edge_w * delta, 0.0, 1.0,
+            (atom.confidence_share or 0.0) * edge_w * delta, 0.0, 1.0,
         ))
         explanation.add_link(CausalLink(
             source_atom_id=atom.id,
@@ -810,10 +821,12 @@ def _build_explanation(
         ))
 
     # ``suggests_mitigation`` from every ContributingFactor atom to the
-    # Recommendation atom. Weight = source atom's fuzzy_membership.
+    # Recommendation atom. Weight = source atom's confidence_share (the
+    # pre-2026-08-10 fuzzy_membership quantity), pinned so that splitting
+    # the membership channels leaves every emitted link weight unchanged.
     if rec_atom is not None:
         for svc, atom in atom_by_service.items():
-            mu = atom.fuzzy_membership or 0.0
+            mu = atom.confidence_share or 0.0
             explanation.add_link(CausalLink(
                 source_atom_id=atom.id,
                 target_atom_id=rec_atom.id,

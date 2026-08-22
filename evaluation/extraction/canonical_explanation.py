@@ -19,13 +19,20 @@ class ExplanationAtom:
     pointing into the FODA ontology (or another OWL ontology), and lets
     metrics ask whether two atoms refer to the same concept across methods.
     `fuzzy_membership` is the degree to which this atom holds, when the
-    producing method is fuzzy.
+    producing method is fuzzy — for rule-based methods this is the
+    inference output itself (FODA-FCP: the Mamdani local confidence
+    H(s)), Zadeh-consistent and independent of where the atom ranks.
+    `confidence_share` is the separate, ranking-derived channel: the
+    atom's share of the reported head's confidence mass. The two were
+    conflated before 2026-08-10; see DEVIATIONS.md
+    "Atom membership channels".
     """
 
     text: str
     ontology_class: str | None = None
     fuzzy_membership: float | None = None
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    confidence_share: float | None = None
 
     def __post_init__(self) -> None:
         if self.fuzzy_membership is not None and not (
@@ -33,6 +40,12 @@ class ExplanationAtom:
         ):
             raise ValueError(
                 f"fuzzy_membership must be in [0, 1], got {self.fuzzy_membership}"
+            )
+        if self.confidence_share is not None and not (
+            0.0 <= self.confidence_share <= 1.0
+        ):
+            raise ValueError(
+                f"confidence_share must be in [0, 1], got {self.confidence_share}"
             )
 
 
