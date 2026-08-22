@@ -9,8 +9,11 @@ Everything below is settled unless marked PENDING or AUTHOR-ONLY.
 
 We are writing **"FODA-FCP: Explainable Root Cause Analysis for Microservices via
 Fuzzy Ontology Reasoning"** — authors A. Mirzazada, P. Kosov, L. Gardashova —
-targeting **EMSE first** (TSC fallback, do not restructure for it), submission
-~September 2026, ~29.5 pages. It is **Q1 anchor #1** of a two-paper dissertation
+**venue undecided; drafted to EMSE conventions as the working assumption**
+(RQ/threats structure, empirical-SE register — these travel to EMSE, JSS, TOSEM
+and ICSE journal-first alike). Submission ~September 2026, ~29.5 pages at the
+time that estimate was made. Note that TSC, if chosen, is not a cheap retarget:
+its double-column ~14-page format would require cutting roughly half the content. It is **Q1 anchor #1** of a two-paper dissertation
 plan. The plan exists because an earlier evaluation-framework manuscript
 ("Paper 6") was judged premature and circular by both the supervisor and a formal
 reviewer: it evaluated a method that had never been published. Paper 6 is

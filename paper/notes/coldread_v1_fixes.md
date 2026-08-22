@@ -1,23 +1,10 @@
-> **BLOCKED 2026-08-22 — see `STOP_propagation_equation_finding.md`.**
-> Fix 8c's re-derivation showed that §4.4's printed equations (2), (3), (4) are
-> not the implemented algorithm. The implementation applies δ as a per-edge
-> attenuator inside the Noisy-OR product and has no `(1−δ)·C_prev(s)` term;
-> the printed form gives C\* = (0.7706, 0.6095, 0.6316) in 19 iterations against
-> the asserted (0.7255, 0.5271, 0.5453) in 14. Consequences: eqs (2)/(3)/(4),
-> Theorem 1, Theorem 2, the Corollary and §5.9's mechanism sentence are all
-> affected, and **the ratified Fix 8a repair is withdrawn pending ruling** — the
-> W = 1 boundary case it repairs does not exist for the actual operator
-> (ρ ≤ δ·max(1−H)·W ≤ δ < 1 for all δ < 1, W ≤ 1, any H). δ = 1 is the sole
-> boundary case.
->
-> **UNBLOCKED 2026-08-22 by ruling; Part 1 Tasks 1–3 executed.** Equations,
-> theorems and the re-derivation are now on the corrected operator; see the
-> R1/R2/R3 rows below. The rest of the 2026-08-22 fix sequence (MF-8/S2 → S1 →
-> MF-1/2/3 → MF-6 → MF-7 → S4 → S7 → SF-1..4 → §1/§2/§7) remains to be done.
-> Fix 8d marker 14 (confidence formula) IS resolved — verbatim extraction in the
-> STOP note. Marker 7 (correlation-graph parameters) remains open.
->
-> Cold read v2 findings against the on-disk text: `coldread_findings_v2_partial.md`.
+> **UNBLOCKED and executed.** The 2026-08-22 STOP
+> (`STOP_propagation_equation_finding.md`) is closed: R1/R2/R3 rewrote the
+> equations and both theorems for the implemented operator, Fix 8c re-derivation
+> passes, and Part 1 Tasks 4–8 are complete. Committed in `7a5d7c0` and the
+> follow-on commit. Cold read v2 findings against the on-disk text:
+> `coldread_findings_v2_partial.md`; review sign-offs in `review_tasks1_3.md`
+> and `review_tasks4_7.md`.
 
 # Cold-read v1 — consolidated fix tracker
 
@@ -165,3 +152,23 @@ repository root otherwise.
 | marker 2 | narrowed rather than closed: the CQ list is accurate as a description of the query surface; whether these were the *design-time* questions is author knowledge | §3.2 |
 | marker 16 (TT wall-clock) | **not done** — needs a timing run | pending |
 | marker 8 (SLO sources) | **AUTHOR-ONLY**, untouched, not invented | §4.2 |
+
+
+## Task 8 + NF items — 2026-08-22
+
+| item | resolution | evidence |
+|---|---|---|
+| NF-1 baselines' SC = 0.000 is an empty denominator | §5.5 rewritten: coherence's denominator counts only links whose endpoints both resolve to fault prototypes; six of seven methods contribute none across all 125 cases (unmapped counts quoted per method: BARO 375, CR 581, DejaVu 1 498, Micro 750, yRCA 1 292; MonitorRank emits no links). Their 0.000 is the convention for an empty set. Claim sharpened to **FCP is the only method coherence can score at all**, with 165 scored links over 89 of 125 cases | `section5_evaluation.md` §5.5 |
+| NF-2 empty middle vs §5.3 | sharpened, not deleted: no method occupies a middle position on *shared* grounding; DejaVu's private `foda:` namespace is structured, typed output that scores zero for non-interoperability, which is what the empty middle is made of | §5.5; expanded in §2.2 and §6′.1 |
+| NF-3 coherence denominator unstated | §5.8 now states it: 89 of 125 cases contribute, 36 enter as convention zeros, reported 0.266 runs over all 125, restricted mean is **0.374**; both given, with the one-clause defence for including empty-denominator cases | §5.8 |
+| ledger numbering | corrected — **#6 restored to the no-Recommendation 35-vs-31 item** (written up properly and left open), **#7 is the Eq. (13) mis-transcription**; ledger count updated to 7 in the ledger and `PROJECT_STATE.md` | `paper6_q2_corrections.md` |
+| venue ruling | `PROJECT_STATE.md` softened to "venue undecided; drafted to EMSE conventions as the working assumption", with the TSC length caveat recorded | `PROJECT_STATE.md` §1 and rulings table |
+| §1 | four ratified contributions, no more and no fewer; (iii) phrased as a finding; AICT disclosure sentence present and uncited; TT canonical phrasing; no operator claims | `section1_introduction.md`, 752 w |
+| §2 | positions against all six baselines by family; empty middle as motivation, sharpened per NF-2; does not lean on the unpublished framework paper | `section2_related_work.md`, 708 w |
+| §6′ | written per ruling: empty middle (NF-2), what the dose–response means for the field, coherence-gap interpretation incl. the not-endorsed/contradicted distinction | `section6prime_discussion.md`, 1 131 w |
+| §7 | states all five uncomfortable findings plainly (TT below chance, silence as coverage gap, propagation dominated, table provenance, late correction of the formal analysis); six future-work items in the ratified order | `section7_conclusion.md`, 597 w |
+| abstract | variant B, δ = 0.85 headline, δ→0 as finding, TT canonical phrasing, no operator claims | `abstract_variantB.md` |
+| assembled manuscript | all seven sections plus abstract | `manuscript_assembled.md`, 18 574 w |
+| housekeeping | stray `_to_delete/` backup removed | — |
+| marker 14 → §4.6/§5.3 | **still pending** — extraction exists, not yet written into those two places | carried |
+| marker 16 TT wall-clock | **still pending** — needs a timing run | carried |
