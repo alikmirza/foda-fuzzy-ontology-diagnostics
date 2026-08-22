@@ -1,0 +1,2 @@
+system,n_cases,n_services,repeats_per_case,diagnose_ms_mean,diagnose_ms_p50,diagnose_ms_p95,diagnose_ms_min,diagnose_ms_max,normalize_ms_mean
+re1-tt,125,64,5,344.725,346.16,354.909,290.255,358.206,22.947

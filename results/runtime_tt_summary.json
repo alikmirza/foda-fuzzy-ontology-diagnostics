@@ -1,0 +1,21 @@
+{
+  "system": "re1-tt",
+  "n_cases": 125,
+  "n_services": 64,
+  "repeats_per_case": 5,
+  "diagnose_ms_mean": 344.725,
+  "diagnose_ms_p50": 346.16,
+  "diagnose_ms_p95": 354.909,
+  "diagnose_ms_min": 290.255,
+  "diagnose_ms_max": 358.206,
+  "normalize_ms_mean": 22.947,
+  "machine": {
+    "platform": "macOS-26.3-arm64-arm-64bit",
+    "machine": "arm64",
+    "python": "3.9.6",
+    "processor": "arm",
+    "cpu": "Apple M4",
+    "ram_gb": 16.0,
+    "cores": 10
+  }
+}

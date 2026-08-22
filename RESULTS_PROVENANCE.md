@@ -22,6 +22,7 @@ block; see DEVIATIONS.md § AC@1 tie-handling convention).
 | results/delta_sweep_summary_{re1-ob,re1-ss,re1-tt}.csv (3) | as above, aggregated by `scripts/regenerate_delta_sweep.py` | pessimistic | none | canonical |
 | results/ablation_tau_{per_case,summary}.csv, results/ablation_bins_summary.csv (3) | 2d359bc (regenerated 2026-08-22, `scripts/regenerate_tau_bin_ablations.py`) | pessimistic AC@1 as the ECE correctness label | DejaVu fixed seed 0; otherwise deterministic | canonical; feeds §5.9's τ and B sweeps |
 | results/tt_mechanism_instrumentation.csv | 2d359bc (regenerated 2026-08-22, `scripts/regenerate_tt_instrumentation.py`) | pessimistic | none — deterministic | canonical; feeds §5.6 mechanism split and §5.7 ceiling |
+| results/runtime_tt_per_case.csv, results/runtime_tt_summary.{csv,json} (3) | 90e7f84 (measured 2026-08-23, `scripts/measure_runtime_tt.py`) | n/a — wall-clock, not a scoring convention | none; **not deterministic** (see note below) | canonical; feeds §4.8 |
  d485957 (resume chain, 2026-08-10) | pessimistic (consumes week2 CSVs) | bootstrap seed 42, n=10,000 | canonical (verified PASS 2026-08-10) |
 
 ## Regeneration note — δ sweep, 2026-08-22
@@ -35,3 +36,27 @@ three decimals.** The §5.7 refined-variant figures fall out of the same file at
 δ = 0.85 (OB 0.400→0.400, SS 0.160→0.160, TT 0.008→0.144, 17 gained / 0 lost)
 and no longer need a separate artifact. Audit of the remaining scratchpad-only
 measurements: `paper/notes/provenance_audit_2026-08.md`.
+
+## Measurement note — RE1-TT runtime, 2026-08-23
+
+`results/runtime_tt_per_case.csv` and its two summary files are the only
+artifacts in `results/` that are **not deterministic**. Every other entry above
+reproduces byte-identically for a given commit; wall-clock does not. Re-running
+`scripts/measure_runtime_tt.py` reproduces the shape of the distribution, not
+the exact values, and the numbers quoted in §4.8 are therefore pinned to the
+machine below rather than to the commit alone.
+
+Measured on: Apple M4, 10 cores, 16 GB RAM, macOS 26.3 (arm64), CPython 3.9.6.
+Single process, no warm pool, machine otherwise idle.
+
+Protocol: 125 RE1-TT cases (64 services), 5 repeats per case, per-case value =
+median of repeats, aggregates = mean and 95th percentile over the 125 per-case
+medians. The clock covers the five FCP phases — onset detection, fuzzification,
+Mamdani inference, topology inference, propagation, ranking and explanation
+assembly. Case loading and schema normalization are harness I/O and are timed
+into a separate `normalize_ms` column rather than folded in or dropped. Onset
+detection is inside the diagnostic boundary because under Deviation 0 it is the
+method's own work, not an oracle the harness supplies.
+
+Headline: mean 344.7 ms, p95 354.9 ms per case; normalization a further
+22.9 ms mean.
