@@ -125,3 +125,4 @@ tdb-data/
 !results/*.csv
 !paper/artifacts/*.md
 paper/notes/coldread_bundle_v1.md
+paper/notes/
