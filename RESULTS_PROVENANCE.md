@@ -24,6 +24,7 @@ block; see DEVIATIONS.md § AC@1 tie-handling convention).
 | results/tt_mechanism_instrumentation.csv | 2d359bc (regenerated 2026-08-22, `scripts/regenerate_tt_instrumentation.py`) | pessimistic | none — deterministic | canonical; feeds §5.6 mechanism split and §5.7 ceiling |
 | results/runtime_tt_per_case.csv, results/runtime_tt_summary.{csv,json} (3) | bad1842 (measured 2026-08-23 against the tree at 90e7f84, `scripts/measure_runtime_tt.py`) | n/a — wall-clock, not a scoring convention | none; **not deterministic** (see note below) | canonical; feeds §4.8 |
 | results/runtime_tt_phases_per_case.csv, results/runtime_tt_phases_summary.json (2) | measured 2026-10-19 against the tree at b8e2f87, `scripts/measure_runtime_phases_tt.py` | n/a — wall-clock, not a scoring convention | none; **not deterministic** (see note below) | canonical; feeds the §4.8 phase shares (FCP reasoning 1.26 %, topology inference 81.2 %) |
+| results/graph_stats_per_case.csv, results/graph_stats_summary.csv (2) | the commit that adds `scripts/regenerate_graph_statistics.py` (2026-10-19) | n/a — graph and convergence statistics, no scoring | none — deterministic | canonical; inferred-graph row sums, cyclicity and Jacobi convergence behind the §4.5 scope of Theorem 1 |
 | paper/artifacts/bootstrap_ac1_cis.md | d485957 (resume chain, 2026-08-10) | pessimistic (consumes week2 CSVs) | bootstrap seed 42, n=10,000 | canonical (verified PASS 2026-08-10) |
 
 ## Regeneration note — δ sweep, 2026-08-22
@@ -73,3 +74,18 @@ median), but a separate run: the phase medians are taken independently, so
 their sum (328.1 ms) is not expected to equal the end-to-end mean (344.7 ms).
 Like the end-to-end files these are wall-clock and **not deterministic**; the
 shares, not the absolute values, are what the paper quotes.
+
+## Measurement note — inferred-graph statistics, 2026-10-19
+
+Theorem 1 (global contraction, ρ ≤ δ) assumes every row sum Σ_t w(s,t) ≤ 1.
+`scripts/regenerate_graph_statistics.py` measures the graphs FODA-FCP actually
+infers on RCAEval at the shipped configuration and finds that assumption
+almost never holds: every row sum is ≤ 1 in 7 / 2 / 0 of the 125 cases on
+RE1-OB / RE1-SS / RE1-TT, and the median of the largest row sum per case is
+3.48 / 5.56 / 23.85 (maximum 41.27 on RE1-TT). The graphs are cyclic in
+68 / 106 / 122 cases, so the Jacobi path runs on most of them. It converges in
+every case without reaching MAX_ITER (median 6.5 / 7 / 6 rounds, maximum
+57 / 34 / 25), and no iterate decreases by more than 1.2e-16, i.e. the
+iteration is monotone up to floating-point rounding. Every per-case confidence
+vector is asserted equal to `FodaFCPMethod.diagnose_normalized` before it is
+recorded.

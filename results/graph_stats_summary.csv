@@ -1,0 +1,4 @@
+system,n_cases,n_services,median_edges,max_edges,median_density,cases_cyclic,cases_all_row_sums_le1,median_max_row_sum,max_max_row_sum,median_frac_services_row_sum_gt1,median_max_out_degree,median_iterations_cyclic,max_iterations_cyclic,cases_hit_max_iter,min_step_over_cases,cases_with_saturation,cases_saturated_H_lt_1
+re1-ob,125,12,19.0,57,0.1439,68,7,3.482,7.369,0.417,5.0,6.5,57,0,-5.551115123125783e-17,0,0
+re1-ss,125,15,44.0,99,0.2095,106,2,5.564,10.624,0.6,7.0,7.0,34,0,-5.551115123125783e-17,0,0
+re1-tt,125,64,796.0,1655,0.1974,122,0,23.845,41.27,0.781,32.0,6.0,25,0,-1.1102230246251565e-16,90,90

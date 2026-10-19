@@ -637,12 +637,25 @@ def _propagate_iterative(
     delta: float,
     epsilon: float = 1e-6,
     max_iter: int = 100,
+    trace: list[dict[str, float]] | None = None,
 ) -> dict[str, float]:
     """Eq. 5 — Jacobi fixed-point iteration for cyclic dependency
-    graphs. Port of :class:`IterativeConfidencePropagator`. Banach
-    convergence is guaranteed for ``δ < 1``; for ``δ == 1`` the
-    iteration may not converge, in which case we return the last
-    iterate after ``max_iter`` rounds."""
+    graphs. Port of :class:`IterativeConfidencePropagator`.
+
+    The Banach contraction bound (``ρ ≤ δ``) holds only when every row
+    sum ``Σ_t w(s, t) ≤ 1``. Edges inferred by :func:`_infer_topology`
+    carry raw ``|lagged_corr| ≥ threshold`` weights and are not
+    row-normalised, so on the RCAEval graphs that bound does not hold
+    (row sums reach ~41 on RE1-TT; ``results/graph_stats_per_case.csv``).
+    Termination there rests on monotonicity instead: starting from
+    ``C = H`` no iterate decreases, and every iterate is bounded by 1,
+    which ``scripts/regenerate_graph_statistics.py`` checks per case.
+    If ``max_iter`` rounds pass without the residual dropping below
+    ``epsilon``, the last iterate is returned.
+
+    ``trace``, when given, receives one record per round — the sup-norm
+    residual and the smallest per-service step — and changes nothing
+    about the result."""
     out: dict[str, list[tuple[str, float]]] = defaultdict(list)
     for (u, v), w in edges.items():
         out[u].append((v, w))
@@ -660,7 +673,13 @@ def _propagate_iterative(
                 comp *= 1.0 - ct * w * delta
             p = 1.0 - comp
             C_next[s] = max(0.0, min(1.0, 1.0 - (1.0 - H[s]) * (1.0 - p)))
-        if max(abs(C_next[s] - C[s]) for s in services) < epsilon:
+        residual = max(abs(C_next[s] - C[s]) for s in services)
+        if trace is not None:
+            trace.append({
+                "residual": residual,
+                "min_step": min(C_next[s] - C[s] for s in services),
+            })
+        if residual < epsilon:
             C = C_next
             break
         C = C_next
