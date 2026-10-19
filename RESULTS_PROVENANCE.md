@@ -25,6 +25,8 @@ block; see DEVIATIONS.md § AC@1 tie-handling convention).
 | results/runtime_tt_per_case.csv, results/runtime_tt_summary.{csv,json} (3) | bad1842 (measured 2026-08-23 against the tree at 90e7f84, `scripts/measure_runtime_tt.py`) | n/a — wall-clock, not a scoring convention | none; **not deterministic** (see note below) | canonical; feeds §4.8 |
 | results/runtime_tt_phases_per_case.csv, results/runtime_tt_phases_summary.json (2) | measured 2026-10-19 against the tree at b8e2f87, `scripts/measure_runtime_phases_tt.py` | n/a — wall-clock, not a scoring convention | none; **not deterministic** (see note below) | canonical; feeds the §4.8 phase shares (FCP reasoning 1.26 %, topology inference 81.2 %) |
 | results/graph_stats_per_case.csv, results/graph_stats_summary.csv (2) | the commit that adds `scripts/regenerate_graph_statistics.py` (2026-10-19) | n/a — graph and convergence statistics, no scoring | none — deterministic | canonical; inferred-graph row sums, cyclicity and Jacobi convergence behind the §4.5 scope of Theorem 1 |
+| results/stats_ranking_intervals.csv, results/stats_paired_comparisons.csv (2) | the commit that adds `scripts/regenerate_ranking_statistics.py` (2026-10-19); consumes the week2 and delta-sweep CSVs above, re-runs nothing | pessimistic | bootstrap seed 42, n=10,000 (case-level, cluster and paired) | canonical; exact/Wilson/cluster intervals, chance tests and paired McNemar comparisons for Tables 1a–c and §5.9 |
+| results/fcp_case_audit_per_case.csv, results/fcp_case_audit_summary.csv (2) | the commit that adds `scripts/regenerate_fcp_case_audit.py` (2026-10-19) | pessimistic (canonical), plus optimistic and expected AC@1 recorded alongside | none — deterministic | canonical; tie conventions, fault-type agreement and the FODA-FCP Deviation 5 fallback counterfactual |
 | paper/artifacts/bootstrap_ac1_cis.md | d485957 (resume chain, 2026-08-10) | pessimistic (consumes week2 CSVs) | bootstrap seed 42, n=10,000 | canonical (verified PASS 2026-08-10) |
 
 ## Regeneration note — δ sweep, 2026-08-22
@@ -89,3 +91,24 @@ every case without reaching MAX_ITER (median 6.5 / 7 / 6 rounds, maximum
 iteration is monotone up to floating-point rounding. Every per-case confidence
 vector is asserted equal to `FodaFCPMethod.diagnose_normalized` before it is
 recorded.
+
+## Analysis note — interval estimates, paired tests and the FODA-FCP case audit, 2026-10-19
+
+`scripts/regenerate_ranking_statistics.py` reads committed per-case files only.
+Its case-level percentile bootstrap reuses `scripts/bootstrap_ac1_ci.py` and
+reproduces the published Table 1a–c intervals exactly. The cluster bootstrap
+resamples the 25 (root-cause service, fault type) scenarios per system, since
+the five repetitions of a scenario are not independent. The chance test is an
+exact two-sided binomial test against 1/|services|; for FODA-FCP on RE1-TT
+(1/125 against 1/64) it gives p = 1.0, so the data do not support a
+"below chance" claim in either direction.
+
+`scripts/regenerate_fcp_case_audit.py` re-runs FODA-FCP at δ = 0.85 and
+asserts that its pessimistic AC@1 equals both the week2 file and the
+delta-sweep file at δ = 0.85, and that its SG, SC and EC equal the sweep, case
+by case, before writing anything. The fault-type mappings it scores against
+(strict and lenient) are stated in the script as a reviewable judgement.
+
+Environment for the two scripts: CPython 3.9.6, numpy 2.0.2, pandas 2.3.3,
+scipy 1.13.1, owlready2 0.51, rapidfuzz 3.13.0. Two consecutive runs produced
+byte-identical files.

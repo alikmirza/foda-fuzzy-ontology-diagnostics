@@ -14,6 +14,8 @@ dependencies = [
     "pandas>=2.0",
     "networkx>=3.0",
     "owlready2>=0.46",
+    "rapidfuzz>=3.0",            # semantic metrics: token normalisation
+    "scipy>=1.10",               # bootstrap CIs and exact tests in scripts/
     "pytest>=8.0",
 ]
 
