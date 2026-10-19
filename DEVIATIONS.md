@@ -1038,7 +1038,7 @@ factors) and the damped Noisy-OR propagation equation (δ = 0.85
 default, Eq. 4) are ported verbatim. The OWL vocabulary mapping
 agrees with the Java reference's
 ``OntologyGroundedExplanationBuilder.CATEGORY_TO_FAULT_LOCAL_NAME``
-table. Three substantive deviations follow.
+table. The deviations follow (0–5).
 
 ### Deviation 0: Onset detected from telemetry, not read from inject_time
 
@@ -1196,6 +1196,54 @@ runners-up gives confidence near 1; a near-tie gives confidence
 near 1/K. Mirrors the convention adopted by the other six
 adapters (MR's ``1 − top2/top1``, CR's ``1 − top2/top1``, etc.)
 so cross-method calibration analysis is meaningful.
+
+### Deviation 5: Fuzzy-term fallback labels atoms where no rule fired
+
+**What it does.** When a service in the reported head has no fired
+Mamdani rule (dominant category ``UNKNOWN``), the adapter still tags its
+atom with a fault prototype if one of its fuzzy terms has membership
+above ``_FALLBACK_MEMBERSHIP_FLOOR`` = 0.20: the strongest such term is
+mapped through ``_TERM_TO_FAULT_PROTOTYPE`` (``cpu_*`` → CpuSaturation,
+``memory_*`` → MemoryLeak, ``latency_*`` → LatencySpike,
+``errorRate_*`` → HighErrorRate, ``throughput_LOW`` →
+ThroughputDegradation) and the atom text says ``(fuzzy-inferred)``.
+Without a qualifying term the atom keeps the abstract
+``ContributingFactor`` class. The Recommendation atom is unaffected: it
+is emitted only when the root's fault comes from a fired rule.
+
+**Not in the reference.** The Java ``OntologyGroundedExplanationBuilder``
+has no term-to-prototype mapping; when a category has no ontology
+mapping it falls back to a generic enrichment. This is adapter-only
+behaviour.
+
+**Why it exists, stated plainly.** It was added on 2026-05-12 (85cbb8d),
+in the commit that introduced the SemanticCoherence metric. The
+original code comment gave the reason as the abstract class "drags
+SemanticCoherence down": SC scores fault-prototype pairs against the
+propagation table, which has no entries for ``ContributingFactor``. The
+semantic argument for it is that an elevated term is partial evidence
+for that prototype even when no full rule fires. The argument against
+is that the label asserts a fault type the rule base did not derive.
+Both readings are reported, not one chosen silently.
+
+**Effect** (``results/fcp_case_audit_summary.csv``, δ = 0.85,
+RE1-OB / RE1-SS / RE1-TT). Ranking is untouched: the fallback acts
+after ranking, so AC@1 and ECE do not change.
+
+| | RE1-OB | RE1-SS | RE1-TT |
+|---|---|---|---|
+| cases with ≥ 1 fallback-labelled head atom | 29 | 12 | 37 |
+| cases where the top-1 atom is fallback-labelled | 4 | 2 | 17 |
+| SC with fallback (reported) | 0.266 | 0.158 | 0.086 |
+| SC without fallback | 0.192 | 0.150 | 0.072 |
+| EC with fallback (reported) | 0.824 | 0.749 | 0.789 |
+| EC without fallback | 0.821 | 0.749 | 0.784 |
+| SG, both | 1.000 | 1.000 | 1.000 |
+
+Every SC and EC value reported for FODA-FCP includes the fallback. The
+method paper must say so where it defines the explanation (§4.7) and
+in its deviation appendix, and give the without-fallback values beside
+the reported ones.
 
 ### Onset detection: shared utility
 

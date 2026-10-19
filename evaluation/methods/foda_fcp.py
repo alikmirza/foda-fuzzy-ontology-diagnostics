@@ -128,16 +128,19 @@ CATEGORY_TO_FAULT: dict[str, str] = {
 }
 
 #: Highest-membership fuzzy term → DiagnosticKB fault-prototype local
-#: name. Used as a soft fallback for atoms whose Mamdani dominant
-#: category is ``UNKNOWN`` (no rule fired, but the service still has
-#: appreciable fuzzy signal): instead of tagging them with the abstract
-#: ``ContributingFactor`` class — which the propagation table has no
-#: opinion about and which therefore drags SemanticCoherence down —
-#: we map the strongest term to the fault prototype it points at.
-#: This keeps the semantic intent (a service whose memory term is
-#: elevated **looks like** a MemoryLeak contributor, even though it
-#: didn't fire enough corroborating signal for a full rule) while
-#: preserving the fault-prototype contract that SC scores against.
+#: name. Fallback for head atoms whose Mamdani dominant category is
+#: ``UNKNOWN`` (no rule fired) but whose strongest term clears
+#: :data:`_FALLBACK_MEMBERSHIP_FLOOR`: the atom is tagged with the
+#: prototype that term points at (a service with an elevated memory
+#: term is labelled a MemoryLeak contributor) instead of the abstract
+#: ``ContributingFactor`` class. The label is partial evidence, not a
+#: rule-derived diagnosis, and the atom text marks it
+#: ``(fuzzy-inferred)``. This is adapter behaviour with no counterpart
+#: in the Java reference. It raises SemanticCoherence, because the
+#: propagation table scores prototype pairs and has no entries for
+#: ``ContributingFactor``; its effect on every metric is measured by
+#: ``scripts/regenerate_fcp_case_audit.py`` and recorded as FODA-FCP
+#: Deviation 5 in DEVIATIONS.md.
 _TERM_TO_FAULT_PROTOTYPE: dict[str, str] = {
     "cpu_HIGH":          "CpuSaturation",
     "cpu_MEDIUM":        "CpuSaturation",
