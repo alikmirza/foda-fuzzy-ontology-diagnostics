@@ -868,7 +868,9 @@ def _rank(
     services: list[str],
 ) -> list[tuple[str, float]]:
     """Sort by ``C(s)`` desc; break ties by ``H(s)`` desc, then by
-    service name asc for determinism."""
+    service name asc for determinism. Unlike the Java
+    ``TopKCauseRanker``, no ``C(s) ≤ 0.10`` cut-off is applied: every
+    service is ranked (FODA-FCP Deviation 6 in DEVIATIONS.md)."""
     def key(svc: str) -> tuple[float, float, str]:
         c = confidence.get(svc, 0.0)
         h = hypotheses[svc].local_confidence if svc in hypotheses else 0.0

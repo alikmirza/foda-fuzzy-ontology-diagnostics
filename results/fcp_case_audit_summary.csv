@@ -1,4 +1,4 @@
-system,n_cases,ac1_pessimistic,ac1_expected,ac1_optimistic,median_top_block_size,cases_fault_rule_reachable,top1_type_strict,top1_type_lenient,gt_rule_type_strict,gt_rule_type_lenient,gt_any_type_strict,gt_any_type_lenient,dejavu_type_accuracy,cases_with_fallback_atom,cases_root_fallback,sg,sg_no_fallback,sc,sc_no_fallback,ec,ec_no_fallback
-re1-ob,125,0.4,0.420667,0.648,1.0,75,0.104,0.488,0.096,0.656,0.096,0.656,0.696,29,4,1.0,1.0,0.266,0.192,0.824,0.821333
-re1-ss,125,0.16,0.1845,0.528,1.0,75,0.08,0.328,0.104,0.544,0.104,0.544,0.624,12,2,1.0,1.0,0.158,0.15,0.749333,0.749333
-re1-tt,125,0.008,0.015058,0.296,7.0,75,0.072,0.184,0.088,0.616,0.088,0.616,0.552,37,17,1.0,1.0,0.086,0.072,0.789333,0.784
+system,n_cases,ac1_pessimistic,ac1_expected,ac1_optimistic,median_top_block_size,cases_fault_rule_reachable,top1_type_strict,top1_type_lenient,gt_rule_type_strict,gt_rule_type_lenient,gt_any_type_strict,gt_any_type_lenient,dejavu_type_accuracy,cases_with_fallback_atom,cases_root_fallback,sg,sg_no_fallback,sc,sc_no_fallback,ec,ec_no_fallback,cases_head_cut,cases_head_emptied,ac1_cutoff,sg_cutoff,sc_cutoff,ec_cutoff
+re1-ob,125,0.4,0.420667,0.648,1.0,75,0.104,0.488,0.096,0.656,0.096,0.656,0.696,29,4,1.0,1.0,0.266,0.192,0.824,0.821333,51,31,0.4,0.752,0.22,0.741333
+re1-ss,125,0.16,0.1845,0.528,1.0,75,0.08,0.328,0.104,0.544,0.104,0.544,0.624,12,2,1.0,1.0,0.158,0.15,0.749333,0.749333,46,46,0.16,0.632,0.158,0.626667
+re1-tt,125,0.008,0.015058,0.296,7.0,75,0.072,0.184,0.088,0.616,0.088,0.616,0.552,37,17,1.0,1.0,0.086,0.072,0.789333,0.784,31,31,0.008,0.752,0.086,0.706667

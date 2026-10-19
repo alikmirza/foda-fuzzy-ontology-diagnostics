@@ -26,6 +26,12 @@ per case, three things the headline tables do not show.
    head atoms take their class from it, and SG/SC/EC with it switched off
    (atoms with no fired rule then carry the abstract ContributingFactor class).
 
+4. The reference's candidate cut-off (FODA-FCP Deviation 6). The Java
+   TopKCauseRanker drops services with C(s) <= 0.10 before taking the top k;
+   the evaluated port keeps every service. Recorded: how many head services
+   the cut-off would remove, and AC@1, SG, SC and EC with it applied. An
+   empty head yields an empty explanation, which every metric scores 0.
+
 Cross-checks, each fatal on mismatch: pessimistic AC@1 equals the week2
 FODA-FCP file and the delta-sweep file at delta = 0.85, and the shipped SG, SC
 and EC equal the delta-sweep values.
@@ -71,6 +77,7 @@ MAPPING_LENIENT = {
     "loss": {"NetworkCongestion", "HighErrorRate", "LatencySpike"},
 }
 RULE_REACHABLE = set(fcp.CATEGORY_TO_FAULT.values())
+REFERENCE_CUTOFF = 0.10   # TopKCauseRanker.DEFAULT_CONFIDENCE_THRESHOLD; keeps C(s) > 0.10
 
 
 def local(uri: str | None) -> str | None:
@@ -105,11 +112,13 @@ def audit_case(tag: str, case, method, ont, metrics) -> dict:
     pessimistic = 1.0 if accuracy_at_k(ranked, gt, 1) else 0.0
     assert pessimistic == (1.0 if block == [gt] else 0.0), case.id
 
-    def explain():
-        return fcp._build_explanation(services_ranked=ranked, hypotheses=hyp, fuzzy_vectors=fuzzy,
+    def explain(ranking=ranked):
+        return fcp._build_explanation(services_ranked=ranking, hypotheses=hyp, fuzzy_vectors=fuzzy,
                                       edges=edges, delta=method.damping_factor, top_k=method.top_k)
 
     expl = explain()
+    cut = [(s, c) for s, c in ranked if c > REFERENCE_CUTOFF]
+    expl_cut = explain(cut)
     head = ranked[: method.top_k]
     fallback_atoms = sum(
         1 for s, _ in head
@@ -147,6 +156,11 @@ def audit_case(tag: str, case, method, ont, metrics) -> dict:
         "ec": ec.score(expl, ont, case_services=services),
         "sg_no_fallback": sg.score(expl_nofb, ont), "sc_no_fallback": sc.score(expl_nofb, ont),
         "ec_no_fallback": ec.score(expl_nofb, ont, case_services=services),
+        "head_removed_by_cutoff": sum(1 for _, c in ranked[: method.top_k] if c <= REFERENCE_CUTOFF),
+        "head_empty_after_cutoff": not cut,
+        "ac1_cutoff": 1.0 if accuracy_at_k(cut, gt, 1) else 0.0,
+        "sg_cutoff": sg.score(expl_cut, ont), "sc_cutoff": sc.score(expl_cut, ont),
+        "ec_cutoff": ec.score(expl_cut, ont, case_services=services),
     }
 
 
@@ -185,6 +199,11 @@ def summarise(df: pd.DataFrame, suffix_by_tag: dict) -> pd.DataFrame:
             "sg": g["sg"].mean(), "sg_no_fallback": g["sg_no_fallback"].mean(),
             "sc": g["sc"].mean(), "sc_no_fallback": g["sc_no_fallback"].mean(),
             "ec": g["ec"].mean(), "ec_no_fallback": g["ec_no_fallback"].mean(),
+            "cases_head_cut": int((g["head_removed_by_cutoff"] > 0).sum()),
+            "cases_head_emptied": int(g["head_empty_after_cutoff"].sum()),
+            "ac1_cutoff": g["ac1_cutoff"].mean(),
+            "sg_cutoff": g["sg_cutoff"].mean(), "sc_cutoff": g["sc_cutoff"].mean(),
+            "ec_cutoff": g["ec_cutoff"].mean(),
         })
     return pd.DataFrame(rows).round(6)
 

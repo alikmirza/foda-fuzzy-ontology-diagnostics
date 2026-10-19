@@ -1038,7 +1038,7 @@ factors) and the damped Noisy-OR propagation equation (δ = 0.85
 default, Eq. 4) are ported verbatim. The OWL vocabulary mapping
 agrees with the Java reference's
 ``OntologyGroundedExplanationBuilder.CATEGORY_TO_FAULT_LOCAL_NAME``
-table. The deviations follow (0–5).
+table. The deviations follow (0–6).
 
 ### Deviation 0: Onset detected from telemetry, not read from inject_time
 
@@ -1244,6 +1244,40 @@ Every SC and EC value reported for FODA-FCP includes the fallback. The
 method paper must say so where it defines the explanation (§4.7) and
 in its deviation appendix, and give the without-fallback values beside
 the reported ones.
+
+### Deviation 6: No candidate cut-off — every service stays in the ranking
+
+**What it does.** The Java ``TopKCauseRanker`` removes every service with
+``C(s) ≤ 0.10`` (``DEFAULT_CONFIDENCE_THRESHOLD``) before taking the top
+k, so a case with no confident service reports nothing. The adapter's
+``_rank`` keeps every service, and ``_build_explanation`` takes the top
+k of that full list. When no rule fires anywhere, the head is three
+services tied at C = 0, each emitted as an atom.
+
+**Why.** The harness scores a ranking over all services: AC@k needs the
+ground truth's position even when its confidence is low, and the other
+six adapters rank every service too. Keeping the full list makes the
+ranking metrics comparable across methods.
+
+**Effect** (``results/fcp_case_audit_summary.csv``, δ = 0.85,
+RE1-OB / RE1-SS / RE1-TT, columns ``*_cutoff``). AC@1 does not change:
+a ground truth that ranks first alone always has C > 0.10 here. The
+explanation metrics do, because the cut-off empties the head of every
+case with no confident service and an empty explanation scores 0.
+
+| | RE1-OB | RE1-SS | RE1-TT |
+|---|---|---|---|
+| cases with ≥ 1 head service at C ≤ 0.10 | 51 | 46 | 31 |
+| cases the cut-off would leave with no head | 31 | 46 | 31 |
+| AC@1, both | 0.400 | 0.160 | 0.008 |
+| SG reported / with cut-off | 1.000 / 0.752 | 1.000 / 0.632 | 1.000 / 0.752 |
+| SC reported / with cut-off | 0.266 / 0.220 | 0.158 / 0.158 | 0.086 / 0.086 |
+| EC reported / with cut-off | 0.824 / 0.741 | 0.749 / 0.627 | 0.789 / 0.707 |
+
+The reported groundedness of 1.000 on every case therefore includes
+the cases in which the method has no evidence and names three
+zero-confidence services. The method paper must say so where it
+reports SG, and give the with-cut-off values.
 
 ### Onset detection: shared utility
 
