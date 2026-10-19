@@ -23,7 +23,8 @@ block; see DEVIATIONS.md § AC@1 tie-handling convention).
 | results/ablation_tau_{per_case,summary}.csv, results/ablation_bins_summary.csv (3) | 2d359bc (regenerated 2026-08-22, `scripts/regenerate_tau_bin_ablations.py`) | pessimistic AC@1 as the ECE correctness label | DejaVu fixed seed 0; otherwise deterministic | canonical; feeds §5.9's τ and B sweeps |
 | results/tt_mechanism_instrumentation.csv | 2d359bc (regenerated 2026-08-22, `scripts/regenerate_tt_instrumentation.py`) | pessimistic | none — deterministic | canonical; feeds §5.6 mechanism split and §5.7 ceiling |
 | results/runtime_tt_per_case.csv, results/runtime_tt_summary.{csv,json} (3) | bad1842 (measured 2026-08-23 against the tree at 90e7f84, `scripts/measure_runtime_tt.py`) | n/a — wall-clock, not a scoring convention | none; **not deterministic** (see note below) | canonical; feeds §4.8 |
- d485957 (resume chain, 2026-08-10) | pessimistic (consumes week2 CSVs) | bootstrap seed 42, n=10,000 | canonical (verified PASS 2026-08-10) |
+| results/runtime_tt_phases_per_case.csv, results/runtime_tt_phases_summary.json (2) | measured 2026-10-19 against the tree at b8e2f87, `scripts/measure_runtime_phases_tt.py` | n/a — wall-clock, not a scoring convention | none; **not deterministic** (see note below) | canonical; feeds the §4.8 phase shares (FCP reasoning 1.26 %, topology inference 81.2 %) |
+| paper/artifacts/bootstrap_ac1_cis.md | d485957 (resume chain, 2026-08-10) | pessimistic (consumes week2 CSVs) | bootstrap seed 42, n=10,000 | canonical (verified PASS 2026-08-10) |
 
 ## Regeneration note — δ sweep, 2026-08-22
 
@@ -60,3 +61,15 @@ method's own work, not an oracle the harness supplies.
 
 Headline: mean 344.7 ms, p95 354.9 ms per case; normalization a further
 22.9 ms mean.
+
+## Measurement note — RE1-TT runtime by phase, 2026-10-19
+
+`results/runtime_tt_phases_per_case.csv` and `results/runtime_tt_phases_summary.json`
+break the per-case time into the seven phases of the diagnostic path, timed
+separately: onset detection, fuzzification, Mamdani inference, topology
+inference, propagation, ranking and explanation assembly. Same machine and
+protocol as the end-to-end measurement above (125 cases, 5 repeats, per-case
+median), but a separate run: the phase medians are taken independently, so
+their sum (328.1 ms) is not expected to equal the end-to-end mean (344.7 ms).
+Like the end-to-end files these are wall-clock and **not deterministic**; the
+shares, not the absolute values, are what the paper quotes.

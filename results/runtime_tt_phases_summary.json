@@ -1,0 +1,34 @@
+{
+  "system": "re1-tt",
+  "n_cases": 125,
+  "repeats_per_case": 5,
+  "phase_mean_ms": {
+    "onset": 57.675,
+    "fuzzify": 3.131,
+    "infer": 0.352,
+    "topology": 266.347,
+    "propagate": 0.55,
+    "rank": 0.015,
+    "explain": 0.077
+  },
+  "phase_share_pct": {
+    "onset": 17.58,
+    "fuzzify": 0.95,
+    "infer": 0.11,
+    "topology": 81.17,
+    "propagate": 0.17,
+    "rank": 0.0,
+    "explain": 0.02
+  },
+  "fcp_reasoning_share_pct": 1.26,
+  "total_mean_ms": 328.147,
+  "machine": {
+    "platform": "macOS-26.3-arm64-arm-64bit",
+    "machine": "arm64",
+    "python": "3.9.6",
+    "processor": "arm",
+    "cpu": "Apple M4",
+    "ram_gb": 16.0,
+    "cores": 10
+  }
+}
