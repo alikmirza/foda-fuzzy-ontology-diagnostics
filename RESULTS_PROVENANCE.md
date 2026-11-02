@@ -29,6 +29,9 @@ block; see DEVIATIONS.md § AC@1 tie-handling convention).
 | results/stats_ranking_intervals.csv, results/stats_paired_comparisons.csv (2) | bbe59dd (2026-10-19, `scripts/regenerate_ranking_statistics.py`; reproduced byte-identically at e762dd2); consumes the week2 and delta-sweep CSVs above, re-runs nothing | pessimistic | bootstrap seed 42, n=10,000 (case-level, cluster and paired) | canonical; exact/Wilson/cluster intervals, chance tests and paired McNemar comparisons for Tables 1a–c and §5.9 |
 | results/fcp_case_audit_per_case.csv, results/fcp_case_audit_summary.csv (2) | cef99b6 (2026-10-19, `scripts/regenerate_fcp_case_audit.py`; first added in bbe59dd, regenerated with the cut-off columns, all earlier columns byte-identical) | pessimistic (canonical), plus optimistic and expected AC@1 recorded alongside | none — deterministic | canonical; tie conventions, fault-type agreement, the Deviation 5 fallback and the Deviation 6 cut-off counterfactuals |
 | results/delta_selection_loso.csv | the commit that adds `scripts/select_delta_loso.py` (2026-11-02); consumes the delta-sweep CSVs, re-runs nothing | pessimistic | none — deterministic | canonical; leave-one-system-out choice of δ for the KES short paper |
+| results/propagation_variants_per_case.csv.gz, results/propagation_variants_summary.csv (2) | the commit that adds `scripts/run_propagation_variants.py` (2026-11-02) | pessimistic (canonical), plus expected AC@1 (random tie-breaking) and refined AC@1 | none — deterministic | canonical; aggregation operators, weight normalisation, ontology guidance and correlation threshold × δ for the KES short paper; the shipped configuration is asserted equal to the delta sweep at every δ |
+| results/propagation_variants_tests.csv, results/propagation_variants_loso.csv, results/propagation_threshold_sweep.csv (3) | the commit that adds `scripts/analyse_propagation_variants.py` (2026-11-02); consumes the variants file, re-runs nothing | pessimistic and expected AC@1 | paired bootstrap seed 42, n=10,000 | canonical; paired McNemar tests, leave-one-system-out δ, density sweep |
+| results/saturation_bounds_per_case.csv, results/saturation_bounds_summary.csv, results/saturation_critical_delta.csv (3) | the commit that adds `scripts/saturation_bounds.py` (2026-11-02) | n/a — saturation counts | none — deterministic | canonical; analytical saturation bracket, asserted to contain the observed saturation on every case and δ |
 | paper/artifacts/bootstrap_ac1_cis.md | d485957 (resume chain, 2026-08-10) | pessimistic (consumes week2 CSVs) | bootstrap seed 42, n=10,000 | canonical (verified PASS 2026-08-10) |
 
 ## Regeneration note — δ sweep, 2026-08-22
@@ -114,3 +117,22 @@ by case, before writing anything. The fault-type mappings it scores against
 Environment for the two scripts: CPython 3.9.6, numpy 2.0.2, pandas 2.3.3,
 scipy 1.13.1, owlready2 0.51, rapidfuzz 3.13.0. Two consecutive runs produced
 byte-identical files.
+
+## Analysis note — propagation variants and the saturation bound, 2026-11-02
+
+`scripts/run_propagation_variants.py` re-implements the propagation step with a
+pluggable t-conorm / t-norm pair, optional row-normalised weights and optional
+ontology gating, and asserts that the shipped configuration reproduces
+`delta_sweep_per_case_*.csv` exactly (AC@1, refined AC@1, SG, SC, EC) at every δ
+before writing. Main findings: under random tie-breaking (expected AC@1) no
+variant beats local-only ranking by more than about 0.03 (0.578 / 0.420 / 0.435
+on RE1-OB / RE1-SS / RE1-TT); the pessimistic-AC@1 advantage of δ = 0.001 over
+local-only (+0.056 / +0.136 / +0.120) is tie-breaking that is no better than
+random; row-normalised weights remove the collapse at δ = 0.85
+(0.008 → 0.440 on RE1-TT); max and sup-min reduce to local evidence; bounded
+and Einstein sums saturate; ontology gating has no significant effect.
+`scripts/saturation_bounds.py` checks the bracket
+(1−H)∏(1−δw) ≤ 1−C ≤ (1−H)∏(1−δwH) on every case and δ; its necessary side
+predicts the saturated-tie counts (e.g. 89 possible against 87 observed on
+RE1-TT at δ = 0.85, none below δ = 0.65, none on RE1-OB). Environment:
+`~/.venv/foda-eval` (CPython 3.9.6, owlready2 0.51, rapidfuzz 3.13.0).

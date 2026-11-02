@@ -1,0 +1,22 @@
+system,comparison,metric,a,b,mean_a,mean_b,diff,diff_lo,diff_hi,a_only,b_only,mcnemar_p
+re1-ob,A,ac1,probsum/raw/none/delta=0.001,no propagation,0.552,0.496,0.056,0.016,0.096,7.0,0.0,0.015625
+re1-ob,A,ac1_expected,probsum/raw/none/delta=0.001,no propagation,0.572667,0.578267,-0.0056,-0.036537,0.026667,,,
+re1-ob,B,ac1,probsum/rownorm/none/delta=0.85,no propagation,0.496,0.496,0.0,-0.064,0.064,9.0,9.0,1.0
+re1-ob,C,ac1,probsum/rownorm/none/delta=0.85,probsum/raw/none/delta=0.85,0.496,0.4,0.096,0.024,0.168,17.0,5.0,0.016901
+re1-ob,D,ac1,probsum/raw/none/delta=0.001,probsum/rownorm/none/delta=0.85,0.552,0.496,0.056,-0.008,0.128,13.0,6.0,0.167068
+re1-ob,E,ac1,probsum/raw/ontology/delta=0.85,probsum/raw/none/delta=0.85,0.376,0.4,-0.024,-0.088,0.04,7.0,10.0,0.629059
+re1-ob,F,ac1,max/raw/none/delta=0.85,no propagation,0.496,0.496,0.0,0.0,0.0,0.0,0.0,1.0
+re1-ss,A,ac1,probsum/raw/none/delta=0.001,no propagation,0.408,0.272,0.136,0.08,0.2,17.0,0.0,1.5e-05
+re1-ss,A,ac1_expected,probsum/raw/none/delta=0.001,no propagation,0.4325,0.4205,0.012,-0.032667,0.058667,,,
+re1-ss,B,ac1,probsum/rownorm/none/delta=0.85,no propagation,0.376,0.272,0.104,0.048,0.16,14.0,1.0,0.000977
+re1-ss,C,ac1,probsum/rownorm/none/delta=0.85,probsum/raw/none/delta=0.85,0.376,0.16,0.216,0.136,0.296,30.0,3.0,1e-06
+re1-ss,D,ac1,probsum/raw/none/delta=0.001,probsum/rownorm/none/delta=0.85,0.408,0.376,0.032,-0.016,0.08,7.0,3.0,0.34375
+re1-ss,E,ac1,probsum/raw/ontology/delta=0.85,probsum/raw/none/delta=0.85,0.096,0.16,-0.064,-0.144,0.016,8.0,16.0,0.15159
+re1-ss,F,ac1,max/raw/none/delta=0.85,no propagation,0.272,0.272,0.0,0.0,0.0,0.0,0.0,1.0
+re1-tt,A,ac1,probsum/raw/none/delta=0.001,no propagation,0.464,0.344,0.12,0.064,0.176,15.0,0.0,6.1e-05
+re1-tt,A,ac1_expected,probsum/raw/none/delta=0.001,no propagation,0.467875,0.435485,0.03239,-0.007344,0.075048,,,
+re1-tt,B,ac1,probsum/rownorm/none/delta=0.85,no propagation,0.44,0.344,0.096,0.04,0.16,14.0,2.0,0.004181
+re1-tt,C,ac1,probsum/rownorm/none/delta=0.85,probsum/raw/none/delta=0.85,0.44,0.008,0.432,0.344,0.52,54.0,0.0,0.0
+re1-tt,D,ac1,probsum/raw/none/delta=0.001,probsum/rownorm/none/delta=0.85,0.464,0.44,0.024,-0.024,0.072,6.0,3.0,0.507812
+re1-tt,E,ac1,probsum/raw/ontology/delta=0.85,probsum/raw/none/delta=0.85,0.008,0.008,0.0,-0.024,0.024,1.0,1.0,1.0
+re1-tt,F,ac1,max/raw/none/delta=0.85,no propagation,0.344,0.344,0.0,0.0,0.0,0.0,0.0,1.0

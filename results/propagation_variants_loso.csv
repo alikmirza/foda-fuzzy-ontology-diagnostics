@@ -1,0 +1,7 @@
+weights,held_out,delta_chosen,heldout_ac1_at_chosen,heldout_ac1_at_0.85
+raw,re1-ob,0.001,0.552,0.4
+raw,re1-ss,0.001,0.408,0.16
+raw,re1-tt,0.1,0.376,0.008
+rownorm,re1-ob,0.65,0.52,0.496
+rownorm,re1-ss,0.3,0.384,0.376
+rownorm,re1-tt,0.3,0.448,0.44
