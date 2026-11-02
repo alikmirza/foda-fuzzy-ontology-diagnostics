@@ -1,0 +1,4 @@
+held_out,delta_chosen,train_ac1_at_chosen,heldout_ac1_at_chosen,heldout_ac1_shipped,heldout_ac1_own_best,heldout_delta_own_best
+re1-ob,0.001,0.436,0.552,0.4,0.56,0.1
+re1-ss,0.001,0.508,0.408,0.16,0.408,0.2
+re1-tt,0.1,0.484,0.376,0.008,0.464,0.001
