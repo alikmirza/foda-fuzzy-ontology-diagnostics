@@ -1,0 +1,7 @@
+# One author, several addresses over time. git log, shortlog and blame show the
+# canonical identity on the left; the commits themselves are unchanged, so every
+# commit hash cited in RESULTS_PROVENANCE.md and DEVIATIONS.md stays valid.
+Alik Mirzazada <alik.mirzazada@gmail.com> <allahshukur.mirzazada@kapitalbank.az>
+Alik Mirzazada <alik.mirzazada@gmail.com> <mirzayev.mirzayev@gmail.com>
+Alik Mirzazada <alik.mirzazada@gmail.com> <alik@>
+Alik Mirzazada <alik.mirzazada@gmail.com> <alik.mirzazada@gmail.com>
