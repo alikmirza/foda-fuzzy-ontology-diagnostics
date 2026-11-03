@@ -11,7 +11,10 @@ requires-python = ">=3.11"
 authors = [{ name = "FODA Project" }]
 dependencies = [
     "numpy>=1.26",
-    "pandas>=2.0",
+    # Below 3: under pandas 3 the schema normaliser builds different windows
+    # for 9 of the 125 RE1-OB cases and the published results no longer
+    # reproduce (RESULTS_PROVENANCE.md, "Environment note — pandas", 2026-11-03).
+    "pandas>=2.0,<3",
     "networkx>=3.0",
     "owlready2>=0.46",
     "rapidfuzz>=3.0",            # semantic metrics: token normalisation

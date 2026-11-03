@@ -137,3 +137,49 @@ and Einstein sums saturate; ontology gating has no significant effect.
 predicts the saturated-tie counts (e.g. 89 possible against 87 observed on
 RE1-TT at δ = 0.85, none below δ = 0.65, none on RE1-OB). Environment:
 `~/.venv/foda-eval` (CPython 3.9.6, owlready2 0.51, rapidfuzz 3.13.0).
+
+## Environment note — pandas, 2026-11-03
+
+Every result above was produced under **pandas 2.x** (the research environment
+`~/.venv/foda-eval` has pandas 2.3.3). Under pandas 3 the RE1-OB results do not
+reproduce: `evaluation/extraction/schema_normalizer.py` builds different
+windows for 9 of the 125 RE1-OB cases (found while checking a separate
+re-implementation of FODA-FCP against these files).
+Until now `evaluation/pyproject.toml` required `pandas>=2.0` with no upper
+bound, so a fresh install got pandas 3 and different numbers. It now requires
+`pandas>=2.0,<3`. No code and no result file changed.
+
+FODA-FCP at δ = 0.85, published value → value under pandas 3.1.0 (same code, data and
+other libraries; `scripts/regenerate_fcp_case_audit.py` with its cross-checks
+disabled, output to a scratch directory):
+
+| System | AC@1 | expected AC@1 | SC | EC |
+|---|---|---|---|---|
+| RE1-OB | 0.400 → 0.360 (9 cases differ, net −5) | 0.421 → 0.381 | 0.266 → 0.248 | 0.824 → 0.821 |
+| RE1-SS | 0.160, unchanged | 0.184, unchanged | 0.158 → 0.154 | 0.749, unchanged |
+| RE1-TT | 0.008, unchanged | 0.015, unchanged | 0.086, unchanged | 0.789, unchanged |
+
+SG is 1.0 on all three under both. The RE1-SS SC shift has not been traced to
+a cause; it is pandas, since the pinned run below differs from it only in
+pandas.
+
+Checked on 2026-11-03 at `1d9c81c` (tag `v1.0-method-paper`) plus the pin, in
+two environments built from scratch with CPython 3.12.13 and run with
+`scripts/regenerate_fcp_case_audit.py`. That script re-runs FODA-FCP on all
+375 cases and halts unless pessimistic AC@1 equals the week2 and delta-sweep
+files case by case. Output went to a scratch directory, not `results/`.
+
+| Environment | Resolved | Outcome |
+|---|---|---|
+| `pip install -e evaluation` (pinned) | pandas 2.3.3, numpy 2.5.4, networkx 3.7, scipy 1.18.1, owlready2 0.51, rapidfuzz 3.14.6 | all cross-checks pass; `fcp_case_audit_per_case.csv` and `fcp_case_audit_summary.csv` byte-identical to the committed files |
+| the same requirements without the pin | pandas 3.1.0, everything else as above | halts: `re1-ob: AC@1 != week2` |
+
+So pandas is the one dependency the published numbers are sensitive to, and
+newer numpy, networkx and scipy do not change them on this path.
+
+Python version, for the record: `evaluation/pyproject.toml` declares
+`requires-python = ">=3.11"`, but the research environment, and therefore every
+"Environment" line above, is CPython 3.9.6; the scripts run with
+`PYTHONPATH=.` rather than from an installed package, so the declaration was
+never enforced. The check above shows 3.12 reproduces the audit files exactly.
+The declaration is left as it is.
