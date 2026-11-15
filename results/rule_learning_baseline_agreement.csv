@@ -1,0 +1,16 @@
+system,baseline,baseline_ac1,anomaly_max_rawz_ac1,same_outcome_share
+re1-ob,microrca,0.624,0.624,0.984
+re1-ob,monitorrank,0.632,0.624,0.96
+re1-ob,causalrca,0.624,0.624,1.0
+re1-ob,baro,0.536,0.624,0.704
+re1-ob,yrca,0.328,0.624,0.64
+re1-ss,microrca,0.648,0.648,0.968
+re1-ss,monitorrank,0.656,0.648,0.928
+re1-ss,causalrca,0.656,0.648,0.992
+re1-ss,baro,0.584,0.648,0.68
+re1-ss,yrca,0.256,0.648,0.56
+re1-tt,microrca,0.456,0.472,0.984
+re1-tt,monitorrank,0.48,0.472,0.96
+re1-tt,causalrca,0.472,0.472,1.0
+re1-tt,baro,0.392,0.472,0.728
+re1-tt,yrca,0.104,0.472,0.616

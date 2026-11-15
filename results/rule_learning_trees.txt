@@ -1,0 +1,776 @@
+=== loso: held-out re1-ob (train cases: 250) ===
+|--- zc_cpu <= 5.53
+|   |--- zc_latency <= 1.47
+|   |   |--- zc_cpu <= -0.00
+|   |   |   |--- class: none
+|   |   |--- zc_cpu >  -0.00
+|   |   |   |--- class: none
+|   |--- zc_latency >  1.47
+|   |   |--- zc_latency <= 9.98
+|   |   |   |--- class: loss
+|   |   |--- zc_latency >  9.98
+|   |   |   |--- class: delay
+|--- zc_cpu >  5.53
+|   |--- zc_latency <= 9.85
+|   |   |--- zc_latency <= 1.58
+|   |   |   |--- class: mem
+|   |   |--- zc_latency >  1.58
+|   |   |   |--- class: disk
+|   |--- zc_latency >  9.85
+|   |   |--- zc_traffic <= -1.69
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  -1.69
+|   |   |   |--- class: mem
+
+=== loso: held-out re1-ss (train cases: 250) ===
+|--- zc_cpu <= 4.53
+|   |--- zc_latency <= 2.29
+|   |   |--- zc_cpu <= 1.50
+|   |   |   |--- class: none
+|   |   |--- zc_cpu >  1.50
+|   |   |   |--- class: none
+|   |--- zc_latency >  2.29
+|   |   |--- zc_latency <= 10.00
+|   |   |   |--- class: loss
+|   |   |--- zc_latency >  10.00
+|   |   |   |--- class: delay
+|--- zc_cpu >  4.53
+|   |--- zc_latency <= 1.78
+|   |   |--- zc_mem <= 2.59
+|   |   |   |--- class: none
+|   |   |--- zc_mem >  2.59
+|   |   |   |--- class: cpu
+|   |--- zc_latency >  1.78
+|   |   |--- zc_traffic <= 0.02
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  0.02
+|   |   |   |--- class: disk
+
+=== loso: held-out re1-tt (train cases: 250) ===
+|--- zc_cpu <= 7.08
+|   |--- zc_latency <= 10.00
+|   |   |--- zc_latency <= 2.14
+|   |   |   |--- class: none
+|   |   |--- zc_latency >  2.14
+|   |   |   |--- class: loss
+|   |--- zc_latency >  10.00
+|   |   |--- zc_cpu <= -0.37
+|   |   |   |--- class: delay
+|   |   |--- zc_cpu >  -0.37
+|   |   |   |--- class: delay
+|--- zc_cpu >  7.08
+|   |--- zc_latency <= 2.42
+|   |   |--- zc_mem <= 1.44
+|   |   |   |--- class: loss
+|   |   |--- zc_mem >  1.44
+|   |   |   |--- class: cpu
+|   |--- zc_latency >  2.42
+|   |   |--- zc_traffic <= -0.01
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  -0.01
+|   |   |   |--- class: disk
+
+=== within: re1-ob fold 0 (train cases: 100) ===
+|--- zc_cpu <= 7.42
+|   |--- zc_latency <= 10.00
+|   |   |--- zc_latency <= 3.85
+|   |   |   |--- class: none
+|   |   |--- zc_latency >  3.85
+|   |   |   |--- class: loss
+|   |--- zc_latency >  10.00
+|   |   |--- zc_traffic <= 0.27
+|   |   |   |--- class: delay
+|   |   |--- zc_traffic >  0.27
+|   |   |   |--- class: loss
+|--- zc_cpu >  7.42
+|   |--- zc_latency <= 7.44
+|   |   |--- zc_mem <= 1.44
+|   |   |   |--- class: disk
+|   |   |--- zc_mem >  1.44
+|   |   |   |--- class: cpu
+|   |--- zc_latency >  7.44
+|   |   |--- zc_mem <= 0.19
+|   |   |   |--- class: disk
+|   |   |--- zc_mem >  0.19
+|   |   |   |--- class: disk
+
+=== within: re1-ob fold 1 (train cases: 100) ===
+|--- zc_cpu <= 1.49
+|   |--- zc_latency <= 10.00
+|   |   |--- zc_latency <= 3.86
+|   |   |   |--- class: none
+|   |   |--- zc_latency >  3.86
+|   |   |   |--- class: loss
+|   |--- zc_latency >  10.00
+|   |   |--- zc_traffic <= 0.27
+|   |   |   |--- class: delay
+|   |   |--- zc_traffic >  0.27
+|   |   |   |--- class: loss
+|--- zc_cpu >  1.49
+|   |--- zc_latency <= 1.50
+|   |   |--- zc_mem <= 1.38
+|   |   |   |--- class: loss
+|   |   |--- zc_mem >  1.38
+|   |   |   |--- class: cpu
+|   |--- zc_latency >  1.50
+|   |   |--- zc_traffic <= 0.14
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  0.14
+|   |   |   |--- class: disk
+
+=== within: re1-ob fold 2 (train cases: 100) ===
+|--- zc_cpu <= 1.47
+|   |--- zc_latency <= 3.86
+|   |   |--- zc_mem <= 0.00
+|   |   |   |--- class: none
+|   |   |--- zc_mem >  0.00
+|   |   |   |--- class: none
+|   |--- zc_latency >  3.86
+|   |   |--- zc_cpu <= -9.15
+|   |   |   |--- class: delay
+|   |   |--- zc_cpu >  -9.15
+|   |   |   |--- class: loss
+|--- zc_cpu >  1.47
+|   |--- zc_latency <= 1.76
+|   |   |--- zc_mem <= 1.38
+|   |   |   |--- class: loss
+|   |   |--- zc_mem >  1.38
+|   |   |   |--- class: cpu
+|   |--- zc_latency >  1.76
+|   |   |--- zc_mem <= 0.30
+|   |   |   |--- class: delay
+|   |   |--- zc_mem >  0.30
+|   |   |   |--- class: mem
+
+=== within: re1-ob fold 3 (train cases: 100) ===
+|--- zc_cpu <= 7.60
+|   |--- zc_latency <= 10.00
+|   |   |--- zc_latency <= 3.86
+|   |   |   |--- class: none
+|   |   |--- zc_latency >  3.86
+|   |   |   |--- class: loss
+|   |--- zc_latency >  10.00
+|   |   |--- zc_mem <= -0.73
+|   |   |   |--- class: loss
+|   |   |--- zc_mem >  -0.73
+|   |   |   |--- class: delay
+|--- zc_cpu >  7.60
+|   |--- zc_latency <= 2.42
+|   |   |--- zc_mem <= 1.44
+|   |   |   |--- class: loss
+|   |   |--- zc_mem >  1.44
+|   |   |   |--- class: cpu
+|   |--- zc_latency >  2.42
+|   |   |--- zc_latency <= 9.18
+|   |   |   |--- class: mem
+|   |   |--- zc_latency >  9.18
+|   |   |   |--- class: disk
+
+=== within: re1-ob fold 4 (train cases: 100) ===
+|--- zc_cpu <= 0.72
+|   |--- zc_latency <= 8.82
+|   |   |--- zc_cpu <= -0.00
+|   |   |   |--- class: none
+|   |   |--- zc_cpu >  -0.00
+|   |   |   |--- class: none
+|   |--- zc_latency >  8.82
+|   |   |--- zc_cpu <= -1.64
+|   |   |   |--- class: loss
+|   |   |--- zc_cpu >  -1.64
+|   |   |   |--- class: delay
+|--- zc_cpu >  0.72
+|   |--- zc_latency <= 1.92
+|   |   |--- zc_mem <= 1.76
+|   |   |   |--- class: disk
+|   |   |--- zc_mem >  1.76
+|   |   |   |--- class: cpu
+|   |--- zc_latency >  1.92
+|   |   |--- zc_traffic <= 0.14
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  0.14
+|   |   |   |--- class: disk
+
+=== within: re1-ss fold 0 (train cases: 100) ===
+|--- zc_cpu <= 6.63
+|   |--- zc_latency <= 2.14
+|   |   |--- zc_traffic <= -7.57
+|   |   |   |--- class: delay
+|   |   |--- zc_traffic >  -7.57
+|   |   |   |--- class: none
+|   |--- zc_latency >  2.14
+|   |   |--- zc_latency <= 7.37
+|   |   |   |--- class: loss
+|   |   |--- zc_latency >  7.37
+|   |   |   |--- class: delay
+|--- zc_cpu >  6.63
+|   |--- zc_traffic <= -0.58
+|   |   |--- zc_mem <= 5.00
+|   |   |   |--- class: cpu
+|   |   |--- zc_mem >  5.00
+|   |   |   |--- class: disk
+|   |--- zc_traffic >  -0.58
+|   |   |--- zc_mem <= 5.01
+|   |   |   |--- class: disk
+|   |   |--- zc_mem >  5.01
+|   |   |   |--- class: cpu
+
+=== within: re1-ss fold 1 (train cases: 100) ===
+|--- zc_cpu <= 6.94
+|   |--- zc_latency <= 2.14
+|   |   |--- zc_mem <= 0.01
+|   |   |   |--- class: none
+|   |   |--- zc_mem >  0.01
+|   |   |   |--- class: none
+|   |--- zc_latency >  2.14
+|   |   |--- zc_latency <= 9.90
+|   |   |   |--- class: loss
+|   |   |--- zc_latency >  9.90
+|   |   |   |--- class: delay
+|--- zc_cpu >  6.94
+|   |--- zc_traffic <= 0.88
+|   |   |--- zc_traffic <= -1.69
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  -1.69
+|   |   |   |--- class: disk
+|   |--- zc_traffic >  0.88
+|   |   |--- zc_traffic <= 1.95
+|   |   |   |--- class: cpu
+|   |   |--- zc_traffic >  1.95
+|   |   |   |--- class: mem
+
+=== within: re1-ss fold 2 (train cases: 100) ===
+|--- zc_cpu <= 6.94
+|   |--- zc_traffic <= -1.35
+|   |   |--- zc_mem <= 0.95
+|   |   |   |--- class: delay
+|   |   |--- zc_mem >  0.95
+|   |   |   |--- class: loss
+|   |--- zc_traffic >  -1.35
+|   |   |--- zc_latency <= 2.14
+|   |   |   |--- class: none
+|   |   |--- zc_latency >  2.14
+|   |   |   |--- class: loss
+|--- zc_cpu >  6.94
+|   |--- zc_traffic <= 1.95
+|   |   |--- zc_traffic <= -1.69
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  -1.69
+|   |   |   |--- class: disk
+|   |--- zc_traffic >  1.95
+|   |   |--- class: mem
+
+=== within: re1-ss fold 3 (train cases: 100) ===
+|--- zc_cpu <= 6.94
+|   |--- zc_latency <= 2.14
+|   |   |--- zc_traffic <= -4.69
+|   |   |   |--- class: delay
+|   |   |--- zc_traffic >  -4.69
+|   |   |   |--- class: none
+|   |--- zc_latency >  2.14
+|   |   |--- zc_latency <= 7.37
+|   |   |   |--- class: loss
+|   |   |--- zc_latency >  7.37
+|   |   |   |--- class: delay
+|--- zc_cpu >  6.94
+|   |--- zc_latency <= 8.29
+|   |   |--- zc_traffic <= -0.14
+|   |   |   |--- class: disk
+|   |   |--- zc_traffic >  -0.14
+|   |   |   |--- class: disk
+|   |--- zc_latency >  8.29
+|   |   |--- zc_traffic <= 0.00
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  0.00
+|   |   |   |--- class: cpu
+
+=== within: re1-ss fold 4 (train cases: 100) ===
+|--- zc_cpu <= 8.15
+|   |--- zc_latency <= 9.90
+|   |   |--- zc_latency <= -9.80
+|   |   |   |--- class: loss
+|   |   |--- zc_latency >  -9.80
+|   |   |   |--- class: none
+|   |--- zc_latency >  9.90
+|   |   |--- zc_cpu <= -8.48
+|   |   |   |--- class: loss
+|   |   |--- zc_cpu >  -8.48
+|   |   |   |--- class: delay
+|--- zc_cpu >  8.15
+|   |--- zc_traffic <= 1.88
+|   |   |--- zc_traffic <= -0.91
+|   |   |   |--- class: disk
+|   |   |--- zc_traffic >  -0.91
+|   |   |   |--- class: cpu
+|   |--- zc_traffic >  1.88
+|   |   |--- class: mem
+
+=== within: re1-tt fold 0 (train cases: 100) ===
+|--- zc_cpu <= 4.51
+|   |--- zc_latency <= 1.47
+|   |   |--- zc_traffic <= 0.89
+|   |   |   |--- class: none
+|   |   |--- zc_traffic >  0.89
+|   |   |   |--- class: delay
+|   |--- zc_latency >  1.47
+|   |   |--- zc_cpu <= -1.15
+|   |   |   |--- class: loss
+|   |   |--- zc_cpu >  -1.15
+|   |   |   |--- class: delay
+|--- zc_cpu >  4.51
+|   |--- zc_traffic <= -2.18
+|   |   |--- zc_latency <= 5.00
+|   |   |   |--- class: none
+|   |   |--- zc_latency >  5.00
+|   |   |   |--- class: delay
+|   |--- zc_traffic >  -2.18
+|   |   |--- zc_cpu <= 8.56
+|   |   |   |--- class: disk
+|   |   |--- zc_cpu >  8.56
+|   |   |   |--- class: cpu
+
+=== within: re1-tt fold 1 (train cases: 100) ===
+|--- zc_cpu <= 2.22
+|   |--- zc_latency <= 1.47
+|   |   |--- zc_cpu <= 1.86
+|   |   |   |--- class: none
+|   |   |--- zc_cpu >  1.86
+|   |   |   |--- class: delay
+|   |--- zc_latency >  1.47
+|   |   |--- zc_cpu <= -1.13
+|   |   |   |--- class: loss
+|   |   |--- zc_cpu >  -1.13
+|   |   |   |--- class: delay
+|--- zc_cpu >  2.22
+|   |--- zc_cpu <= 8.90
+|   |   |--- zc_mem <= 8.95
+|   |   |   |--- class: cpu
+|   |   |--- zc_mem >  8.95
+|   |   |   |--- class: disk
+|   |--- zc_cpu >  8.90
+|   |   |--- zc_latency <= 9.85
+|   |   |   |--- class: disk
+|   |   |--- zc_latency >  9.85
+|   |   |   |--- class: mem
+
+=== within: re1-tt fold 2 (train cases: 100) ===
+|--- zc_cpu <= 8.46
+|   |--- zc_latency <= 1.47
+|   |   |--- zc_mem <= 0.01
+|   |   |   |--- class: none
+|   |   |--- zc_mem >  0.01
+|   |   |   |--- class: none
+|   |--- zc_latency >  1.47
+|   |   |--- zc_cpu <= -4.37
+|   |   |   |--- class: delay
+|   |   |--- zc_cpu >  -4.37
+|   |   |   |--- class: loss
+|--- zc_cpu >  8.46
+|   |--- zc_latency <= 9.85
+|   |   |--- zc_latency <= 1.49
+|   |   |   |--- class: cpu
+|   |   |--- zc_latency >  1.49
+|   |   |   |--- class: disk
+|   |--- zc_latency >  9.85
+|   |   |--- zc_traffic <= 1.34
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  1.34
+|   |   |   |--- class: cpu
+
+=== within: re1-tt fold 3 (train cases: 100) ===
+|--- zc_cpu <= 8.59
+|   |--- zc_latency <= 1.47
+|   |   |--- zc_traffic <= 0.89
+|   |   |   |--- class: none
+|   |   |--- zc_traffic >  0.89
+|   |   |   |--- class: delay
+|   |--- zc_latency >  1.47
+|   |   |--- zc_traffic <= -7.44
+|   |   |   |--- class: disk
+|   |   |--- zc_traffic >  -7.44
+|   |   |   |--- class: loss
+|--- zc_cpu >  8.59
+|   |--- zc_traffic <= -0.01
+|   |   |--- zc_traffic <= -0.19
+|   |   |   |--- class: cpu
+|   |   |--- zc_traffic >  -0.19
+|   |   |   |--- class: mem
+|   |--- zc_traffic >  -0.01
+|   |   |--- zc_latency <= 2.18
+|   |   |   |--- class: cpu
+|   |   |--- zc_latency >  2.18
+|   |   |   |--- class: disk
+
+=== within: re1-tt fold 4 (train cases: 100) ===
+|--- zc_cpu <= 4.53
+|   |--- zc_latency <= 7.68
+|   |   |--- zc_traffic <= 0.89
+|   |   |   |--- class: none
+|   |   |--- zc_traffic >  0.89
+|   |   |   |--- class: delay
+|   |--- zc_latency >  7.68
+|   |   |--- zc_mem <= 7.76
+|   |   |   |--- class: loss
+|   |   |--- zc_mem >  7.76
+|   |   |   |--- class: delay
+|--- zc_cpu >  4.53
+|   |--- zc_latency <= 9.85
+|   |   |--- zc_latency <= 1.72
+|   |   |   |--- class: cpu
+|   |   |--- zc_latency >  1.72
+|   |   |   |--- class: disk
+|   |--- zc_latency >  9.85
+|   |   |--- zc_cpu <= 9.81
+|   |   |   |--- class: delay
+|   |   |--- zc_cpu >  9.81
+|   |   |   |--- class: mem
+
+=== within_service: re1-ob fold 0 (train cases: 100) ===
+|--- zc_cpu <= 1.49
+|   |--- zc_latency <= 10.00
+|   |   |--- zc_latency <= 3.85
+|   |   |   |--- class: none
+|   |   |--- zc_latency >  3.85
+|   |   |   |--- class: loss
+|   |--- zc_latency >  10.00
+|   |   |--- zc_mem <= -0.73
+|   |   |   |--- class: loss
+|   |   |--- zc_mem >  -0.73
+|   |   |   |--- class: delay
+|--- zc_cpu >  1.49
+|   |--- zc_latency <= 1.50
+|   |   |--- zc_mem <= 1.38
+|   |   |   |--- class: loss
+|   |   |--- zc_mem >  1.38
+|   |   |   |--- class: cpu
+|   |--- zc_latency >  1.50
+|   |   |--- zc_latency <= 7.39
+|   |   |   |--- class: mem
+|   |   |--- zc_latency >  7.39
+|   |   |   |--- class: disk
+
+=== within_service: re1-ob fold 1 (train cases: 100) ===
+|--- zc_cpu <= 1.49
+|   |--- zc_latency <= 3.86
+|   |   |--- zc_mem <= 0.00
+|   |   |   |--- class: none
+|   |   |--- zc_mem >  0.00
+|   |   |   |--- class: none
+|   |--- zc_latency >  3.86
+|   |   |--- zc_traffic <= 0.47
+|   |   |   |--- class: delay
+|   |   |--- zc_traffic >  0.47
+|   |   |   |--- class: loss
+|--- zc_cpu >  1.49
+|   |--- zc_latency <= 1.76
+|   |   |--- zc_mem <= 1.38
+|   |   |   |--- class: loss
+|   |   |--- zc_mem >  1.38
+|   |   |   |--- class: cpu
+|   |--- zc_latency >  1.76
+|   |   |--- zc_latency <= 8.87
+|   |   |   |--- class: mem
+|   |   |--- zc_latency >  8.87
+|   |   |   |--- class: disk
+
+=== within_service: re1-ob fold 2 (train cases: 100) ===
+|--- zc_cpu <= 0.72
+|   |--- zc_latency <= 8.82
+|   |   |--- zc_mem <= 0.00
+|   |   |   |--- class: none
+|   |   |--- zc_mem >  0.00
+|   |   |   |--- class: none
+|   |--- zc_latency >  8.82
+|   |   |--- zc_traffic <= 0.48
+|   |   |   |--- class: delay
+|   |   |--- zc_traffic >  0.48
+|   |   |   |--- class: loss
+|--- zc_cpu >  0.72
+|   |--- zc_latency <= 1.76
+|   |   |--- zc_mem <= 1.38
+|   |   |   |--- class: loss
+|   |   |--- zc_mem >  1.38
+|   |   |   |--- class: cpu
+|   |--- zc_latency >  1.76
+|   |   |--- zc_traffic <= -0.02
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  -0.02
+|   |   |   |--- class: disk
+
+=== within_service: re1-ob fold 3 (train cases: 100) ===
+|--- zc_cpu <= 7.42
+|   |--- zc_latency <= 10.00
+|   |   |--- zc_latency <= 3.86
+|   |   |   |--- class: none
+|   |   |--- zc_latency >  3.86
+|   |   |   |--- class: loss
+|   |--- zc_latency >  10.00
+|   |   |--- zc_traffic <= 0.27
+|   |   |   |--- class: delay
+|   |   |--- zc_traffic >  0.27
+|   |   |   |--- class: disk
+|--- zc_cpu >  7.42
+|   |--- zc_latency <= 2.42
+|   |   |--- zc_mem <= 1.44
+|   |   |   |--- class: disk
+|   |   |--- zc_mem >  1.44
+|   |   |   |--- class: cpu
+|   |--- zc_latency >  2.42
+|   |   |--- zc_traffic <= 0.14
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  0.14
+|   |   |   |--- class: disk
+
+=== within_service: re1-ob fold 4 (train cases: 100) ===
+|--- zc_cpu <= 1.68
+|   |--- zc_latency <= 3.86
+|   |   |--- zc_mem <= 0.00
+|   |   |   |--- class: none
+|   |   |--- zc_mem >  0.00
+|   |   |   |--- class: none
+|   |--- zc_latency >  3.86
+|   |   |--- zc_latency <= 8.84
+|   |   |   |--- class: loss
+|   |   |--- zc_latency >  8.84
+|   |   |   |--- class: delay
+|--- zc_cpu >  1.68
+|   |--- zc_latency <= 2.02
+|   |   |--- zc_mem <= 1.59
+|   |   |   |--- class: disk
+|   |   |--- zc_mem >  1.59
+|   |   |   |--- class: cpu
+|   |--- zc_latency >  2.02
+|   |   |--- zc_traffic <= 0.14
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  0.14
+|   |   |   |--- class: disk
+
+=== within_service: re1-ss fold 0 (train cases: 100) ===
+|--- zc_cpu <= 6.84
+|   |--- zc_latency <= 2.14
+|   |   |--- zc_traffic <= -7.57
+|   |   |   |--- class: delay
+|   |   |--- zc_traffic >  -7.57
+|   |   |   |--- class: none
+|   |--- zc_latency >  2.14
+|   |   |--- zc_latency <= 7.37
+|   |   |   |--- class: loss
+|   |   |--- zc_latency >  7.37
+|   |   |   |--- class: delay
+|--- zc_cpu >  6.84
+|   |--- zc_traffic <= -1.53
+|   |   |--- zc_latency <= 5.00
+|   |   |   |--- class: disk
+|   |   |--- zc_latency >  5.00
+|   |   |   |--- class: mem
+|   |--- zc_traffic >  -1.53
+|   |   |--- zc_traffic <= -0.91
+|   |   |   |--- class: disk
+|   |   |--- zc_traffic >  -0.91
+|   |   |   |--- class: cpu
+
+=== within_service: re1-ss fold 1 (train cases: 100) ===
+|--- zc_cpu <= 6.94
+|   |--- zc_latency <= 4.83
+|   |   |--- zc_traffic <= -7.57
+|   |   |   |--- class: delay
+|   |   |--- zc_traffic >  -7.57
+|   |   |   |--- class: none
+|   |--- zc_latency >  4.83
+|   |   |--- zc_latency <= 5.70
+|   |   |   |--- class: loss
+|   |   |--- zc_latency >  5.70
+|   |   |   |--- class: delay
+|--- zc_cpu >  6.94
+|   |--- zc_traffic <= 2.08
+|   |   |--- zc_traffic <= 0.00
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  0.00
+|   |   |   |--- class: cpu
+|   |--- zc_traffic >  2.08
+|   |   |--- class: mem
+
+=== within_service: re1-ss fold 2 (train cases: 100) ===
+|--- zc_cpu <= 6.94
+|   |--- zc_latency <= 2.14
+|   |   |--- zc_mem <= 0.01
+|   |   |   |--- class: none
+|   |   |--- zc_mem >  0.01
+|   |   |   |--- class: none
+|   |--- zc_latency >  2.14
+|   |   |--- zc_latency <= 7.51
+|   |   |   |--- class: loss
+|   |   |--- zc_latency >  7.51
+|   |   |   |--- class: delay
+|--- zc_cpu >  6.94
+|   |--- zc_traffic <= 1.95
+|   |   |--- zc_latency <= 5.98
+|   |   |   |--- class: loss
+|   |   |--- zc_latency >  5.98
+|   |   |   |--- class: cpu
+|   |--- zc_traffic >  1.95
+|   |   |--- class: mem
+
+=== within_service: re1-ss fold 3 (train cases: 100) ===
+|--- zc_cpu <= 6.94
+|   |--- zc_latency <= 2.14
+|   |   |--- zc_traffic <= -7.57
+|   |   |   |--- class: delay
+|   |   |--- zc_traffic >  -7.57
+|   |   |   |--- class: none
+|   |--- zc_latency >  2.14
+|   |   |--- zc_cpu <= 0.91
+|   |   |   |--- class: loss
+|   |   |--- zc_cpu >  0.91
+|   |   |   |--- class: delay
+|--- zc_cpu >  6.94
+|   |--- zc_traffic <= 0.59
+|   |   |--- zc_traffic <= -1.71
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  -1.71
+|   |   |   |--- class: disk
+|   |--- zc_traffic >  0.59
+|   |   |--- zc_traffic <= 1.95
+|   |   |   |--- class: cpu
+|   |   |--- zc_traffic >  1.95
+|   |   |   |--- class: mem
+
+=== within_service: re1-ss fold 4 (train cases: 100) ===
+|--- zc_cpu <= 8.15
+|   |--- zc_latency <= 2.14
+|   |   |--- zc_traffic <= -7.57
+|   |   |   |--- class: delay
+|   |   |--- zc_traffic >  -7.57
+|   |   |   |--- class: none
+|   |--- zc_latency >  2.14
+|   |   |--- zc_latency <= 7.37
+|   |   |   |--- class: loss
+|   |   |--- zc_latency >  7.37
+|   |   |   |--- class: delay
+|--- zc_cpu >  8.15
+|   |--- zc_traffic <= 1.88
+|   |   |--- zc_traffic <= -0.58
+|   |   |   |--- class: disk
+|   |   |--- zc_traffic >  -0.58
+|   |   |   |--- class: cpu
+|   |--- zc_traffic >  1.88
+|   |   |--- class: mem
+
+=== within_service: re1-tt fold 0 (train cases: 100) ===
+|--- zc_cpu <= 4.53
+|   |--- zc_latency <= 1.47
+|   |   |--- zc_mem <= 0.00
+|   |   |   |--- class: none
+|   |   |--- zc_mem >  0.00
+|   |   |   |--- class: none
+|   |--- zc_latency >  1.47
+|   |   |--- zc_cpu <= -0.32
+|   |   |   |--- class: loss
+|   |   |--- zc_cpu >  -0.32
+|   |   |   |--- class: delay
+|--- zc_cpu >  4.53
+|   |--- zc_latency <= 9.85
+|   |   |--- zc_latency <= 1.72
+|   |   |   |--- class: cpu
+|   |   |--- zc_latency >  1.72
+|   |   |   |--- class: disk
+|   |--- zc_latency >  9.85
+|   |   |--- zc_traffic <= -2.18
+|   |   |   |--- class: delay
+|   |   |--- zc_traffic >  -2.18
+|   |   |   |--- class: mem
+
+=== within_service: re1-tt fold 1 (train cases: 100) ===
+|--- zc_cpu <= 2.22
+|   |--- zc_latency <= 1.47
+|   |   |--- zc_cpu <= 1.86
+|   |   |   |--- class: none
+|   |   |--- zc_cpu >  1.86
+|   |   |   |--- class: delay
+|   |--- zc_latency >  1.47
+|   |   |--- zc_cpu <= -1.15
+|   |   |   |--- class: loss
+|   |   |--- zc_cpu >  -1.15
+|   |   |   |--- class: delay
+|--- zc_cpu >  2.22
+|   |--- zc_latency <= 9.64
+|   |   |--- zc_latency <= 1.77
+|   |   |   |--- class: cpu
+|   |   |--- zc_latency >  1.77
+|   |   |   |--- class: disk
+|   |--- zc_latency >  9.64
+|   |   |--- zc_cpu <= 9.81
+|   |   |   |--- class: cpu
+|   |   |--- zc_cpu >  9.81
+|   |   |   |--- class: mem
+
+=== within_service: re1-tt fold 2 (train cases: 100) ===
+|--- zc_cpu <= 4.53
+|   |--- zc_latency <= 2.61
+|   |   |--- zc_traffic <= 0.89
+|   |   |   |--- class: none
+|   |   |--- zc_traffic >  0.89
+|   |   |   |--- class: delay
+|   |--- zc_latency >  2.61
+|   |   |--- zc_cpu <= -1.12
+|   |   |   |--- class: loss
+|   |   |--- zc_cpu >  -1.12
+|   |   |   |--- class: delay
+|--- zc_cpu >  4.53
+|   |--- zc_latency <= 9.85
+|   |   |--- zc_latency <= 1.72
+|   |   |   |--- class: cpu
+|   |   |--- zc_latency >  1.72
+|   |   |   |--- class: disk
+|   |--- zc_latency >  9.85
+|   |   |--- zc_traffic <= 1.34
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  1.34
+|   |   |   |--- class: cpu
+
+=== within_service: re1-tt fold 3 (train cases: 100) ===
+|--- zc_cpu <= 4.53
+|   |--- zc_latency <= 1.47
+|   |   |--- zc_traffic <= 0.89
+|   |   |   |--- class: none
+|   |   |--- zc_traffic >  0.89
+|   |   |   |--- class: delay
+|   |--- zc_latency >  1.47
+|   |   |--- zc_mem <= 8.63
+|   |   |   |--- class: loss
+|   |   |--- zc_mem >  8.63
+|   |   |   |--- class: delay
+|--- zc_cpu >  4.53
+|   |--- zc_cpu <= 8.60
+|   |   |--- zc_latency <= 8.01
+|   |   |   |--- class: disk
+|   |   |--- zc_latency >  8.01
+|   |   |   |--- class: delay
+|   |--- zc_cpu >  8.60
+|   |   |--- zc_traffic <= -0.01
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  -0.01
+|   |   |   |--- class: disk
+
+=== within_service: re1-tt fold 4 (train cases: 100) ===
+|--- zc_cpu <= 9.99
+|   |--- zc_latency <= 7.66
+|   |   |--- zc_traffic <= 0.89
+|   |   |   |--- class: none
+|   |   |--- zc_traffic >  0.89
+|   |   |   |--- class: delay
+|   |--- zc_latency >  7.66
+|   |   |--- zc_cpu <= -1.19
+|   |   |   |--- class: loss
+|   |   |--- zc_cpu >  -1.19
+|   |   |   |--- class: delay
+|--- zc_cpu >  9.99
+|   |--- zc_latency <= 9.85
+|   |   |--- zc_latency <= 1.49
+|   |   |   |--- class: cpu
+|   |   |--- zc_latency >  1.49
+|   |   |   |--- class: disk
+|   |--- zc_latency >  9.85
+|   |   |--- zc_traffic <= -0.06
+|   |   |   |--- class: mem
+|   |   |--- zc_traffic >  -0.06
+|   |   |   |--- class: disk

@@ -33,6 +33,7 @@ block; see DEVIATIONS.md § AC@1 tie-handling convention).
 | results/propagation_variants_tests.csv, results/propagation_variants_loso.csv, results/propagation_threshold_sweep.csv (3) | 785f042 (2026-11-02, `scripts/analyse_propagation_variants.py`); consumes the variants file, re-runs nothing | pessimistic and expected AC@1 | paired bootstrap seed 42, n=10,000 | canonical; paired McNemar tests, leave-one-system-out δ, density sweep |
 | results/saturation_bounds_per_case.csv, results/saturation_bounds_summary.csv, results/saturation_critical_delta.csv (3) | 785f042 (2026-11-02, `scripts/saturation_bounds.py`) | n/a — saturation counts | none — deterministic | canonical; analytical saturation bracket, asserted to contain the observed saturation on every case and δ |
 | results/explanation_faithfulness_per_case.csv, results/explanation_faithfulness_summary.csv (2) | ec5ce89 (2026-11-02, `scripts/explanation_faithfulness.py`) | n/a — attribution shares, not a ranking score | none — deterministic | canonical; exact log-complement decomposition of the top service's confidence into own rules and callees, against what the explanation names |
+| results/rule_learning_{dataset.csv.gz,per_case.csv,summary.csv,tests.csv,rule_counts.csv,trees.txt,baseline_agreement.csv} (7) | the commit that adds `scripts/learn_rules_experiment.py` (2026-11-15) | pessimistic AC@1 and expected AC@1 (random tie-breaking) | scikit-learn random_state 0; deterministic | exploratory, for a third paper: expert crisp / expert fuzzy / learned tree / learned forest rule bases under leave-one-system-out and two within-system protocols; expert_fuzzy asserted equal to the committed local-evidence results |
 | paper/artifacts/bootstrap_ac1_cis.md | d485957 (resume chain, 2026-08-10) | pessimistic (consumes week2 CSVs) | bootstrap seed 42, n=10,000 | canonical (verified PASS 2026-08-10) |
 
 ## Regeneration note — δ sweep, 2026-08-22
@@ -183,3 +184,27 @@ Python version, for the record: `evaluation/pyproject.toml` declares
 `PYTHONPATH=.` rather than from an installed package, so the declaration was
 never enforced. The check above shows 3.12 reproduces the audit files exactly.
 The declaration is left as it is.
+
+## Analysis note — learned rule bases, 2026-11-15
+
+`scripts/learn_rules_experiment.py` compares rule bases for local evidence on the
+same five z-score inputs. Environment: `~/.venv/foda-eval` plus scikit-learn 1.6.1,
+macOS arm64. Design changes made after a first look at results, recorded here
+because they are forking paths: (1) features for learned rules are clipped to
+[-10, 10] after the unclipped trees split on z-scores of 1e3 to 1e15 produced by
+near-constant baselines (the same floating-point residue as the product's O10);
+the unclipped variants are kept as `_rawz`; (2) a no-rules reference
+(`anomaly_max`) and a leave-one-root-service-out protocol were added.
+
+Findings to carry forward. Learned forests of two-condition rules are never
+silent (expert rules: 25-37 % of cases) and beat the expert rules on RE1-SS and
+RE1-TT under every protocol (leave-one-system-out AC@1 0.560 / 0.600 / 0.528
+against 0.496 / 0.272 / 0.344; RE1-OB not significant). Fuzzy expert rules beat
+their crisp cut on RE1-OB and RE1-TT. A symmetric ramp on learned thresholds
+does not help and sometimes hurts. Caveats: only five services per system are
+ever root causes and they are the ones with latency telemetry (92-94 % against
+35-77 % of all services), which learned rules can exploit; and the unclipped
+"largest |z|" ranking scores 0.624 / 0.648 / 0.472, agreeing case by case with
+the re-implemented CausalRCA (99-100 %), MicroRCA (97-98 %) and MonitorRank
+(93-96 %) — those three adapters behave as "most anomalous service" rankers on
+this data, and that ranking rests on unbounded z-scores.
