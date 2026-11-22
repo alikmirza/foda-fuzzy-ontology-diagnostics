@@ -1,0 +1,68 @@
+system,configuration,category,cases
+re1-ob,local,correct,62
+re1-ob,local,no rule fired,31
+re1-ob,local,"tied at the top, unsaturated",21
+re1-ob,local,overtaken by an unsaturated service,11
+re1-ob,shipped,correct,50
+re1-ob,shipped,overtaken by an unsaturated service,44
+re1-ob,shipped,no rule fired,31
+re1-ob,normalised,correct,62
+re1-ob,normalised,overtaken by an unsaturated service,32
+re1-ob,normalised,no rule fired,31
+re1-ob,capped,correct,64
+re1-ob,capped,no rule fired,31
+re1-ob,capped,overtaken by an unsaturated service,30
+re1-ob,max,correct,62
+re1-ob,max,no rule fired,31
+re1-ob,max,"tied at the top, unsaturated",21
+re1-ob,max,overtaken by an unsaturated service,11
+re1-ob,callgraph_forward,overtaken by an unsaturated service,68
+re1-ob,callgraph_forward,no rule fired,31
+re1-ob,callgraph_forward,correct,26
+re1-ob,callgraph_reversed,correct,74
+re1-ob,callgraph_reversed,no rule fired,31
+re1-ob,callgraph_reversed,"tied at the top, unsaturated",10
+re1-ob,callgraph_reversed,overtaken by an unsaturated service,10
+re1-ss,local,no rule fired,46
+re1-ss,local,"tied at the top, unsaturated",38
+re1-ss,local,correct,34
+re1-ss,local,overtaken by an unsaturated service,7
+re1-ss,shipped,overtaken by an unsaturated service,59
+re1-ss,shipped,no rule fired,46
+re1-ss,shipped,correct,20
+re1-ss,normalised,correct,47
+re1-ss,normalised,no rule fired,46
+re1-ss,normalised,overtaken by an unsaturated service,32
+re1-ss,capped,correct,49
+re1-ss,capped,no rule fired,46
+re1-ss,capped,overtaken by an unsaturated service,30
+re1-ss,max,no rule fired,46
+re1-ss,max,"tied at the top, unsaturated",38
+re1-ss,max,correct,34
+re1-ss,max,overtaken by an unsaturated service,7
+re1-ss,callgraph_forward,overtaken by an unsaturated service,68
+re1-ss,callgraph_forward,no rule fired,46
+re1-ss,callgraph_forward,correct,11
+re1-ss,callgraph_reversed,correct,49
+re1-ss,callgraph_reversed,no rule fired,46
+re1-ss,callgraph_reversed,overtaken by an unsaturated service,23
+re1-ss,callgraph_reversed,"tied at the top, unsaturated",7
+re1-tt,local,correct,43
+re1-tt,local,"tied at the top, unsaturated",32
+re1-tt,local,no rule fired,31
+re1-tt,local,overtaken by an unsaturated service,19
+re1-tt,shipped,below a saturated block,59
+re1-tt,shipped,no rule fired,31
+re1-tt,shipped,inside the saturated block,30
+re1-tt,shipped,overtaken by an unsaturated service,4
+re1-tt,shipped,correct,1
+re1-tt,normalised,correct,55
+re1-tt,normalised,overtaken by an unsaturated service,39
+re1-tt,normalised,no rule fired,31
+re1-tt,capped,correct,56
+re1-tt,capped,overtaken by an unsaturated service,38
+re1-tt,capped,no rule fired,31
+re1-tt,max,correct,43
+re1-tt,max,"tied at the top, unsaturated",32
+re1-tt,max,no rule fired,31
+re1-tt,max,overtaken by an unsaturated service,19

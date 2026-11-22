@@ -1,0 +1,4 @@
+system,services,share_H_zero,distinct_nonzero_H,share_nonzero_H_equal_to_a_CF,cases,cases_no_rule,cases_unique_top,cases_tied_top,median_tied_block,tied_top_at_a_CF,gt_in_tied_top
+re1-ob,1506,0.6009,291,0.5241,125,31,71,23,3.0,21,21
+re1-ss,1876,0.5656,435,0.4724,125,46,39,40,2.0,38,38
+re1-tt,8000,0.6089,2459,0.2157,125,31,55,39,3.0,32,32

@@ -1,0 +1,39 @@
+system,method,ac1,ac1_expected,ac3,ac5,mrr,ac1_diff_vs_local,diff_lo,diff_hi
+re1-ob,FCP local,0.496,0.5783,0.656,0.72,0.6049,0.0,0.0,0.0
+re1-ob,FCP shipped,0.4,0.4207,0.568,0.648,0.525,-0.096,-0.192,-0.008
+re1-ob,FCP normalised,0.496,0.5167,0.656,0.736,0.6049,0.0,-0.072,0.064
+re1-ob,FCP capped,0.512,0.5327,0.672,0.744,0.6207,0.016,-0.056,0.072
+re1-ob,FCP callgraph_reversed,0.592,0.6527,0.736,0.752,0.6829,0.096,0.04,0.16
+re1-ob,"largest |z|, unbounded",0.624,0.624,0.864,,0.749,0.128,-0.064,0.328
+re1-ob,"largest |z|, clipped at 10",0.184,0.35,0.488,,0.3798,-0.312,-0.416,-0.208
+re1-ob,BARO (re-implemented),0.536,,0.72,0.808,0.6634,0.04,-0.104,0.192
+re1-ob,CausalRCA (re-implemented),0.624,,0.856,0.896,0.7407,0.128,-0.064,0.328
+re1-ob,MicroRCA (re-implemented),0.624,,0.776,0.848,0.7238,0.128,-0.064,0.328
+re1-ob,MonitorRank (re-implemented),0.632,,0.768,0.848,0.7322,0.136,-0.056,0.336
+re1-ob,yRCA (re-implemented),0.328,,0.608,0.712,0.5091,-0.168,-0.264,-0.064
+re1-ob,DejaVu (supervised) (re-implemented),0.696,,0.84,0.872,0.7898,0.2,0.088,0.312
+re1-ss,FCP local,0.272,0.4205,0.544,0.616,0.4347,0.0,0.0,0.0
+re1-ss,FCP shipped,0.16,0.1845,0.352,0.488,0.3123,-0.112,-0.2,-0.024
+re1-ss,FCP normalised,0.376,0.4005,0.608,0.624,0.5064,0.104,0.04,0.176
+re1-ss,FCP capped,0.392,0.4165,0.6,0.624,0.5144,0.12,0.048,0.2
+re1-ss,FCP callgraph_reversed,0.392,0.4445,0.592,0.616,0.5216,0.12,0.048,0.2
+re1-ss,"largest |z|, unbounded",0.648,0.648,0.856,,0.7657,0.376,0.248,0.504
+re1-ss,"largest |z|, clipped at 10",0.032,0.1979,0.224,,0.2034,-0.24,-0.352,-0.136
+re1-ss,BARO (re-implemented),0.584,,0.728,0.84,0.6945,0.312,0.176,0.448
+re1-ss,CausalRCA (re-implemented),0.656,,0.832,0.888,0.7634,0.384,0.256,0.512
+re1-ss,MicroRCA (re-implemented),0.648,,0.784,0.824,0.7405,0.376,0.24,0.512
+re1-ss,MonitorRank (re-implemented),0.656,,0.832,0.912,0.7626,0.384,0.248,0.52
+re1-ss,yRCA (re-implemented),0.256,,0.528,0.616,0.4291,-0.016,-0.12,0.08
+re1-ss,DejaVu (supervised) (re-implemented),0.848,,0.968,0.976,0.9082,0.576,0.488,0.664
+re1-tt,FCP local,0.344,0.4355,0.52,0.64,0.4668,0.0,0.0,0.0
+re1-tt,FCP shipped,0.008,0.0151,0.048,0.08,0.0663,-0.336,-0.432,-0.24
+re1-tt,FCP normalised,0.44,0.4439,0.6,0.72,0.5444,0.096,0.04,0.152
+re1-tt,FCP capped,0.448,0.4519,0.608,0.72,0.5491,0.104,0.048,0.16
+re1-tt,"largest |z|, unbounded",0.472,0.472,0.696,,0.6067,0.128,-0.008,0.264
+re1-tt,"largest |z|, clipped at 10",0.0,0.0657,0.008,,0.0671,-0.344,-0.44,-0.248
+re1-tt,BARO (re-implemented),0.392,,0.576,0.704,0.5237,0.048,-0.08,0.192
+re1-tt,CausalRCA (re-implemented),0.472,,0.664,0.744,0.5945,0.128,-0.008,0.264
+re1-tt,MicroRCA (re-implemented),0.456,,0.656,0.744,0.5814,0.112,-0.024,0.256
+re1-tt,MonitorRank (re-implemented),0.48,,0.6,0.68,0.5773,0.136,0.0,0.28
+re1-tt,yRCA (re-implemented),0.104,,0.272,0.456,0.2503,-0.24,-0.336,-0.144
+re1-tt,DejaVu (supervised) (re-implemented),0.744,,0.936,0.984,0.8436,0.4,0.304,0.488

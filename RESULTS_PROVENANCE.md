@@ -31,10 +31,11 @@ block; see DEVIATIONS.md § AC@1 tie-handling convention).
 | results/delta_selection_loso.csv | e433a88 (2026-11-02, `scripts/select_delta_loso.py`); consumes the delta-sweep CSVs, re-runs nothing | pessimistic | none — deterministic | canonical; leave-one-system-out choice of δ for the KES short paper |
 | results/propagation_variants_per_case.csv.gz, results/propagation_variants_summary.csv (2) | 785f042 (2026-11-02, `scripts/run_propagation_variants.py`) | pessimistic (canonical), plus expected AC@1 (random tie-breaking) and refined AC@1 | none — deterministic | canonical; aggregation operators, weight normalisation, ontology guidance and correlation threshold × δ for the KES short paper; the shipped configuration is asserted equal to the delta sweep at every δ |
 | results/propagation_variants_tests.csv, results/propagation_variants_loso.csv, results/propagation_threshold_sweep.csv (3) | 785f042 (2026-11-02, `scripts/analyse_propagation_variants.py`); consumes the variants file, re-runs nothing | pessimistic and expected AC@1 | paired bootstrap seed 42, n=10,000 | canonical; paired McNemar tests, leave-one-system-out δ, density sweep |
-| results/saturation_bounds_per_case.csv, results/saturation_bounds_summary.csv, results/saturation_critical_delta.csv (3) | 785f042 (2026-11-02, `scripts/saturation_bounds.py`) | n/a — saturation counts | none — deterministic | canonical; analytical saturation bracket, asserted to contain the observed saturation on every case and δ |
+| results/saturation_bounds_{per_case,summary}.csv, results/saturation_critical_delta.csv, results/saturation_predictors.csv, results/saturation_bounds_per_service.csv.gz (5) | first 785f042 (2026-11-02); regenerated in the commit that adds `scripts/analyse_kes_revision.py` with brackets for the Einstein and bounded sums, per-service agreement and simple predictors — probabilistic-sum values unchanged | n/a — saturation counts | none — deterministic | canonical; analytical saturation brackets, asserted to contain the observed saturation for every operator, case and δ |
+| results/kes_{operators,budget_vs_damping,loso,breakdown,failures,evidence_ties,tie_order,baselines,explanations}.csv (9) | the commit that adds `scripts/analyse_kes_revision.py` (2026-11-22); consumes committed per-case files, re-runs nothing | expected AC@k (random tie-breaking) and pessimistic AC@k, Avg@5 | cluster bootstrap seed 42, n=10,000 | canonical; tables for the revised KES paper |
 | results/explanation_faithfulness_per_case.csv, results/explanation_faithfulness_summary.csv (2) | ec5ce89 (2026-11-02, `scripts/explanation_faithfulness.py`) | n/a — attribution shares, not a ranking score | none — deterministic | canonical; exact log-complement decomposition of the top service's confidence into own rules and callees, against what the explanation names |
 | results/rule_learning_{dataset.csv.gz,per_case.csv,summary.csv,tests.csv,rule_counts.csv,trees.txt,baseline_agreement.csv} (7) | a4f3d5a (2026-11-15, `scripts/learn_rules_experiment.py`) | pessimistic AC@1 and expected AC@1 (random tie-breaking) | scikit-learn random_state 0; deterministic | exploratory, for a third paper: expert crisp / expert fuzzy / learned tree / learned forest rule bases under leave-one-system-out and two within-system protocols; expert_fuzzy asserted equal to the committed local-evidence results |
-| results/direction_variants_per_case.csv.gz, results/direction_variants_summary.csv, results/direction_variants_{tests,best,callgraph_selection}.csv (5) | 2b7c90a (2026-11-22, `scripts/run_direction_variants.py`, `scripts/analyse_direction_variants.py`) | expected AC@1 (random tie-breaking) and pessimistic AC@1, pessimistic rank recorded | cluster bootstrap seed 42, n=10,000; otherwise deterministic | canonical for the KES revision: direction of propagation on the inferred graph and on the Online Boutique and Sock Shop call graphs; the forward inferred configuration is asserted equal to the committed propagation variants |
+| results/direction_variants_per_case.csv.gz, results/direction_variants_summary.csv, results/direction_variants_{tests,best,callgraph_selection}.csv (5) | first 2b7c90a (2026-11-22); regenerated in the commit that adds `scripts/analyse_kes_revision.py` with four more operators, tie-block and explanation columns, and guidance restricted to the probabilistic sum — every value shared with the first version is identical | expected AC@1 (random tie-breaking) and pessimistic AC@1; n_above and gt_block recorded | cluster bootstrap seed 42, n=10,000; otherwise deterministic | canonical for the KES revision; the forward inferred configuration is asserted equal to the committed propagation variants, including SG, SC and EC |
 | paper/artifacts/bootstrap_ac1_cis.md | d485957 (resume chain, 2026-08-10) | pessimistic (consumes week2 CSVs) | bootstrap seed 42, n=10,000 | canonical (verified PASS 2026-08-10) |
 
 ## Regeneration note — δ sweep, 2026-08-22
@@ -229,3 +230,29 @@ one application and scored on the other (delta = 0.3 both ways), expected AC@1
 0.421 on RE1-SS (+0.024, CI -0.043 to 0.093); the gain is on delay faults.
 Maximum composition equals local evidence for every delta < 1. 27 of 619,125
 runs stopped at the cap of 100 rounds, none in the evaluated configuration.
+
+## Analysis note — KES revision, remaining review items, 2026-11-22
+
+Added for the review of the KES draft: an averaging operator (weighted mean), a
+representable uninorm (a logarithmic opinion pool), the dual t-norm pairings of
+the bounded and Einstein sums, capped normalisation, expected AC@k and Avg@5,
+breakdowns, a failure split, a direct test of tie ordering, and brackets for the
+Einstein and bounded sums. At delta = 0.85 on the inferred graph no operator
+under any weighting beats local evidence in expected AC@1 on any system
+(largest difference +0.016, RE1-TT, capped probabilistic sum, 95 % CI -0.022 to
+0.054). The mean never saturates; the uninorm is worse than local evidence.
+Raw weights at delta = 0.001 and normalised weights at delta = 0.85 are both
+within noise of local evidence, so either near-zero damping or a weight budget
+removes the collapse. Failures of the evaluated configuration on RE1-TT: 31 no
+rule fired, 30 ground truth inside the saturated block, 59 below a saturated
+block, 4 overtaken by an unsaturated service; on RE1-OB and RE1-SS nothing
+saturates and the loss is displacement by unsaturated services (44 and 59
+cases). Within non-zero tie blocks of H, propagated scores on the inferred graph
+put the ground truth first no more often than chance; on the Online Boutique
+call graph in the reversed direction they do (0.62 against 0.37). The fault type
+an explanation names matches the injected fault in 6-10 % of cases (9-17 % on
+CPU, memory and delay faults) for every variant. 129 of 454,125 runs stopped at
+the cap of 100 rounds, none in the evaluated configuration. As a ranker of which
+services saturate the necessary bound has AUC 0.999 on RE1-TT at delta = 0.85
+against 0.995 for the weight sum and 0.979 for the out-degree; as a yes/no rule
+it has precision 0.975 and recall 1.

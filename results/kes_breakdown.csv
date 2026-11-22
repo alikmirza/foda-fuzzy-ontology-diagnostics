@@ -1,0 +1,286 @@
+system,configuration,by,value,cases,ac1,ac1_expected,ac3
+re1-ob,local,fault,cpu,25,0.96,0.98,1.0
+re1-ob,local,fault,delay,25,0.12,0.2533,0.44
+re1-ob,local,fault,disk,25,0.44,0.5733,0.64
+re1-ob,local,fault,loss,25,0.12,0.198,0.28
+re1-ob,local,fault,mem,25,0.84,0.8867,0.92
+re1-ob,local,root,adservice,25,0.52,0.6133,0.76
+re1-ob,local,root,cartservice,25,0.48,0.5467,0.56
+re1-ob,local,root,checkoutservice,25,0.68,0.7213,0.76
+re1-ob,local,root,currencyservice,25,0.32,0.47,0.6
+re1-ob,local,root,productcatalogservice,25,0.48,0.54,0.6
+re1-ob,local,rule fired anywhere,False,31,0.0,0.0833,0.0
+re1-ob,local,rule fired anywhere,True,94,0.6596,0.7415,0.8723
+re1-ob,local,rule fired at root cause,False,31,0.0,0.0833,0.0
+re1-ob,local,rule fired at root cause,True,94,0.6596,0.7415,0.8723
+re1-ob,local,all,all,125,0.496,0.5783,0.656
+re1-ob,shipped,fault,cpu,25,0.96,0.96,0.96
+re1-ob,shipped,fault,delay,25,0.16,0.2,0.4
+re1-ob,shipped,fault,disk,25,0.28,0.3033,0.56
+re1-ob,shipped,fault,loss,25,0.16,0.2,0.24
+re1-ob,shipped,fault,mem,25,0.44,0.44,0.68
+re1-ob,shipped,root,adservice,25,0.56,0.58,0.72
+re1-ob,shipped,root,cartservice,25,0.32,0.3533,0.48
+re1-ob,shipped,root,checkoutservice,25,0.48,0.4933,0.64
+re1-ob,shipped,root,currencyservice,25,0.28,0.2967,0.48
+re1-ob,shipped,root,productcatalogservice,25,0.36,0.38,0.52
+re1-ob,shipped,rule fired anywhere,False,31,0.0,0.0833,0.0
+re1-ob,shipped,rule fired anywhere,True,94,0.5319,0.5319,0.7553
+re1-ob,shipped,rule fired at root cause,False,31,0.0,0.0833,0.0
+re1-ob,shipped,rule fired at root cause,True,94,0.5319,0.5319,0.7553
+re1-ob,shipped,all,all,125,0.4,0.4207,0.568
+re1-ob,normalised,fault,cpu,25,0.96,0.96,0.96
+re1-ob,normalised,fault,delay,25,0.24,0.28,0.48
+re1-ob,normalised,fault,disk,25,0.48,0.5033,0.68
+re1-ob,normalised,fault,loss,25,0.12,0.16,0.28
+re1-ob,normalised,fault,mem,25,0.68,0.68,0.88
+re1-ob,normalised,root,adservice,25,0.6,0.62,0.72
+re1-ob,normalised,root,cartservice,25,0.52,0.5533,0.56
+re1-ob,normalised,root,checkoutservice,25,0.6,0.6133,0.68
+re1-ob,normalised,root,currencyservice,25,0.36,0.3767,0.68
+re1-ob,normalised,root,productcatalogservice,25,0.4,0.42,0.64
+re1-ob,normalised,rule fired anywhere,False,31,0.0,0.0833,0.0
+re1-ob,normalised,rule fired anywhere,True,94,0.6596,0.6596,0.8723
+re1-ob,normalised,rule fired at root cause,False,31,0.0,0.0833,0.0
+re1-ob,normalised,rule fired at root cause,True,94,0.6596,0.6596,0.8723
+re1-ob,normalised,all,all,125,0.496,0.5167,0.656
+re1-ob,capped,fault,cpu,25,0.96,0.96,0.96
+re1-ob,capped,fault,delay,25,0.2,0.24,0.48
+re1-ob,capped,fault,disk,25,0.52,0.5433,0.68
+re1-ob,capped,fault,loss,25,0.12,0.16,0.36
+re1-ob,capped,fault,mem,25,0.76,0.76,0.88
+re1-ob,capped,root,adservice,25,0.6,0.62,0.76
+re1-ob,capped,root,cartservice,25,0.52,0.5533,0.56
+re1-ob,capped,root,checkoutservice,25,0.72,0.7333,0.76
+re1-ob,capped,root,currencyservice,25,0.32,0.3367,0.64
+re1-ob,capped,root,productcatalogservice,25,0.4,0.42,0.64
+re1-ob,capped,rule fired anywhere,False,31,0.0,0.0833,0.0
+re1-ob,capped,rule fired anywhere,True,94,0.6809,0.6809,0.8936
+re1-ob,capped,rule fired at root cause,False,31,0.0,0.0833,0.0
+re1-ob,capped,rule fired at root cause,True,94,0.6809,0.6809,0.8936
+re1-ob,capped,all,all,125,0.512,0.5327,0.672
+re1-ob,max,fault,cpu,25,0.96,0.98,1.0
+re1-ob,max,fault,delay,25,0.12,0.2533,0.44
+re1-ob,max,fault,disk,25,0.44,0.5733,0.64
+re1-ob,max,fault,loss,25,0.12,0.198,0.28
+re1-ob,max,fault,mem,25,0.84,0.8867,0.92
+re1-ob,max,root,adservice,25,0.52,0.6133,0.76
+re1-ob,max,root,cartservice,25,0.48,0.5467,0.56
+re1-ob,max,root,checkoutservice,25,0.68,0.7213,0.76
+re1-ob,max,root,currencyservice,25,0.32,0.47,0.6
+re1-ob,max,root,productcatalogservice,25,0.48,0.54,0.6
+re1-ob,max,rule fired anywhere,False,31,0.0,0.0833,0.0
+re1-ob,max,rule fired anywhere,True,94,0.6596,0.7415,0.8723
+re1-ob,max,rule fired at root cause,False,31,0.0,0.0833,0.0
+re1-ob,max,rule fired at root cause,True,94,0.6596,0.7415,0.8723
+re1-ob,max,all,all,125,0.496,0.5783,0.656
+re1-ob,callgraph_forward,fault,cpu,25,0.4,0.4,0.92
+re1-ob,callgraph_forward,fault,delay,25,0.12,0.16,0.36
+re1-ob,callgraph_forward,fault,disk,25,0.04,0.0633,0.36
+re1-ob,callgraph_forward,fault,loss,25,0.12,0.16,0.28
+re1-ob,callgraph_forward,fault,mem,25,0.36,0.36,0.68
+re1-ob,callgraph_forward,root,adservice,25,0.32,0.34,0.6
+re1-ob,callgraph_forward,root,cartservice,25,0.04,0.0733,0.56
+re1-ob,callgraph_forward,root,checkoutservice,25,0.68,0.6933,0.84
+re1-ob,callgraph_forward,root,currencyservice,25,0.0,0.0167,0.44
+re1-ob,callgraph_forward,root,productcatalogservice,25,0.0,0.02,0.16
+re1-ob,callgraph_forward,rule fired anywhere,False,31,0.0,0.0833,0.0
+re1-ob,callgraph_forward,rule fired anywhere,True,94,0.2766,0.2766,0.6915
+re1-ob,callgraph_forward,rule fired at root cause,False,31,0.0,0.0833,0.0
+re1-ob,callgraph_forward,rule fired at root cause,True,94,0.2766,0.2766,0.6915
+re1-ob,callgraph_forward,all,all,125,0.208,0.2287,0.52
+re1-ob,callgraph_reversed,fault,cpu,25,0.96,0.98,1.0
+re1-ob,callgraph_reversed,fault,delay,25,0.36,0.44,0.52
+re1-ob,callgraph_reversed,fault,disk,25,0.56,0.6233,0.72
+re1-ob,callgraph_reversed,fault,loss,25,0.2,0.28,0.44
+re1-ob,callgraph_reversed,fault,mem,25,0.88,0.94,1.0
+re1-ob,callgraph_reversed,root,adservice,25,0.56,0.62,0.76
+re1-ob,callgraph_reversed,root,cartservice,25,0.56,0.5933,0.6
+re1-ob,callgraph_reversed,root,checkoutservice,25,0.68,0.6933,0.76
+re1-ob,callgraph_reversed,root,currencyservice,25,0.44,0.6167,0.8
+re1-ob,callgraph_reversed,root,productcatalogservice,25,0.72,0.74,0.76
+re1-ob,callgraph_reversed,rule fired anywhere,False,31,0.0,0.0833,0.0
+re1-ob,callgraph_reversed,rule fired anywhere,True,94,0.7872,0.8404,0.9787
+re1-ob,callgraph_reversed,rule fired at root cause,False,31,0.0,0.0833,0.0
+re1-ob,callgraph_reversed,rule fired at root cause,True,94,0.7872,0.8404,0.9787
+re1-ob,callgraph_reversed,all,all,125,0.592,0.6527,0.736
+re1-ss,local,fault,cpu,25,0.36,0.5173,0.64
+re1-ss,local,fault,delay,25,0.04,0.2233,0.36
+re1-ss,local,fault,disk,25,0.52,0.5665,0.6
+re1-ss,local,fault,loss,25,0.12,0.3447,0.56
+re1-ss,local,fault,mem,25,0.32,0.4507,0.56
+re1-ss,local,root,carts,25,0.28,0.4473,0.6
+re1-ss,local,root,catalogue,25,0.4,0.5198,0.6
+re1-ss,local,root,orders,25,0.2,0.3673,0.56
+re1-ss,local,root,payment,25,0.12,0.2893,0.44
+re1-ss,local,root,user,25,0.36,0.4787,0.52
+re1-ss,local,rule fired anywhere,False,46,0.0,0.0666,0.0
+re1-ss,local,rule fired anywhere,True,79,0.4304,0.6266,0.8608
+re1-ss,local,rule fired at root cause,False,46,0.0,0.0666,0.0
+re1-ss,local,rule fired at root cause,True,79,0.4304,0.6266,0.8608
+re1-ss,local,all,all,125,0.272,0.4205,0.544
+re1-ss,shipped,fault,cpu,25,0.24,0.264,0.36
+re1-ss,shipped,fault,delay,25,0.0,0.0267,0.28
+re1-ss,shipped,fault,disk,25,0.32,0.3465,0.48
+re1-ss,shipped,fault,loss,25,0.12,0.1413,0.4
+re1-ss,shipped,fault,mem,25,0.12,0.144,0.24
+re1-ss,shipped,root,carts,25,0.16,0.184,0.32
+re1-ss,shipped,root,catalogue,25,0.2,0.2265,0.28
+re1-ss,shipped,root,orders,25,0.12,0.144,0.44
+re1-ss,shipped,root,payment,25,0.08,0.1093,0.24
+re1-ss,shipped,root,user,25,0.24,0.2587,0.48
+re1-ss,shipped,rule fired anywhere,False,46,0.0,0.0666,0.0
+re1-ss,shipped,rule fired anywhere,True,79,0.2532,0.2532,0.557
+re1-ss,shipped,rule fired at root cause,False,46,0.0,0.0666,0.0
+re1-ss,shipped,rule fired at root cause,True,79,0.2532,0.2532,0.557
+re1-ss,shipped,all,all,125,0.16,0.1845,0.352
+re1-ss,normalised,fault,cpu,25,0.52,0.544,0.64
+re1-ss,normalised,fault,delay,25,0.12,0.1467,0.56
+re1-ss,normalised,fault,disk,25,0.56,0.5865,0.6
+re1-ss,normalised,fault,loss,25,0.24,0.2613,0.64
+re1-ss,normalised,fault,mem,25,0.44,0.464,0.6
+re1-ss,normalised,root,carts,25,0.32,0.344,0.6
+re1-ss,normalised,root,catalogue,25,0.4,0.4265,0.6
+re1-ss,normalised,root,orders,25,0.4,0.424,0.64
+re1-ss,normalised,root,payment,25,0.28,0.3093,0.52
+re1-ss,normalised,root,user,25,0.48,0.4987,0.68
+re1-ss,normalised,rule fired anywhere,False,46,0.0,0.0666,0.0
+re1-ss,normalised,rule fired anywhere,True,79,0.5949,0.5949,0.962
+re1-ss,normalised,rule fired at root cause,False,46,0.0,0.0666,0.0
+re1-ss,normalised,rule fired at root cause,True,79,0.5949,0.5949,0.962
+re1-ss,normalised,all,all,125,0.376,0.4005,0.608
+re1-ss,capped,fault,cpu,25,0.52,0.544,0.64
+re1-ss,capped,fault,delay,25,0.08,0.1067,0.56
+re1-ss,capped,fault,disk,25,0.56,0.5865,0.6
+re1-ss,capped,fault,loss,25,0.32,0.3413,0.6
+re1-ss,capped,fault,mem,25,0.48,0.504,0.6
+re1-ss,capped,root,carts,25,0.36,0.384,0.6
+re1-ss,capped,root,catalogue,25,0.48,0.5065,0.6
+re1-ss,capped,root,orders,25,0.36,0.384,0.64
+re1-ss,capped,root,payment,25,0.28,0.3093,0.48
+re1-ss,capped,root,user,25,0.48,0.4987,0.68
+re1-ss,capped,rule fired anywhere,False,46,0.0,0.0666,0.0
+re1-ss,capped,rule fired anywhere,True,79,0.6203,0.6203,0.9494
+re1-ss,capped,rule fired at root cause,False,46,0.0,0.0666,0.0
+re1-ss,capped,rule fired at root cause,True,79,0.6203,0.6203,0.9494
+re1-ss,capped,all,all,125,0.392,0.4165,0.6
+re1-ss,max,fault,cpu,25,0.36,0.5173,0.64
+re1-ss,max,fault,delay,25,0.04,0.2233,0.36
+re1-ss,max,fault,disk,25,0.52,0.5665,0.6
+re1-ss,max,fault,loss,25,0.12,0.3447,0.6
+re1-ss,max,fault,mem,25,0.32,0.4507,0.56
+re1-ss,max,root,carts,25,0.28,0.4473,0.6
+re1-ss,max,root,catalogue,25,0.4,0.5198,0.6
+re1-ss,max,root,orders,25,0.2,0.3673,0.56
+re1-ss,max,root,payment,25,0.12,0.2893,0.48
+re1-ss,max,root,user,25,0.36,0.4787,0.52
+re1-ss,max,rule fired anywhere,False,46,0.0,0.0666,0.0
+re1-ss,max,rule fired anywhere,True,79,0.4304,0.6266,0.8734
+re1-ss,max,rule fired at root cause,False,46,0.0,0.0666,0.0
+re1-ss,max,rule fired at root cause,True,79,0.4304,0.6266,0.8734
+re1-ss,max,all,all,125,0.272,0.4205,0.552
+re1-ss,callgraph_forward,fault,cpu,25,0.0,0.024,0.28
+re1-ss,callgraph_forward,fault,delay,25,0.04,0.0667,0.4
+re1-ss,callgraph_forward,fault,disk,25,0.12,0.1465,0.56
+re1-ss,callgraph_forward,fault,loss,25,0.2,0.2213,0.44
+re1-ss,callgraph_forward,fault,mem,25,0.08,0.104,0.28
+re1-ss,callgraph_forward,root,carts,25,0.0,0.024,0.64
+re1-ss,callgraph_forward,root,catalogue,25,0.0,0.0265,0.2
+re1-ss,callgraph_forward,root,orders,25,0.44,0.464,0.64
+re1-ss,callgraph_forward,root,payment,25,0.0,0.0293,0.12
+re1-ss,callgraph_forward,root,user,25,0.0,0.0187,0.36
+re1-ss,callgraph_forward,rule fired anywhere,False,46,0.0,0.0666,0.0
+re1-ss,callgraph_forward,rule fired anywhere,True,79,0.1392,0.1392,0.6203
+re1-ss,callgraph_forward,rule fired at root cause,False,46,0.0,0.0666,0.0
+re1-ss,callgraph_forward,rule fired at root cause,True,79,0.1392,0.1392,0.6203
+re1-ss,callgraph_forward,all,all,125,0.088,0.1125,0.392
+re1-ss,callgraph_reversed,fault,cpu,25,0.52,0.544,0.64
+re1-ss,callgraph_reversed,fault,delay,25,0.24,0.3467,0.56
+re1-ss,callgraph_reversed,fault,disk,25,0.52,0.5665,0.6
+re1-ss,callgraph_reversed,fault,loss,25,0.32,0.3413,0.6
+re1-ss,callgraph_reversed,fault,mem,25,0.36,0.424,0.56
+re1-ss,callgraph_reversed,root,carts,25,0.64,0.664,0.64
+re1-ss,callgraph_reversed,root,catalogue,25,0.4,0.4465,0.6
+re1-ss,callgraph_reversed,root,orders,25,0.2,0.244,0.6
+re1-ss,callgraph_reversed,root,payment,25,0.24,0.2693,0.44
+re1-ss,callgraph_reversed,root,user,25,0.48,0.5987,0.68
+re1-ss,callgraph_reversed,rule fired anywhere,False,46,0.0,0.0666,0.0
+re1-ss,callgraph_reversed,rule fired anywhere,True,79,0.6203,0.6646,0.9367
+re1-ss,callgraph_reversed,rule fired at root cause,False,46,0.0,0.0666,0.0
+re1-ss,callgraph_reversed,rule fired at root cause,True,79,0.6203,0.6646,0.9367
+re1-ss,callgraph_reversed,all,all,125,0.392,0.4445,0.592
+re1-tt,local,fault,cpu,25,0.52,0.5831,0.68
+re1-tt,local,fault,delay,25,0.16,0.2914,0.36
+re1-tt,local,fault,disk,25,0.36,0.3857,0.48
+re1-tt,local,fault,loss,25,0.16,0.3255,0.4
+re1-tt,local,fault,mem,25,0.52,0.5917,0.68
+re1-tt,local,root,ts-auth-service,25,0.56,0.6352,0.76
+re1-tt,local,root,ts-order-service,25,0.28,0.343,0.36
+re1-tt,local,root,ts-route-service,25,0.28,0.3527,0.36
+re1-tt,local,root,ts-train-service,25,0.24,0.3898,0.52
+re1-tt,local,root,ts-travel-service,25,0.36,0.4568,0.6
+re1-tt,local,rule fired anywhere,False,31,0.0,0.0156,0.0
+re1-tt,local,rule fired anywhere,True,94,0.4574,0.5739,0.6915
+re1-tt,local,rule fired at root cause,False,31,0.0,0.0156,0.0
+re1-tt,local,rule fired at root cause,True,94,0.4574,0.5739,0.6915
+re1-tt,local,all,all,125,0.344,0.4355,0.52
+re1-tt,shipped,fault,cpu,25,0.0,0.0133,0.0
+re1-tt,shipped,fault,delay,25,0.0,0.0059,0.0
+re1-tt,shipped,fault,disk,25,0.04,0.0444,0.24
+re1-tt,shipped,fault,loss,25,0.0,0.0067,0.0
+re1-tt,shipped,fault,mem,25,0.0,0.005,0.0
+re1-tt,shipped,root,ts-auth-service,25,0.0,0.004,0.04
+re1-tt,shipped,root,ts-order-service,25,0.0,0.005,0.12
+re1-tt,shipped,root,ts-route-service,25,0.0,0.0071,0.04
+re1-tt,shipped,root,ts-train-service,25,0.0,0.0031,0.0
+re1-tt,shipped,root,ts-travel-service,25,0.04,0.0561,0.04
+re1-tt,shipped,rule fired anywhere,False,31,0.0,0.0156,0.0
+re1-tt,shipped,rule fired anywhere,True,94,0.0106,0.0149,0.0638
+re1-tt,shipped,rule fired at root cause,False,31,0.0,0.0156,0.0
+re1-tt,shipped,rule fired at root cause,True,94,0.0106,0.0149,0.0638
+re1-tt,shipped,all,all,125,0.008,0.0151,0.048
+re1-tt,normalised,fault,cpu,25,0.6,0.6031,0.72
+re1-tt,normalised,fault,delay,25,0.36,0.3644,0.6
+re1-tt,normalised,fault,disk,25,0.36,0.3644,0.48
+re1-tt,normalised,fault,loss,25,0.32,0.3225,0.52
+re1-tt,normalised,fault,mem,25,0.56,0.565,0.68
+re1-tt,normalised,root,ts-auth-service,25,0.6,0.6019,0.76
+re1-tt,normalised,root,ts-order-service,25,0.36,0.365,0.44
+re1-tt,normalised,root,ts-route-service,25,0.36,0.365,0.48
+re1-tt,normalised,root,ts-train-service,25,0.4,0.4031,0.68
+re1-tt,normalised,root,ts-travel-service,25,0.48,0.4844,0.64
+re1-tt,normalised,rule fired anywhere,False,31,0.0,0.0156,0.0
+re1-tt,normalised,rule fired anywhere,True,94,0.5851,0.5851,0.7979
+re1-tt,normalised,rule fired at root cause,False,31,0.0,0.0156,0.0
+re1-tt,normalised,rule fired at root cause,True,94,0.5851,0.5851,0.7979
+re1-tt,normalised,all,all,125,0.44,0.4439,0.6
+re1-tt,capped,fault,cpu,25,0.6,0.6031,0.72
+re1-tt,capped,fault,delay,25,0.36,0.3644,0.6
+re1-tt,capped,fault,disk,25,0.4,0.4044,0.48
+re1-tt,capped,fault,loss,25,0.32,0.3225,0.56
+re1-tt,capped,fault,mem,25,0.56,0.565,0.68
+re1-tt,capped,root,ts-auth-service,25,0.64,0.6419,0.76
+re1-tt,capped,root,ts-order-service,25,0.36,0.365,0.44
+re1-tt,capped,root,ts-route-service,25,0.36,0.365,0.48
+re1-tt,capped,root,ts-train-service,25,0.4,0.4031,0.72
+re1-tt,capped,root,ts-travel-service,25,0.48,0.4844,0.64
+re1-tt,capped,rule fired anywhere,False,31,0.0,0.0156,0.0
+re1-tt,capped,rule fired anywhere,True,94,0.5957,0.5957,0.8085
+re1-tt,capped,rule fired at root cause,False,31,0.0,0.0156,0.0
+re1-tt,capped,rule fired at root cause,True,94,0.5957,0.5957,0.8085
+re1-tt,capped,all,all,125,0.448,0.4519,0.608
+re1-tt,max,fault,cpu,25,0.52,0.5831,0.68
+re1-tt,max,fault,delay,25,0.16,0.2914,0.36
+re1-tt,max,fault,disk,25,0.36,0.3857,0.48
+re1-tt,max,fault,loss,25,0.16,0.3255,0.4
+re1-tt,max,fault,mem,25,0.52,0.5917,0.68
+re1-tt,max,root,ts-auth-service,25,0.56,0.6352,0.76
+re1-tt,max,root,ts-order-service,25,0.28,0.343,0.36
+re1-tt,max,root,ts-route-service,25,0.28,0.3527,0.36
+re1-tt,max,root,ts-train-service,25,0.24,0.3898,0.52
+re1-tt,max,root,ts-travel-service,25,0.36,0.4568,0.6
+re1-tt,max,rule fired anywhere,False,31,0.0,0.0156,0.0
+re1-tt,max,rule fired anywhere,True,94,0.4574,0.5739,0.6915
+re1-tt,max,rule fired at root cause,False,31,0.0,0.0156,0.0
+re1-tt,max,rule fired at root cause,True,94,0.4574,0.5739,0.6915
+re1-tt,max,all,all,125,0.344,0.4355,0.52

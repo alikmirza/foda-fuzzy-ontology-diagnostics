@@ -1,6 +1,6 @@
 system,graph,configs,local_ac1_expected,direction,weights,guidance,operator,delta,best_ac1_expected,margin,best_ac1,local_ac1
-re1-ob,inferred,990,0.578267,forward,rownorm,none,probsum,0.001,0.596667,0.0184,0.576,0.496
-re1-ob,callgraph,990,0.578267,reversed,unit,none,probsum,0.3,0.652667,0.0744,0.592,0.496
-re1-ss,inferred,990,0.4205,reversed,rownorm,none,einstein,0.1,0.4845,0.064,0.456,0.272
-re1-ss,callgraph,990,0.4205,reversed,share,r2s,bounded,0.001,0.5005,0.08,0.464,0.272
-re1-tt,inferred,990,0.435485,forward,raw,none,probsum,0.001,0.467875,0.0324,0.464,0.344
+re1-ob,inferred,726,0.578267,forward,rownorm,none,probsum,0.001,0.596667,0.0184,0.576,0.496
+re1-ob,callgraph,726,0.578267,reversed,unit,none,probsum,0.3,0.652667,0.0744,0.592,0.496
+re1-ss,inferred,726,0.4205,reversed,raw,none,mean,0.1,0.4845,0.064,0.456,0.272
+re1-ss,callgraph,726,0.4205,reversed,share,none,bounded,0.001,0.4885,0.068,0.456,0.272
+re1-tt,inferred,726,0.435485,forward,raw,none,probsum,0.001,0.467875,0.0324,0.464,0.344
