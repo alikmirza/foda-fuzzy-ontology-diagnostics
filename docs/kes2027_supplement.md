@@ -702,6 +702,7 @@ Lower-rank measures under the pessimistic tie rule (Avg@5 is the mean of AC@1 to
 | RE1-TT | Maximum, raw | 0.344 | 0.435 | 0.520 | 0.632 | 0.466 | 0.507 | 0.598 |
 | RE1-TT | Maximum, normalised | 0.344 | 0.435 | 0.520 | 0.640 | 0.467 | 0.509 | 0.600 |
 | RE1-TT | Weighted mean | 0.408 | 0.412 | 0.592 | 0.696 | 0.524 | 0.573 | 0.584 |
+| RE1-TT | Call graph, reversed, unit, 0.3 | 0.520 | 0.536 | 0.704 | 0.728 | 0.612 | 0.661 | 0.676 |
 | RE1-OB | Largest |z| (no rules) | 0.624 | 0.624 | 0.864 | 0.928 | 0.749 | 0.814 |  |
 | RE1-OB | BARO (re-implemented) | 0.536 |  | 0.720 | 0.808 | 0.663 | 0.706 |  |
 | RE1-OB | CausalRCA (re-implemented) | 0.624 |  | 0.856 | 0.896 | 0.741 | 0.795 |  |
@@ -743,3 +744,190 @@ Avg@5 by fault type as published by the datasets' authors (Pham, Ha and Zhang, A
 | RE1-OB | Dummy | none | 0.25 | 0.24 | 0.26 | 0.26 | 0.25 | 0.252 |
 | RE1-SS | Dummy | none | 0.37 | 0.38 | 0.33 | 0.38 | 0.37 | 0.366 |
 | RE1-TT | Dummy | none | 0.07 | 0.08 | 0.06 | 0.07 | 0.07 | 0.070 |
+
+## S13. Call graphs measured from traces
+
+RCAEval's RE2 dataset has traces of Online Boutique and Train Ticket (not of Sock Shop). The call graphs are the calls between services observed in those traces (`scripts/extract_re2_call_graphs.py`): a span whose parent span belongs to another service, and for Online Boutique also a client span that names another service's RPC, since three of its services emit no spans. `calls_pre` counts spans that start before the fault injection; the experiment uses the edges with `calls_pre > 0`, each with weight 1. Traces show neither database calls nor the Train Ticket gateway. The Online Boutique graph has the same 14 service-to-service edges as the mesh-measured graph of S3, which adds cart -> redis.
+
+| system | source | cases | spans | traces | services_with_spans | services_in_graph | edges_all | edges_pre |
+|---|---|---|---|---|---|---|---|---|
+| RE1-OB | RE2-OB | 90 | 34461235 | 2114622 | 7 | 10 | 14 | 14 |
+| RE1-TT | RE2-TT | 90 | 67345051 | 573945 | 27 | 26 | 55 | 55 |
+
+| system | source | caller | callee | evidence | calls_pre | calls_all | cases_pre | cases_all |
+|---|---|---|---|---|---|---|---|---|
+| RE1-OB | RE2-OB | checkoutservice | cartservice | rpc | 60490 | 114290 | 90 | 90 |
+| RE1-OB | RE2-OB | checkoutservice | currencyservice | span+rpc | 104231 | 197064 | 90 | 90 |
+| RE1-OB | RE2-OB | checkoutservice | emailservice | span+rpc | 30247 | 57048 | 90 | 90 |
+| RE1-OB | RE2-OB | checkoutservice | paymentservice | span+rpc | 30246 | 57049 | 90 | 90 |
+| RE1-OB | RE2-OB | checkoutservice | productcatalogservice | span+rpc | 73985 | 140047 | 90 | 90 |
+| RE1-OB | RE2-OB | checkoutservice | shippingservice | rpc | 60492 | 114114 | 90 | 90 |
+| RE1-OB | RE2-OB | frontend | adservice | rpc | 482047 | 912772 | 90 | 90 |
+| RE1-OB | RE2-OB | frontend | cartservice | rpc | 752842 | 1427072 | 90 | 90 |
+| RE1-OB | RE2-OB | frontend | checkoutservice | span+rpc | 30238 | 57270 | 90 | 90 |
+| RE1-OB | RE2-OB | frontend | currencyservice | span+rpc | 2444050 | 4638551 | 90 | 90 |
+| RE1-OB | RE2-OB | frontend | productcatalogservice | span+rpc | 3919535 | 7407431 | 90 | 90 |
+| RE1-OB | RE2-OB | frontend | recommendationservice | span+rpc | 602148 | 1140694 | 90 | 90 |
+| RE1-OB | RE2-OB | frontend | shippingservice | rpc | 180293 | 341936 | 90 | 90 |
+| RE1-OB | RE2-OB | recommendationservice | productcatalogservice | span+rpc | 602166 | 1135389 | 90 | 90 |
+| RE1-TT | RE2-TT | ts-admin-basic-info-service | ts-config-service | span | 9941 | 19270 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-admin-basic-info-service | ts-price-service | span | 9944 | 19285 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-admin-travel-service | ts-travel-service | span | 9936 | 19290 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-admin-travel-service | ts-travel2-service | span | 9927 | 19279 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-basic-service | ts-price-service | span | 120807 | 233099 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-basic-service | ts-route-service | span | 120733 | 233057 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-basic-service | ts-station-service | span | 1266855 | 2446883 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-basic-service | ts-train-service | span | 120789 | 233222 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-consign-service | ts-consign-price-service | span | 6919 | 13489 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-food-service | ts-food-map-service | span | 43887 | 84699 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-food-service | ts-station-service | span | 43874 | 84684 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-food-service | ts-travel-service | span | 21956 | 42352 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-inside-payment-service | ts-order-other-service | span | 3849 | 7537 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-inside-payment-service | ts-order-service | span | 6001 | 11633 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-inside-payment-service | ts-payment-service | span | 2944 | 5722 | 78 | 79 |
+| RE1-TT | RE2-TT | ts-order-other-service | ts-station-service | span | 5368 | 10534 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-order-service | ts-station-service | span | 8450 | 16398 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-preserve-other-service | ts-assurance-service | span | 1153 | 2222 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-other-service | ts-contacts-service | span | 2365 | 4532 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-other-service | ts-food-service | span | 1179 | 2283 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-other-service | ts-order-other-service | span | 2353 | 4527 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-other-service | ts-seat-service | span | 2372 | 4552 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-other-service | ts-security-service | span | 2368 | 4535 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-other-service | ts-station-service | span | 4747 | 9102 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-other-service | ts-ticketinfo-service | span | 2368 | 4543 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-other-service | ts-travel2-service | span | 2363 | 4530 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-other-service | ts-user-service | span | 2366 | 4538 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-service | ts-assurance-service | span | 1777 | 3417 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-service | ts-contacts-service | span | 3533 | 6840 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-service | ts-food-service | span | 1799 | 3445 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-service | ts-order-service | span | 3552 | 6862 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-service | ts-seat-service | span | 3543 | 6862 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-service | ts-security-service | span | 3541 | 6862 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-service | ts-station-service | span | 7110 | 13737 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-service | ts-ticketinfo-service | span | 3550 | 6852 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-service | ts-travel-service | span | 3546 | 6860 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-preserve-service | ts-user-service | span | 3558 | 6885 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-seat-service | ts-config-service | span | 229697 | 443284 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-seat-service | ts-order-other-service | span | 142330 | 274223 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-seat-service | ts-order-service | span | 93234 | 180471 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-seat-service | ts-travel-service | span | 186569 | 361011 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-seat-service | ts-travel2-service | span | 284746 | 548407 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-security-service | ts-order-other-service | span | 5894 | 11380 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-security-service | ts-order-service | span | 5912 | 11392 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-ticketinfo-service | ts-basic-service | span | 904620 | 1747205 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-travel-service | ts-order-service | span | 44904 | 86907 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-travel-service | ts-route-service | span | 276624 | 535790 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-travel-service | ts-seat-service | span | 89728 | 173585 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-travel-service | ts-ticketinfo-service | span | 277522 | 537361 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-travel-service | ts-train-service | span | 187746 | 363636 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-travel2-service | ts-order-other-service | span | 69986 | 134842 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-travel2-service | ts-route-service | span | 555724 | 1073425 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-travel2-service | ts-seat-service | span | 139961 | 269672 | 77 | 78 |
+| RE1-TT | RE2-TT | ts-travel2-service | ts-ticketinfo-service | span | 621176 | 1198485 | 89 | 90 |
+| RE1-TT | RE2-TT | ts-travel2-service | ts-train-service | span | 261854 | 505359 | 89 | 90 |
+
+Planned comparisons with local evidence (probabilistic sum, unit weights, no guidance). The configuration fixed in advance is the reversed direction at damping 0.3, chosen across Online Boutique and Sock Shop on the graphs of S10; Train Ticket took no part in that choice. `trace_db` adds an edge from a service to its own datastore where RE1 has one as a separate node.
+
+| system | graph | direction | delta | role | n_edges | ac1_expected | ac1_expected_local | ac1_expected_diff | ac1_expected_lo | ac1_expected_hi | ac1_expected_p_holm | ac1 | ac1_local | ac3 | ac3_local | avg5_expected | avg5_expected_local |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| RE1-OB | trace | reversed | 0.300 | fixed in advance | 14 | 0.653 | 0.578 | 0.074 | 0.024 | 0.133 | 0.005 | 0.592 | 0.496 | 0.736 | 0.656 | 0.778 | 0.740 |
+| RE1-OB | trace | forward | 0.300 | counterpart | 14 | 0.447 | 0.578 | -0.131 | -0.232 | -0.030 | 0.017 | 0.424 | 0.496 | 0.632 | 0.656 | 0.673 | 0.740 |
+| RE1-OB | trace | reversed | 0.850 | counterpart | 14 | 0.537 | 0.578 | -0.042 | -0.176 | 0.081 | 0.529 | 0.488 | 0.496 | 0.672 | 0.656 | 0.716 | 0.740 |
+| RE1-OB | trace | forward | 0.850 | counterpart | 14 | 0.229 | 0.578 | -0.350 | -0.493 | -0.208 | 0.000 | 0.208 | 0.496 | 0.512 | 0.656 | 0.563 | 0.740 |
+| RE1-OB | trace_db | reversed | 0.300 | fixed in advance | 15 | 0.653 | 0.578 | 0.074 | 0.024 | 0.133 | 0.005 | 0.592 | 0.496 | 0.736 | 0.656 | 0.778 | 0.740 |
+| RE1-OB | trace_db | forward | 0.300 | counterpart | 15 | 0.447 | 0.578 | -0.131 | -0.232 | -0.030 | 0.017 | 0.424 | 0.496 | 0.640 | 0.656 | 0.674 | 0.740 |
+| RE1-OB | trace_db | reversed | 0.850 | counterpart | 15 | 0.537 | 0.578 | -0.042 | -0.176 | 0.081 | 0.529 | 0.488 | 0.496 | 0.672 | 0.656 | 0.716 | 0.740 |
+| RE1-OB | trace_db | forward | 0.850 | counterpart | 15 | 0.229 | 0.578 | -0.350 | -0.493 | -0.208 | 0.000 | 0.208 | 0.496 | 0.520 | 0.656 | 0.564 | 0.740 |
+| RE1-TT | trace | reversed | 0.300 | fixed in advance | 55 | 0.536 | 0.435 | 0.100 | 0.048 | 0.156 | 0.000 | 0.520 | 0.344 | 0.704 | 0.520 | 0.676 | 0.600 |
+| RE1-TT | trace | forward | 0.300 | counterpart | 55 | 0.280 | 0.435 | -0.156 | -0.238 | -0.075 | 0.000 | 0.264 | 0.344 | 0.432 | 0.520 | 0.449 | 0.600 |
+| RE1-TT | trace | reversed | 0.850 | counterpart | 55 | 0.292 | 0.435 | -0.144 | -0.272 | -0.017 | 0.023 | 0.288 | 0.344 | 0.496 | 0.520 | 0.465 | 0.600 |
+| RE1-TT | trace | forward | 0.850 | counterpart | 55 | 0.012 | 0.435 | -0.424 | -0.509 | -0.332 | 0.000 | 0.008 | 0.344 | 0.104 | 0.520 | 0.100 | 0.600 |
+| RE1-TT | trace_db | reversed | 0.300 | fixed in advance | 77 | 0.536 | 0.435 | 0.100 | 0.048 | 0.156 | 0.000 | 0.520 | 0.344 | 0.704 | 0.520 | 0.676 | 0.600 |
+| RE1-TT | trace_db | forward | 0.300 | counterpart | 77 | 0.280 | 0.435 | -0.156 | -0.238 | -0.074 | 0.000 | 0.264 | 0.344 | 0.440 | 0.520 | 0.453 | 0.600 |
+| RE1-TT | trace_db | reversed | 0.850 | counterpart | 77 | 0.292 | 0.435 | -0.144 | -0.272 | -0.017 | 0.023 | 0.288 | 0.344 | 0.496 | 0.520 | 0.465 | 0.600 |
+| RE1-TT | trace_db | forward | 0.850 | counterpart | 77 | 0.012 | 0.435 | -0.424 | -0.509 | -0.332 | 0.000 | 0.008 | 0.344 | 0.120 | 0.520 | 0.101 | 0.600 |
+
+Expected AC@1 by direction, weights and damping on the trace graphs (descriptive):
+
+| system | direction | weights | 0.001 | 0.1 | 0.2 | 0.3 | 0.4 | 0.5 | 0.65 | 0.75 | 0.85 | 0.95 | 1.0 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| RE1-OB | forward | equal | 0.539 | 0.539 | 0.539 | 0.539 | 0.539 | 0.539 | 0.463 | 0.463 | 0.447 | 0.431 | 0.411 |
+| RE1-OB | forward | share | 0.539 | 0.539 | 0.539 | 0.539 | 0.539 | 0.523 | 0.463 | 0.463 | 0.447 | 0.423 | 0.403 |
+| RE1-OB | forward | unit | 0.547 | 0.507 | 0.487 | 0.447 | 0.429 | 0.397 | 0.349 | 0.277 | 0.229 | 0.181 | 0.053 |
+| RE1-OB | reversed | equal | 0.553 | 0.553 | 0.553 | 0.545 | 0.545 | 0.553 | 0.537 | 0.509 | 0.449 | 0.365 | 0.293 |
+| RE1-OB | reversed | share | 0.557 | 0.557 | 0.549 | 0.549 | 0.549 | 0.557 | 0.541 | 0.517 | 0.461 | 0.385 | 0.297 |
+| RE1-OB | reversed | unit | 0.621 | 0.621 | 0.629 | 0.653 | 0.645 | 0.617 | 0.561 | 0.561 | 0.537 | 0.449 | 0.399 |
+| RE1-TT | forward | equal | 0.376 | 0.368 | 0.368 | 0.368 | 0.368 | 0.368 | 0.352 | 0.344 | 0.288 | 0.280 | 0.264 |
+| RE1-TT | forward | share | 0.384 | 0.376 | 0.376 | 0.368 | 0.368 | 0.368 | 0.352 | 0.336 | 0.296 | 0.280 | 0.264 |
+| RE1-TT | forward | unit | 0.400 | 0.392 | 0.360 | 0.280 | 0.176 | 0.108 | 0.028 | 0.012 | 0.012 | 0.012 | 0.019 |
+| RE1-TT | reversed | equal | 0.500 | 0.516 | 0.508 | 0.516 | 0.508 | 0.508 | 0.508 | 0.516 | 0.524 | 0.476 | 0.444 |
+| RE1-TT | reversed | share | 0.492 | 0.484 | 0.468 | 0.468 | 0.468 | 0.460 | 0.460 | 0.452 | 0.452 | 0.388 | 0.300 |
+| RE1-TT | reversed | unit | 0.504 | 0.504 | 0.504 | 0.536 | 0.528 | 0.484 | 0.388 | 0.340 | 0.292 | 0.196 | 0.058 |
+
+By injected fault type, reversed direction at damping 0.3:
+
+| system | fault | cases | ac1_expected_local | ac1_expected |
+|---|---|---|---|---|
+| RE1-OB | cpu | 25 | 0.980 | 0.980 |
+| RE1-OB | delay | 25 | 0.253 | 0.440 |
+| RE1-OB | disk | 25 | 0.573 | 0.623 |
+| RE1-OB | loss | 25 | 0.198 | 0.280 |
+| RE1-OB | mem | 25 | 0.887 | 0.940 |
+| RE1-TT | cpu | 25 | 0.583 | 0.683 |
+| RE1-TT | delay | 25 | 0.291 | 0.384 |
+| RE1-TT | disk | 25 | 0.386 | 0.484 |
+| RE1-TT | loss | 25 | 0.326 | 0.443 |
+| RE1-TT | mem | 25 | 0.592 | 0.685 |
+
+Order within the top non-zero tie block of local evidence, against chance:
+
+| system | direction | delta | tied_cases | p_first | chance | gain | gain_lo | gain_hi | p |
+|---|---|---|---|---|---|---|---|---|---|
+| RE1-OB | reversed | 0.300 | 21 | 0.619 | 0.367 | 0.252 | 0.082 | 0.442 | 0.003 |
+| RE1-OB | forward | 0.300 | 21 | 0.182 | 0.367 | -0.184 | -0.310 | -0.004 | 0.048 |
+| RE1-OB | reversed | 0.850 | 21 | 0.619 | 0.367 | 0.252 | 0.082 | 0.442 | 0.003 |
+| RE1-OB | forward | 0.850 | 21 | 0.182 | 0.367 | -0.184 | -0.310 | -0.004 | 0.048 |
+| RE1-TT | reversed | 0.300 | 32 | 0.609 | 0.342 | 0.267 | 0.124 | 0.423 | 0.000 |
+| RE1-TT | forward | 0.300 | 32 | 0.203 | 0.342 | -0.139 | -0.275 | 0.034 | 0.104 |
+| RE1-TT | reversed | 0.850 | 32 | 0.578 | 0.342 | 0.236 | 0.090 | 0.385 | 0.001 |
+| RE1-TT | forward | 0.850 | 32 | 0.172 | 0.342 | -0.170 | -0.301 | -0.006 | 0.045 |
+
+Controls for a prior on much-called services (`scripts/tracegraph_controls.py`; Sock Shop on its documented graph). `degree_prior`: every caller's evidence replaced by the case's mean; `degree_tiebreak`: local evidence with ties broken by the number of callers; `permuted`: callers' evidence drawn from a random relabelling of the services (200 permutations). `one_step` is the update without iteration.
+
+| quantity | RE1-OB | RE1-SS | RE1-TT |
+|---|---|---|---|
+| root_callers_mean | 1.800 | 1.400 | 3.000 |
+| local | 0.578 | 0.420 | 0.435 |
+| propagated | 0.653 | 0.445 | 0.536 |
+| one_step | 0.653 | 0.449 | 0.544 |
+| degree_prior | 0.637 | 0.449 | 0.452 |
+| degree_tiebreak | 0.656 | 0.467 | 0.460 |
+| permuted | 0.633 | 0.441 | 0.464 |
+| propagated_minus_local | 0.074 | 0.024 | 0.100 |
+| propagated_minus_local_lo | 0.024 | -0.043 | 0.048 |
+| propagated_minus_local_hi | 0.133 | 0.093 | 0.156 |
+| propagated_minus_local_p | 0.002 | 0.497 | 0.000 |
+| degree_prior_minus_local | 0.058 | 0.028 | 0.016 |
+| degree_prior_minus_local_lo | 0.028 | -0.037 | -0.035 |
+| degree_prior_minus_local_hi | 0.091 | 0.097 | 0.069 |
+| degree_prior_minus_local_p | 0.000 | 0.424 | 0.533 |
+| degree_tiebreak_minus_local | 0.078 | 0.046 | 0.025 |
+| degree_tiebreak_minus_local_lo | 0.019 | -0.034 | -0.019 |
+| degree_tiebreak_minus_local_hi | 0.150 | 0.132 | 0.072 |
+| degree_tiebreak_minus_local_p | 0.005 | 0.278 | 0.294 |
+| permuted_minus_local | 0.055 | 0.020 | 0.029 |
+| permuted_minus_local_lo | 0.029 | -0.024 | 0.000 |
+| permuted_minus_local_hi | 0.083 | 0.067 | 0.058 |
+| permuted_minus_local_p | 0.000 | 0.402 | 0.048 |
+| propagated_minus_degree_prior | 0.016 | -0.004 | 0.084 |
+| propagated_minus_degree_prior_lo | -0.012 | -0.016 | 0.032 |
+| propagated_minus_degree_prior_hi | 0.048 | 0.008 | 0.144 |
+| propagated_minus_degree_prior_p | 0.355 | 0.786 | 0.000 |
+| propagated_minus_degree_tiebreak | -0.003 | -0.022 | 0.076 |
+| propagated_minus_degree_tiebreak_lo | -0.045 | -0.050 | 0.029 |
+| propagated_minus_degree_tiebreak_hi | 0.034 | 0.006 | 0.128 |
+| propagated_minus_degree_tiebreak_p | 0.906 | 0.120 | 0.001 |
+| propagated_minus_permuted | 0.019 | 0.004 | 0.072 |
+| propagated_minus_permuted_lo | -0.010 | -0.023 | 0.029 |
+| propagated_minus_permuted_hi | 0.054 | 0.030 | 0.117 |
+| propagated_minus_permuted_p | 0.232 | 0.764 | 0.001 |

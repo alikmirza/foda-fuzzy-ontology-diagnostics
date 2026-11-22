@@ -72,6 +72,10 @@ def from_rank(rank: pd.Series) -> dict:
 
 def main() -> int:
     df = pd.read_csv(RESULTS / "direction_variants_per_case.csv.gz")
+    # Train Ticket's call graph is the trace-measured one (scripts/run_tracegraph_variants.py)
+    trace = pd.read_csv(RESULTS / "tracegraph_variants_per_case.csv.gz")
+    trace = trace[(trace.system == "re1-tt") & (trace.graph == "trace")].assign(graph="callgraph")
+    df = pd.concat([df, trace], ignore_index=True)
     rows = []
     for system in SYSTEMS:
         for label, graph, direction, weights, guidance, operator, delta in CONFIGS:
@@ -82,7 +86,7 @@ def main() -> int:
             else:
                 c = c.drop_duplicates("case_id")
             if c.empty:
-                continue                                   # no call graph for RE1-TT
+                continue
             assert len(c) == 125, (system, label, len(c))
             e = {k: ((k - c.n_above) / c.gt_block).clip(0, 1).mean() for k in range(1, 6)}
             rows.append({"system": system, "method": label, **from_rank(c["rank"]),

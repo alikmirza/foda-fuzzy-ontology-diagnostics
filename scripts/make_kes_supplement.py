@@ -172,6 +172,44 @@ def main() -> int:
             "These runs are not under this paper's contract, which withholds the injection time, and their "
             "tie handling is not stated.", "", md(pb), ""]
 
+    ed = pd.read_csv(RESULTS / "re2_call_graph_edges.csv"); ed["system"] = ed["system"].map(SYSTEM)
+    cov = pd.read_csv(RESULTS / "re2_call_graph_coverage.csv"); cov["system"] = cov["system"].map(SYSTEM)
+    tt = pd.read_csv(RESULTS / "tracegraph_tests.csv"); tt["system"] = tt["system"].map(SYSTEM)
+    tg = pd.read_csv(RESULTS / "tracegraph_grid.csv"); tg["system"] = tg["system"].map(SYSTEM)
+    tf = pd.read_csv(RESULTS / "tracegraph_by_fault.csv"); tf["system"] = tf["system"].map(SYSTEM)
+    to = pd.read_csv(RESULTS / "tracegraph_tie_order.csv"); to["system"] = to["system"].map(SYSTEM)
+    tc = pd.read_csv(RESULTS / "tracegraph_controls.csv"); tc["system"] = tc["system"].map(SYSTEM)
+    out += ["## S13. Call graphs measured from traces", "",
+            "RCAEval's RE2 dataset has traces of Online Boutique and Train Ticket (not of Sock Shop). The call "
+            "graphs are the calls between services observed in those traces (`scripts/extract_re2_call_graphs.py`): "
+            "a span whose parent span belongs to another service, and for Online Boutique also a client span that "
+            "names another service's RPC, since three of its services emit no spans. `calls_pre` counts spans that "
+            "start before the fault injection; the experiment uses the edges with `calls_pre > 0`, each with weight "
+            "1. Traces show neither database calls nor the Train Ticket gateway. The Online Boutique graph has the "
+            "same 14 service-to-service edges as the mesh-measured graph of S3, which adds cart -> redis.", "",
+            md(cov, digits=0), "", md(ed, digits=0), "",
+            "Planned comparisons with local evidence (probabilistic sum, unit weights, no guidance). The "
+            "configuration fixed in advance is the reversed direction at damping 0.3, chosen across Online Boutique "
+            "and Sock Shop on the graphs of S10; Train Ticket took no part in that choice. `trace_db` adds an edge "
+            "from a service to its own datastore where RE1 has one as a separate node.", "",
+            md(tt[["system", "graph", "direction", "delta", "role", "n_edges", "ac1_expected", "ac1_expected_local",
+                   "ac1_expected_diff", "ac1_expected_lo", "ac1_expected_hi", "ac1_expected_p_holm", "ac1",
+                   "ac1_local", "ac3", "ac3_local", "avg5_expected", "avg5_expected_local"]]), "",
+            "Expected AC@1 by direction, weights and damping on the trace graphs (descriptive):", "",
+            md(tg[tg.graph == "trace"].pivot_table(index=["system", "direction", "weights"], columns="delta",
+                                                   values="ac1_expected", sort=False).reset_index()), "",
+            "By injected fault type, reversed direction at damping 0.3:", "",
+            md(tf[(tf.graph == "trace") & (tf.direction == "reversed") & (tf.delta == 0.3)]
+               .drop(columns=["graph", "direction", "delta"])), "",
+            "Order within the top non-zero tie block of local evidence, against chance:", "",
+            md(to[to.graph == "trace"].drop(columns=["graph"])), "",
+            "Controls for a prior on much-called services (`scripts/tracegraph_controls.py`; Sock Shop on its "
+            "documented graph). `degree_prior`: every caller's evidence replaced by the case's mean; "
+            "`degree_tiebreak`: local evidence with ties broken by the number of callers; `permuted`: callers' "
+            "evidence drawn from a random relabelling of the services (200 permutations). `one_step` is the update "
+            "without iteration.", "",
+            md(tc.set_index("system").T.reset_index().rename(columns={"index": "quantity"})), ""]
+
     dst = ROOT / "docs" / "kes2027_supplement.md"
     dst.parent.mkdir(exist_ok=True)
     dst.write_text("\n".join(out))
