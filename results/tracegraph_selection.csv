@@ -1,0 +1,5 @@
+graph,held_out,selected_on,direction,weights,delta,ac1_expected,ac1_expected_local,diff,lo,hi,p
+trace,re1-ob,re1-tt,reversed,unit,0.3,0.6527,0.5783,0.0744,0.0244,0.1327,0.0016
+trace,re1-tt,re1-ob,reversed,unit,0.3,0.5359,0.4355,0.1004,0.0478,0.1556,0.0
+trace_db,re1-ob,re1-tt,reversed,unit,0.3,0.6527,0.5783,0.0744,0.0244,0.1327,0.0016
+trace_db,re1-tt,re1-ob,reversed,unit,0.3,0.5359,0.4355,0.1004,0.0478,0.1556,0.0
