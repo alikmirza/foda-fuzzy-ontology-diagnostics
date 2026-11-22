@@ -250,8 +250,8 @@ saturates and the loss is displacement by unsaturated services (44 and 59
 cases). Within non-zero tie blocks of H, propagated scores on the inferred graph
 put the ground truth first no more often than chance; on the Online Boutique
 call graph in the reversed direction they do (0.62 against 0.37). The fault type
-an explanation names matches the injected fault in 6-10 % of cases (9-17 % on
-CPU, memory and delay faults) for every variant. 129 of 454,125 runs stopped at
+an explanation names matches the injected fault in 6-11 % of cases (9-19 % on
+CPU, memory and delay faults) across the variants. 129 of 454,125 runs stopped at
 the cap of 100 rounds, none in the evaluated configuration. As a ranker of which
 services saturate the necessary bound has AUC 0.999 on RE1-TT at delta = 0.85
 against 0.995 for the weight sum and 0.979 for the out-degree; as a yes/no rule
