@@ -34,6 +34,7 @@ block; see DEVIATIONS.md § AC@1 tie-handling convention).
 | results/saturation_bounds_per_case.csv, results/saturation_bounds_summary.csv, results/saturation_critical_delta.csv (3) | 785f042 (2026-11-02, `scripts/saturation_bounds.py`) | n/a — saturation counts | none — deterministic | canonical; analytical saturation bracket, asserted to contain the observed saturation on every case and δ |
 | results/explanation_faithfulness_per_case.csv, results/explanation_faithfulness_summary.csv (2) | ec5ce89 (2026-11-02, `scripts/explanation_faithfulness.py`) | n/a — attribution shares, not a ranking score | none — deterministic | canonical; exact log-complement decomposition of the top service's confidence into own rules and callees, against what the explanation names |
 | results/rule_learning_{dataset.csv.gz,per_case.csv,summary.csv,tests.csv,rule_counts.csv,trees.txt,baseline_agreement.csv} (7) | a4f3d5a (2026-11-15, `scripts/learn_rules_experiment.py`) | pessimistic AC@1 and expected AC@1 (random tie-breaking) | scikit-learn random_state 0; deterministic | exploratory, for a third paper: expert crisp / expert fuzzy / learned tree / learned forest rule bases under leave-one-system-out and two within-system protocols; expert_fuzzy asserted equal to the committed local-evidence results |
+| results/direction_variants_per_case.csv.gz, results/direction_variants_summary.csv, results/direction_variants_{tests,best,callgraph_selection}.csv (5) | the commit that adds `scripts/run_direction_variants.py` (2026-11-22) | expected AC@1 (random tie-breaking) and pessimistic AC@1, pessimistic rank recorded | cluster bootstrap seed 42, n=10,000; otherwise deterministic | canonical for the KES revision: direction of propagation on the inferred graph and on the Online Boutique and Sock Shop call graphs; the forward inferred configuration is asserted equal to the committed propagation variants |
 | paper/artifacts/bootstrap_ac1_cis.md | d485957 (resume chain, 2026-08-10) | pessimistic (consumes week2 CSVs) | bootstrap seed 42, n=10,000 | canonical (verified PASS 2026-08-10) |
 
 ## Regeneration note — δ sweep, 2026-08-22
@@ -208,3 +209,23 @@ ever root causes and they are the ones with latency telemetry (92-94 % against
 the re-implemented CausalRCA (99-100 %), MicroRCA (97-98 %) and MonitorRank
 (93-96 %) — those three adapters behave as "most anomalous service" rankers on
 this data, and that ranking rests on unbounded z-scores.
+
+## Analysis note — direction of propagation and real call graphs, 2026-11-22
+
+Requested in review of the KES draft. In the evaluated code a service absorbs
+support from the services whose anomaly follows its own (inferred lead-lag
+graph); the papers call these "callees", which on a call graph is the opposite
+direction. `scripts/run_direction_variants.py` runs both directions on the
+inferred graph and on two real call graphs (Online Boutique as measured by Istio
+in the product demo; Sock Shop's published architecture — neither measured on the
+RCAEval testbed; Train Ticket has none), with three weightings and both readings
+of ontology guidance. Tests resample the 25 fault scenarios, not the 125 cases.
+Findings: on the inferred graph neither direction beats local evidence at
+delta = 0.85 on any system; on the call graphs the papers' direction (caller
+absorbs from callees) is worse than local evidence, while the reverse (callee
+absorbs from callers) with unit weights and light damping is better: selected on
+one application and scored on the other (delta = 0.3 both ways), expected AC@1
+0.653 against 0.578 on RE1-OB (+0.074, 95 % CI 0.024 to 0.133) and 0.445 against
+0.421 on RE1-SS (+0.024, CI -0.043 to 0.093); the gain is on delay faults.
+Maximum composition equals local evidence for every delta < 1. 27 of 619,125
+runs stopped at the cap of 100 rounds, none in the evaluated configuration.

@@ -1,0 +1,3 @@
+held_out,selected_on,direction,weights,delta,ac1,ac1_local,ac1_diff,ac1_lo,ac1_hi,ac1_p,ac1_expected,ac1_expected_local,ac1_expected_diff,ac1_expected_lo,ac1_expected_hi,ac1_expected_p,ac3,ac3_local,ac3_diff,ac3_lo,ac3_hi,ac3_p
+re1-ob,re1-ss,reversed,unit,0.3,0.592,0.496,0.096,0.04,0.16,0.0002,0.6527,0.5783,0.0744,0.0244,0.1327,0.0016,0.736,0.656,0.08,0.024,0.144,0.002
+re1-ss,re1-ob,reversed,unit,0.3,0.392,0.272,0.12,0.048,0.2,0.0,0.4445,0.4205,0.024,-0.0427,0.0933,0.4968,0.592,0.544,0.048,0.0,0.12,0.0896
