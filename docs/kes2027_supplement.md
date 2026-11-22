@@ -674,3 +674,72 @@ Re-implementations under the same contract (injection time withheld); they are n
 | RE1-TT | MonitorRank (re-implemented) | 0.480 |  | 0.600 | 0.680 | 0.577 | 0.136 | 0.000 | 0.280 |
 | RE1-TT | yRCA (re-implemented) | 0.104 |  | 0.272 | 0.456 | 0.250 | -0.240 | -0.336 | -0.144 |
 | RE1-TT | DejaVu (supervised) (re-implemented) | 0.744 |  | 0.936 | 0.984 | 0.844 | 0.400 | 0.304 | 0.488 |
+
+Lower-rank measures under the pessimistic tie rule (Avg@5 is the mean of AC@1 to AC@5), with the expected values under random tie-breaking where the tie block is recorded (`scripts/kes_lower_ranks.py`):
+
+| system | method | ac1 | ac1_expected | ac3 | ac5 | mrr | avg5 | avg5_expected |
+|---|---|---|---|---|---|---|---|---|
+| RE1-OB | Local evidence only | 0.496 | 0.578 | 0.656 | 0.720 | 0.605 | 0.632 | 0.740 |
+| RE1-OB | Probabilistic sum, raw (evaluated) | 0.400 | 0.421 | 0.568 | 0.648 | 0.525 | 0.544 | 0.607 |
+| RE1-OB | Probabilistic sum, normalised | 0.496 | 0.517 | 0.656 | 0.736 | 0.605 | 0.632 | 0.696 |
+| RE1-OB | Probabilistic sum, capped | 0.512 | 0.533 | 0.672 | 0.744 | 0.621 | 0.650 | 0.713 |
+| RE1-OB | Maximum, raw | 0.496 | 0.578 | 0.656 | 0.720 | 0.605 | 0.632 | 0.740 |
+| RE1-OB | Maximum, normalised | 0.496 | 0.578 | 0.656 | 0.720 | 0.605 | 0.632 | 0.740 |
+| RE1-OB | Weighted mean | 0.504 | 0.525 | 0.640 | 0.712 | 0.606 | 0.622 | 0.686 |
+| RE1-OB | Call graph, reversed, unit, 0.3 | 0.592 | 0.653 | 0.736 | 0.752 | 0.683 | 0.706 | 0.778 |
+| RE1-SS | Local evidence only | 0.272 | 0.420 | 0.544 | 0.616 | 0.435 | 0.496 | 0.622 |
+| RE1-SS | Probabilistic sum, raw (evaluated) | 0.160 | 0.184 | 0.352 | 0.488 | 0.312 | 0.334 | 0.408 |
+| RE1-SS | Probabilistic sum, normalised | 0.376 | 0.401 | 0.608 | 0.624 | 0.506 | 0.550 | 0.624 |
+| RE1-SS | Probabilistic sum, capped | 0.392 | 0.416 | 0.600 | 0.624 | 0.514 | 0.550 | 0.624 |
+| RE1-SS | Maximum, raw | 0.272 | 0.420 | 0.544 | 0.616 | 0.435 | 0.496 | 0.622 |
+| RE1-SS | Maximum, normalised | 0.272 | 0.420 | 0.552 | 0.624 | 0.437 | 0.501 | 0.627 |
+| RE1-SS | Weighted mean | 0.352 | 0.377 | 0.600 | 0.616 | 0.485 | 0.531 | 0.605 |
+| RE1-SS | Call graph, reversed, unit, 0.3 | 0.392 | 0.445 | 0.592 | 0.616 | 0.522 | 0.558 | 0.637 |
+| RE1-TT | Local evidence only | 0.344 | 0.435 | 0.520 | 0.640 | 0.467 | 0.509 | 0.600 |
+| RE1-TT | Probabilistic sum, raw (evaluated) | 0.008 | 0.015 | 0.048 | 0.080 | 0.066 | 0.042 | 0.061 |
+| RE1-TT | Probabilistic sum, normalised | 0.440 | 0.444 | 0.600 | 0.720 | 0.544 | 0.590 | 0.602 |
+| RE1-TT | Probabilistic sum, capped | 0.448 | 0.452 | 0.608 | 0.720 | 0.549 | 0.594 | 0.605 |
+| RE1-TT | Maximum, raw | 0.344 | 0.435 | 0.520 | 0.632 | 0.466 | 0.507 | 0.598 |
+| RE1-TT | Maximum, normalised | 0.344 | 0.435 | 0.520 | 0.640 | 0.467 | 0.509 | 0.600 |
+| RE1-TT | Weighted mean | 0.408 | 0.412 | 0.592 | 0.696 | 0.524 | 0.573 | 0.584 |
+| RE1-OB | Largest |z| (no rules) | 0.624 | 0.624 | 0.864 | 0.928 | 0.749 | 0.814 |  |
+| RE1-OB | BARO (re-implemented) | 0.536 |  | 0.720 | 0.808 | 0.663 | 0.706 |  |
+| RE1-OB | CausalRCA (re-implemented) | 0.624 |  | 0.856 | 0.896 | 0.741 | 0.795 |  |
+| RE1-OB | MicroRCA (re-implemented) | 0.624 |  | 0.776 | 0.848 | 0.724 | 0.757 |  |
+| RE1-OB | MonitorRank (re-implemented) | 0.632 |  | 0.768 | 0.848 | 0.732 | 0.760 |  |
+| RE1-SS | Largest |z| (no rules) | 0.648 | 0.648 | 0.856 | 0.880 | 0.766 | 0.816 |  |
+| RE1-SS | BARO (re-implemented) | 0.584 |  | 0.728 | 0.840 | 0.695 | 0.728 |  |
+| RE1-SS | CausalRCA (re-implemented) | 0.656 |  | 0.832 | 0.888 | 0.763 | 0.806 |  |
+| RE1-SS | MicroRCA (re-implemented) | 0.648 |  | 0.784 | 0.824 | 0.741 | 0.762 |  |
+| RE1-SS | MonitorRank (re-implemented) | 0.656 |  | 0.832 | 0.912 | 0.763 | 0.805 |  |
+| RE1-TT | Largest |z| (no rules) | 0.472 | 0.472 | 0.696 | 0.776 | 0.607 | 0.656 |  |
+| RE1-TT | BARO (re-implemented) | 0.392 |  | 0.576 | 0.704 | 0.524 | 0.565 |  |
+| RE1-TT | CausalRCA (re-implemented) | 0.472 |  | 0.664 | 0.744 | 0.595 | 0.627 |  |
+| RE1-TT | MicroRCA (re-implemented) | 0.456 |  | 0.656 | 0.744 | 0.581 | 0.627 |  |
+| RE1-TT | MonitorRank (re-implemented) | 0.480 |  | 0.600 | 0.680 | 0.577 | 0.592 |  |
+
+Avg@5 by fault type as published by the datasets' authors (Pham, Ha and Zhang, ASE 2024, Table 5, read from arXiv:2408.13729v2), with the mean over the five fault types. `failure_time`: `t0` the method is given the exact failure time, `t60` that time plus 60 s, `none` the method takes no time. These runs are not under this paper's contract, which withholds the injection time, and their tie handling is not stated.
+
+| system | method | failure_time | cpu | mem | disk | delay | loss | mean_avg5 |
+|---|---|---|---|---|---|---|---|---|
+| RE1-OB | BARO | t0 | 0.97 | 1.00 | 0.91 | 0.98 | 0.67 | 0.906 |
+| RE1-SS | BARO | t0 | 1.00 | 0.98 | 0.94 | 0.98 | 0.87 | 0.954 |
+| RE1-TT | BARO | t0 | 0.90 | 0.96 | 0.84 | 0.77 | 0.66 | 0.826 |
+| RE1-OB | BARO | t60 | 0.94 | 0.99 | 0.87 | 0.99 | 0.60 | 0.878 |
+| RE1-SS | BARO | t60 | 0.99 | 0.98 | 0.94 | 1.00 | 0.88 | 0.958 |
+| RE1-TT | BARO | t60 | 0.81 | 0.99 | 0.77 | 0.82 | 0.72 | 0.822 |
+| RE1-OB | NSigma | t0 | 0.94 | 1.00 | 0.90 | 0.98 | 0.67 | 0.898 |
+| RE1-SS | NSigma | t0 | 0.98 | 0.98 | 0.94 | 0.98 | 0.90 | 0.956 |
+| RE1-TT | NSigma | t0 | 0.81 | 0.96 | 0.85 | 0.61 | 0.70 | 0.786 |
+| RE1-OB | CIRCA | t0 | 0.94 | 0.97 | 0.70 | 0.92 | 0.55 | 0.816 |
+| RE1-SS | CIRCA | t0 | 0.97 | 0.98 | 0.92 | 0.98 | 0.88 | 0.946 |
+| RE1-TT | CIRCA | t0 | 0.66 | 0.93 | 0.64 | 0.64 | 0.57 | 0.688 |
+| RE1-OB | RCD | t0 | 0.91 | 0.74 | 0.67 | 0.38 | 0.47 | 0.634 |
+| RE1-SS | RCD | t0 | 0.62 | 0.46 | 0.62 | 0.48 | 0.37 | 0.510 |
+| RE1-TT | RCD | t0 | 0.08 | 0.01 | 0.31 | 0.09 | 0.12 | 0.122 |
+| RE1-OB | CausalRCA | none | 0.97 | 0.98 | 0.71 | 0.92 | 0.52 | 0.820 |
+| RE1-SS | CausalRCA | none | 0.49 | 0.82 | 0.74 | 0.61 | 0.47 | 0.626 |
+| RE1-TT | CausalRCA | none | 0.53 | 0.30 | 0.13 | 0.17 | 0.11 | 0.248 |
+| RE1-OB | Dummy | none | 0.25 | 0.24 | 0.26 | 0.26 | 0.25 | 0.252 |
+| RE1-SS | Dummy | none | 0.37 | 0.38 | 0.33 | 0.38 | 0.37 | 0.366 |
+| RE1-TT | Dummy | none | 0.07 | 0.08 | 0.06 | 0.07 | 0.07 | 0.070 |

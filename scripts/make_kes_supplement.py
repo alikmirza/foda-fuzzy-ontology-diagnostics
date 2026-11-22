@@ -159,6 +159,19 @@ def main() -> int:
             "Re-implementations under the same contract (injection time withheld); they are not the published "
             "figures. `ac1_diff_vs_local` compares pessimistic AC@1 with FCP's local evidence.", "", md(bl), ""]
 
+    lr = pd.read_csv(RESULTS / "kes_lower_ranks.csv"); lr["system"] = lr["system"].map(SYSTEM)
+    pb = pd.read_csv(RESULTS / "kes_published_baselines.csv"); pb["system"] = pb["system"].map(SYSTEM)
+    for c in ("cpu", "mem", "disk", "delay", "loss"):
+        pb[c] = pb[c].map("{:.2f}".format)
+    out += ["Lower-rank measures under the pessimistic tie rule (Avg@5 is the mean of AC@1 to AC@5), with the "
+            "expected values under random tie-breaking where the tie block is recorded "
+            "(`scripts/kes_lower_ranks.py`):", "", md(lr), "",
+            "Avg@5 by fault type as published by the datasets' authors (Pham, Ha and Zhang, ASE 2024, Table 5, "
+            "read from arXiv:2408.13729v2), with the mean over the five fault types. `failure_time`: `t0` the "
+            "method is given the exact failure time, `t60` that time plus 60 s, `none` the method takes no time. "
+            "These runs are not under this paper's contract, which withholds the injection time, and their "
+            "tie handling is not stated.", "", md(pb), ""]
+
     dst = ROOT / "docs" / "kes2027_supplement.md"
     dst.parent.mkdir(exist_ok=True)
     dst.write_text("\n".join(out))

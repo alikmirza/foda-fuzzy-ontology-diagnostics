@@ -1,0 +1,39 @@
+system,method,ac1,ac1_expected,ac3,ac5,mrr,avg5,avg5_expected
+re1-ob,Local evidence only,0.496,0.5783,0.656,0.72,0.6049,0.632,0.7403
+re1-ob,"Probabilistic sum, raw (evaluated)",0.4,0.4207,0.568,0.648,0.525,0.544,0.6065
+re1-ob,"Probabilistic sum, normalised",0.496,0.5167,0.656,0.736,0.6049,0.632,0.6956
+re1-ob,"Probabilistic sum, capped",0.512,0.5327,0.672,0.744,0.6207,0.6496,0.7132
+re1-ob,"Maximum, raw",0.496,0.5783,0.656,0.72,0.6049,0.632,0.7403
+re1-ob,"Maximum, normalised",0.496,0.5783,0.656,0.72,0.6049,0.632,0.7403
+re1-ob,Weighted mean,0.504,0.5247,0.64,0.712,0.6057,0.6224,0.686
+re1-ob,"Call graph, reversed, unit, 0.3",0.592,0.6527,0.736,0.752,0.6829,0.7056,0.778
+re1-ss,Local evidence only,0.272,0.4205,0.544,0.616,0.4347,0.496,0.6223
+re1-ss,"Probabilistic sum, raw (evaluated)",0.16,0.1845,0.352,0.488,0.3123,0.3344,0.4079
+re1-ss,"Probabilistic sum, normalised",0.376,0.4005,0.608,0.624,0.5064,0.5504,0.6239
+re1-ss,"Probabilistic sum, capped",0.392,0.4165,0.6,0.624,0.5144,0.5504,0.6239
+re1-ss,"Maximum, raw",0.272,0.4205,0.544,0.616,0.4352,0.496,0.6223
+re1-ss,"Maximum, normalised",0.272,0.4205,0.552,0.624,0.4369,0.5008,0.6271
+re1-ss,Weighted mean,0.352,0.3765,0.6,0.616,0.4852,0.5312,0.6047
+re1-ss,"Call graph, reversed, unit, 0.3",0.392,0.4445,0.592,0.616,0.5216,0.5584,0.6375
+re1-tt,Local evidence only,0.344,0.4355,0.52,0.64,0.4668,0.5088,0.5995
+re1-tt,"Probabilistic sum, raw (evaluated)",0.008,0.0151,0.048,0.08,0.0663,0.0416,0.0612
+re1-tt,"Probabilistic sum, normalised",0.44,0.4439,0.6,0.72,0.5444,0.5904,0.602
+re1-tt,"Probabilistic sum, capped",0.448,0.4519,0.608,0.72,0.5491,0.5936,0.6052
+re1-tt,"Maximum, raw",0.344,0.4355,0.52,0.632,0.4658,0.5072,0.5979
+re1-tt,"Maximum, normalised",0.344,0.4355,0.52,0.64,0.4668,0.5088,0.5995
+re1-tt,Weighted mean,0.408,0.4119,0.592,0.696,0.5245,0.5728,0.5844
+re1-ob,Largest |z| (no rules),0.624,0.624,0.864,0.928,0.749,0.8144,
+re1-ob,BARO (re-implemented),0.536,,0.72,0.808,0.6634,0.7056,
+re1-ob,CausalRCA (re-implemented),0.624,,0.856,0.896,0.7407,0.7952,
+re1-ob,MicroRCA (re-implemented),0.624,,0.776,0.848,0.7238,0.7568,
+re1-ob,MonitorRank (re-implemented),0.632,,0.768,0.848,0.7322,0.76,
+re1-ss,Largest |z| (no rules),0.648,0.648,0.856,0.88,0.7657,0.816,
+re1-ss,BARO (re-implemented),0.584,,0.728,0.84,0.6945,0.728,
+re1-ss,CausalRCA (re-implemented),0.656,,0.832,0.888,0.7634,0.8064,
+re1-ss,MicroRCA (re-implemented),0.648,,0.784,0.824,0.7405,0.7616,
+re1-ss,MonitorRank (re-implemented),0.656,,0.832,0.912,0.7626,0.8048,
+re1-tt,Largest |z| (no rules),0.472,0.472,0.696,0.776,0.6067,0.656,
+re1-tt,BARO (re-implemented),0.392,,0.576,0.704,0.5237,0.5648,
+re1-tt,CausalRCA (re-implemented),0.472,,0.664,0.744,0.5945,0.6272,
+re1-tt,MicroRCA (re-implemented),0.456,,0.656,0.744,0.5814,0.6272,
+re1-tt,MonitorRank (re-implemented),0.48,,0.6,0.68,0.5773,0.592,
