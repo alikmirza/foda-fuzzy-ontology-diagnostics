@@ -1,0 +1,21 @@
+{
+  "title": "FODA-FCP: fuzzy-ontology diagnostic analysis for microservices",
+  "upload_type": "software",
+  "creators": [
+    {
+      "name": "Mirzazada, Allahshukur",
+      "affiliation": "Azerbaijan State Oil and Industry University"
+    }
+  ],
+  "description": "<p>Software, per-case results and supplements for FODA-FCP, a knowledge-based root-cause analysis method for microservices that derives a fuzzy fault hypothesis for each service from rules with certainty factors, propagates confidence over a service graph, and explains the ranking with an OWL 2 diagnostic ontology.</p><p>The repository contains the evaluated implementation, the harness for the RCAEval RE1 benchmark, the scripts and per-case result files behind the reported tables (aggregation operators, weight normalisation, direction of propagation, inferred and trace-measured call graphs, saturation bounds, explanation measures), and the generated supplement <code>docs/kes2027_supplement.md</code>. <code>RESULTS_PROVENANCE.md</code> records the commit and script behind each result file.</p>",
+  "license": "Apache-2.0",
+  "keywords": [
+    "root-cause analysis",
+    "microservices",
+    "fuzzy logic",
+    "t-conorms",
+    "evidence propagation",
+    "ontology",
+    "explainability"
+  ]
+}

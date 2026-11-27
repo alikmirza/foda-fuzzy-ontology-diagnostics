@@ -1,0 +1,43 @@
+statement,system,checks,violations,worst_margin,runs_showing_it
+P1a monotone,re1-ob,33000,0.0,-1.1102230246251565e-16,
+COR budget: 1-C >= (1-maxH)(1-delta),re1-ob,30960,0.0,0.0,
+COR budget: floor > 1e-12,re1-ob,2570,0.0,0.0,
+COR budget: max H <= 0.95,re1-ob,2570,0.0,0.0,
+"P3 bracket, necessary side",re1-ob,99396,0.0,0.0,
+"P3 bracket, sufficient side",re1-ob,99396,0.0,-2.220446049250313e-16,
+P2 top block unchanged,re1-ob,4009,0.0,0.0,
+P2 no value above max H,re1-ob,4009,0.0,0.0,
+P4 max <= probsum,re1-ob,4125,0.0,-8.326672684688674e-17,
+P4 probsum <= einstein,re1-ob,4125,0.0,-1.3877787807814457e-16,
+P4 einstein <= bounded,re1-ob,4125,0.0,0.0,
+P1b contraction,re1-ob,7842,0.0,-1.1102230246251565e-16,
+P1a monotone,re1-ss,33000,0.0,-2.220446049250313e-16,
+"P3 bracket, necessary side",re1-ss,123816,0.0,0.0,
+"P3 bracket, sufficient side",re1-ss,123816,0.0,-3.3306690738754696e-16,
+P2 top block unchanged,re1-ss,4019,0.0,0.0,
+P2 no value above max H,re1-ss,4019,0.0,0.0,
+P4 max <= probsum,re1-ss,4125,0.0,-9.020562075079397e-17,
+P4 probsum <= einstein,re1-ss,4125,0.0,-1.1102230246251565e-16,
+P4 einstein <= bounded,re1-ss,4125,0.0,0.0,
+P1b contraction,re1-ss,10726,0.0,-1.3877787807814457e-16,
+COR budget: 1-C >= (1-maxH)(1-delta),re1-ss,37820,0.0,0.0,
+COR budget: floor > 1e-12,re1-ss,2520,0.0,0.0,
+COR budget: max H <= 0.95,re1-ss,2520,0.0,0.0,
+P1a monotone,re1-tt,33000,0.0,-4.440892098500626e-16,
+"P3 bracket, necessary side",re1-tt,528000,0.0,-9.64939933512099e-17,
+"P3 bracket, sufficient side",re1-tt,528000,0.0,-6.661338147750939e-16,
+P2 top block unchanged,re1-tt,4020,0.0,0.0,
+P2 no value above max H,re1-tt,4020,0.0,0.0,
+P4 max <= probsum,re1-tt,4125,0.0,-1.1102230246251565e-16,
+P4 probsum <= einstein,re1-tt,4125,0.0,-1.1102230246251565e-16,
+P4 einstein <= bounded,re1-tt,4125,0.0,0.0,
+P1b contraction,re1-tt,19823,0.0,-9.443400922348744e-17,
+COR budget: 1-C >= (1-maxH)(1-delta),re1-tt,160000,0.0,0.0,
+COR budget: floor > 1e-12,re1-tt,2500,0.0,0.0,
+COR budget: max H <= 0.95,re1-tt,2500,0.0,0.0,
+P1d uninorm: runs with a decreasing step,re1-ob,4125,,,2082.0
+P1d uninorm: runs ending below H at some service,re1-ob,4125,,,1944.0
+P1d uninorm: runs with a decreasing step,re1-ss,4125,,,2475.0
+P1d uninorm: runs ending below H at some service,re1-ss,4125,,,2351.0
+P1d uninorm: runs with a decreasing step,re1-tt,4125,,,3102.0
+P1d uninorm: runs ending below H at some service,re1-tt,4125,,,3044.0
