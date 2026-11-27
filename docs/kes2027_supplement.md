@@ -478,6 +478,31 @@ The necessary bound, the out-degree and the weight sum as predictors of which se
 | RE1-TT | einstein | 8000 | 2666 | 0.9983 | 0.9889 | 0.9970 | 0.9823 | 1.0000 | 125 | 92 | 0.9900 | 0.9756 | 0.9792 |
 | RE1-TT | bounded | 8000 | 4789 | 0.9848 | 0.9822 | 0.9826 | 0.9074 | 1.0000 | 125 | 94 | 0.9876 | 0.9739 | 0.9780 |
 
+Runs that stopped at the cap of 100 rounds, of all runs of the direction experiment (129 in total), by operator and damping. Proposition 1 covers the t-conorm compositions and the weighted mean (`mean`), whose iterations are monotone and converge, if slowly at damping near 1; it does not cover the uninorm.
+
+| operator | delta | runs |
+|---|---|---|
+| bounded | 0.65 | 1 |
+| bounded | 0.75 | 1 |
+| bounded | 0.95 | 9 |
+| bounded | 1.00 | 6 |
+| bounded_dual | 0.75 | 1 |
+| bounded_dual | 0.95 | 1 |
+| einstein | 0.95 | 3 |
+| einstein | 1.00 | 3 |
+| einstein_dual | 0.50 | 1 |
+| einstein_dual | 0.85 | 1 |
+| einstein_dual | 0.95 | 1 |
+| einstein_dual | 1.00 | 1 |
+| mean | 0.95 | 15 |
+| mean | 1.00 | 75 |
+| probsum | 0.95 | 1 |
+| probsum | 1.00 | 3 |
+| uninorm | 0.65 | 1 |
+| uninorm | 0.75 | 1 |
+| uninorm | 0.95 | 2 |
+| uninorm | 1.00 | 2 |
+
 ## S10. Direction of propagation and call graphs
 
 Probabilistic sum at damping 0.85, no guidance, against local evidence (expected AC@1):
@@ -674,6 +699,26 @@ Re-implementations under the same contract (injection time withheld); they are n
 | RE1-TT | MonitorRank (re-implemented) | 0.480 |  | 0.600 | 0.680 | 0.577 | 0.136 | 0.000 | 0.280 |
 | RE1-TT | yRCA (re-implemented) | 0.104 |  | 0.272 | 0.456 | 0.250 | -0.240 | -0.336 | -0.144 |
 | RE1-TT | DejaVu (supervised) (re-implemented) | 0.744 |  | 0.936 | 0.984 | 0.844 | 0.400 | 0.304 | 0.488 |
+
+Agreement of the rule-free ranker (largest absolute z-score, unbounded) with each re-implemented method: `same_outcome_share` is the share of cases in which both place the root cause first or both do not.
+
+| system | baseline | baseline_ac1 | anomaly_max_rawz_ac1 | same_outcome_share |
+|---|---|---|---|---|
+| RE1-OB | microrca | 0.624 | 0.624 | 0.984 |
+| RE1-OB | monitorrank | 0.632 | 0.624 | 0.960 |
+| RE1-OB | causalrca | 0.624 | 0.624 | 1.000 |
+| RE1-OB | baro | 0.536 | 0.624 | 0.704 |
+| RE1-OB | yrca | 0.328 | 0.624 | 0.640 |
+| RE1-SS | microrca | 0.648 | 0.648 | 0.968 |
+| RE1-SS | monitorrank | 0.656 | 0.648 | 0.928 |
+| RE1-SS | causalrca | 0.656 | 0.648 | 0.992 |
+| RE1-SS | baro | 0.584 | 0.648 | 0.680 |
+| RE1-SS | yrca | 0.256 | 0.648 | 0.560 |
+| RE1-TT | microrca | 0.456 | 0.472 | 0.984 |
+| RE1-TT | monitorrank | 0.480 | 0.472 | 0.960 |
+| RE1-TT | causalrca | 0.472 | 0.472 | 1.000 |
+| RE1-TT | baro | 0.392 | 0.472 | 0.728 |
+| RE1-TT | yrca | 0.104 | 0.472 | 0.616 |
 
 Lower-rank measures under the pessimistic tie rule (Avg@5 is the mean of AC@1 to AC@5), with the expected values under random tie-breaking where the tie block is recorded (`scripts/kes_lower_ranks.py`):
 
@@ -931,3 +976,23 @@ Controls for a prior on much-called services (`scripts/tracegraph_controls.py`; 
 | propagated_minus_permuted_lo | -0.010 | -0.023 | 0.029 |
 | propagated_minus_permuted_hi | 0.054 | 0.030 | 0.117 |
 | propagated_minus_permuted_p | 0.232 | 0.764 | 0.001 |
+
+Fault targets in the call graphs: number of callers, and expected AC@1 over the target's 25 cases. A target with no caller (the Train Ticket authentication service, which has no edge in the traces) cannot gain in the reversed direction.
+
+| system | fault target | callers | local | propagated | degree_tiebreak |
+|---|---|---|---|---|---|
+| RE1-OB | adservice | 1 | 0.613 | 0.620 | 0.600 |
+| RE1-OB | cartservice | 2 | 0.547 | 0.593 | 0.560 |
+| RE1-OB | checkoutservice | 1 | 0.721 | 0.693 | 0.700 |
+| RE1-OB | currencyservice | 2 | 0.470 | 0.617 | 0.580 |
+| RE1-OB | productcatalogservice | 3 | 0.540 | 0.740 | 0.840 |
+| RE1-SS | carts | 2 | 0.447 | 0.664 | 0.760 |
+| RE1-SS | catalogue | 1 | 0.520 | 0.447 | 0.440 |
+| RE1-SS | orders | 1 | 0.367 | 0.244 | 0.240 |
+| RE1-SS | payment | 1 | 0.289 | 0.269 | 0.220 |
+| RE1-SS | user | 2 | 0.479 | 0.599 | 0.673 |
+| RE1-TT | ts-auth-service | 0 | 0.635 | 0.602 | 0.600 |
+| RE1-TT | ts-order-service | 5 | 0.343 | 0.525 | 0.440 |
+| RE1-TT | ts-route-service | 3 | 0.353 | 0.385 | 0.300 |
+| RE1-TT | ts-train-service | 3 | 0.390 | 0.563 | 0.400 |
+| RE1-TT | ts-travel-service | 4 | 0.457 | 0.604 | 0.560 |

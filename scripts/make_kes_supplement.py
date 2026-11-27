@@ -131,6 +131,12 @@ def main() -> int:
             "The necessary bound, the out-degree and the weight sum as predictors of which services saturate "
             "(area under the ROC curve), and the bound as a yes/no rule, at damping 0.85:", "",
             md(p[p.delta == 0.85].drop(columns=["delta"]), digits=4), ""]
+    cap = pd.read_csv(RESULTS / "direction_variants_per_case.csv.gz", usecols=["operator", "delta", "hit_cap"])
+    cap = cap[cap.hit_cap].groupby(["operator", "delta"]).size().rename("runs").reset_index()
+    out += [f"Runs that stopped at the cap of 100 rounds, of all runs of the direction experiment "
+            f"({int(cap.runs.sum())} in total), by operator and damping. Proposition 1 covers the t-conorm "
+            "compositions and the weighted mean (`mean`), whose iterations are monotone and converge, if slowly "
+            "at damping near 1; it does not cover the uninorm.", "", md(cap, digits=2), ""]
 
     d = pd.read_csv(RESULTS / "direction_variants_tests.csv"); d["system"] = d["system"].map(SYSTEM)
     c = pd.read_csv(RESULTS / "direction_variants_summary.csv")
@@ -159,6 +165,10 @@ def main() -> int:
             "Re-implementations under the same contract (injection time withheld); they are not the published "
             "figures. `ac1_diff_vs_local` compares pessimistic AC@1 with FCP's local evidence.", "", md(bl), ""]
 
+    ag = pd.read_csv(RESULTS / "rule_learning_baseline_agreement.csv"); ag["system"] = ag["system"].map(SYSTEM)
+    out += ["Agreement of the rule-free ranker (largest absolute z-score, unbounded) with each re-implemented "
+            "method: `same_outcome_share` is the share of cases in which both place the root cause first or both "
+            "do not.", "", md(ag), ""]
     lr = pd.read_csv(RESULTS / "kes_lower_ranks.csv"); lr["system"] = lr["system"].map(SYSTEM)
     pb = pd.read_csv(RESULTS / "kes_published_baselines.csv"); pb["system"] = pb["system"].map(SYSTEM)
     for c in ("cpu", "mem", "disk", "delay", "loss"):
@@ -209,6 +219,15 @@ def main() -> int:
             "evidence drawn from a random relabelling of the services (200 permutations). `one_step` is the update "
             "without iteration.", "",
             md(tc.set_index("system").T.reset_index().rename(columns={"index": "quantity"})), ""]
+    pc = pd.read_csv(RESULTS / "tracegraph_controls_per_case.csv"); pc["system"] = pc["system"].map(SYSTEM)
+    pc["fault target"] = pc.scenario.str.rsplit("_", n=1).str[0]
+    cv = (pc.groupby(["system", "fault target"], sort=False)
+            .agg(callers=("root_callers", "first"), local=("local", "mean"), propagated=("propagated", "mean"),
+                 degree_tiebreak=("degree_tiebreak", "mean")).reset_index())
+    cv["callers"] = cv["callers"].astype(int)
+    out += ["Fault targets in the call graphs: number of callers, and expected AC@1 over the target's 25 cases. "
+            "A target with no caller (the Train Ticket authentication service, which has no edge in the traces) "
+            "cannot gain in the reversed direction.", "", md(cv), ""]
 
     dst = ROOT / "docs" / "kes2027_supplement.md"
     dst.parent.mkdir(exist_ok=True)
